@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 const items = [
   { to: "/account", label: "Overview" },
+  { to: "/game", label: "Crash game" },
   { to: "/wallet", label: "Wallet" },
   { to: "/profile", label: "Profile" },
   { to: "/security", label: "Security" },
