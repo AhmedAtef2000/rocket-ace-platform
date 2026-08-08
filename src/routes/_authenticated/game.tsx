@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cashOut, getGameState, placeBet } from "@/lib/game.functions";
 import { formatMultiplier, multiplierAt } from "@/lib/game-math";
+import { useGameRealtime } from "@/hooks/useGameRealtime";
 
 const title = "Crash Game — Rocket Flight";
 const description =
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/_authenticated/game")({
 
 function GamePage() {
   const queryClient = useQueryClient();
+  useGameRealtime();
   const fetchState = useServerFn(getGameState);
   const bet = useServerFn(placeBet);
   const cash = useServerFn(cashOut);
@@ -43,7 +45,9 @@ function GamePage() {
   const state = useQuery({
     queryKey: ["game", "state"],
     queryFn: async () => fetchState({ data: undefined }),
-    refetchInterval: 900,
+    // Heartbeat that also drives the server round loop; realtime handles
+    // instant transitions between beats.
+    refetchInterval: 1500,
     refetchIntervalInBackground: true,
   });
 
