@@ -30,7 +30,7 @@ const phases: { label: string; state: "done" | "next" | "planned" }[] = [
   { label: "Phase 9 — Betting & cashout", state: "done" },
   { label: "Phase 10 — Real-time broadcast", state: "done" },
   { label: "Phase 11 — Compliance & KYC gating", state: "done" },
-  { label: "Phase 12 — Crypto deposits & withdrawals", state: "next" },
+  { label: "Phase 12 — Crypto deposits & withdrawals", state: "done" },
 ];
 
 const guarantees = [
