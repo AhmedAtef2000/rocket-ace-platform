@@ -14,12 +14,15 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedComplianceRouteImport } from './routes/_authenticated/compliance'
 import { Route as AuthenticatedGameRouteImport } from './routes/_authenticated/game'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedResponsibleGamblingRouteImport } from './routes/_authenticated/responsible-gambling'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
+import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
 
@@ -47,6 +50,11 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedComplianceRoute = AuthenticatedComplianceRouteImport.update({
   id: '/compliance',
   path: '/compliance',
@@ -57,6 +65,12 @@ const AuthenticatedGameRoute = AuthenticatedGameRouteImport.update({
   path: '/game',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
@@ -78,6 +92,11 @@ const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
@@ -95,12 +114,15 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/compliance': typeof AuthenticatedComplianceRoute
   '/game': typeof AuthenticatedGameRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/responsible-gambling': typeof AuthenticatedResponsibleGamblingRoute
   '/security': typeof AuthenticatedSecurityRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -109,12 +131,15 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/compliance': typeof AuthenticatedComplianceRoute
   '/game': typeof AuthenticatedGameRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/responsible-gambling': typeof AuthenticatedResponsibleGamblingRoute
   '/security': typeof AuthenticatedSecurityRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -125,12 +150,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/compliance': typeof AuthenticatedComplianceRoute
   '/_authenticated/game': typeof AuthenticatedGameRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/responsible-gambling': typeof AuthenticatedResponsibleGamblingRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
+  '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -141,12 +169,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/account'
+    | '/admin'
     | '/compliance'
     | '/game'
+    | '/notifications'
     | '/payments'
     | '/profile'
     | '/responsible-gambling'
     | '/security'
+    | '/support'
     | '/wallet'
     | '/api/public/payments-webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -155,12 +186,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/account'
+    | '/admin'
     | '/compliance'
     | '/game'
+    | '/notifications'
     | '/payments'
     | '/profile'
     | '/responsible-gambling'
     | '/security'
+    | '/support'
     | '/wallet'
     | '/api/public/payments-webhook'
   id:
@@ -170,12 +204,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/account'
+    | '/_authenticated/admin'
     | '/_authenticated/compliance'
     | '/_authenticated/game'
+    | '/_authenticated/notifications'
     | '/_authenticated/payments'
     | '/_authenticated/profile'
     | '/_authenticated/responsible-gambling'
     | '/_authenticated/security'
+    | '/_authenticated/support'
     | '/_authenticated/wallet'
     | '/api/public/payments-webhook'
   fileRoutesById: FileRoutesById
@@ -225,6 +262,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/compliance': {
       id: '/_authenticated/compliance'
       path: '/compliance'
@@ -237,6 +281,13 @@ declare module '@tanstack/react-router' {
       path: '/game'
       fullPath: '/game'
       preLoaderRoute: typeof AuthenticatedGameRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payments': {
@@ -267,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSecurityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/support': {
+      id: '/_authenticated/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof AuthenticatedSupportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/wallet': {
       id: '/_authenticated/wallet'
       path: '/wallet'
@@ -286,23 +344,29 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedComplianceRoute: typeof AuthenticatedComplianceRoute
   AuthenticatedGameRoute: typeof AuthenticatedGameRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedResponsibleGamblingRoute: typeof AuthenticatedResponsibleGamblingRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
+  AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedComplianceRoute: AuthenticatedComplianceRoute,
   AuthenticatedGameRoute: AuthenticatedGameRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedResponsibleGamblingRoute: AuthenticatedResponsibleGamblingRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
+  AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
 }
 

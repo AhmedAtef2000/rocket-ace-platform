@@ -9,6 +9,9 @@ const items = [
   { to: "/compliance", label: "Verification" },
   { to: "/security", label: "Security" },
   { to: "/responsible-gambling", label: "Responsible gambling" },
+  { to: "/notifications", label: "Notifications" },
+  { to: "/support", label: "Support" },
+  { to: "/admin", label: "Back office" },
 ] as const;
 
 export function AccountNav() {

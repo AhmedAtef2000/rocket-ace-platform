@@ -1630,6 +1630,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_bootstrap_super_admin: {
+        Args: { _user_id: string }
+        Returns: string
+      }
       ensure_ledger_account: {
         Args: {
           _account_type: Database["public"]["Enums"]["ledger_account_type"]

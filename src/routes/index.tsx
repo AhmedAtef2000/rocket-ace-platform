@@ -31,7 +31,9 @@ const phases: { label: string; state: "done" | "next" | "planned" }[] = [
   { label: "Phase 10 — Real-time broadcast", state: "done" },
   { label: "Phase 11 — Compliance & KYC gating", state: "done" },
   { label: "Phase 12 — Crypto deposits & withdrawals", state: "done" },
-  { label: "Phase 13 — Risk & fraud engine", state: "next" },
+  { label: "Phase 13 — Risk & fraud engine", state: "done" },
+  { label: "Phase 14 — Support desk & notifications", state: "done" },
+  { label: "Phase 15 — Admin RBAC back office", state: "done" },
 ];
 
 const guarantees = [

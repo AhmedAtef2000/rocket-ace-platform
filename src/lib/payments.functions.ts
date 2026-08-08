@@ -250,6 +250,18 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       });
     }
 
+    // Phase 13 — automated risk scoring holds suspicious payouts for review.
+    const { buildRiskProfile, recordRiskProfile } = await import("@/lib/risk.server");
+    const profile = await buildRiskProfile(supabaseAdmin, userId);
+    await recordRiskProfile(supabaseAdmin, profile, "PAYMENTS");
+    if (!dualApproval && profile.score >= 55) {
+      await supabaseAdmin
+        .from("withdrawals")
+        .update({ status: "RISK_REVIEW", risk_status: profile.severity })
+        .eq("id", withdrawal.id)
+        .eq("status", "REQUESTED");
+    }
+
     await auditPayments(supabaseAdmin, {
       actorId: userId,
       action: "withdrawal.requested",
