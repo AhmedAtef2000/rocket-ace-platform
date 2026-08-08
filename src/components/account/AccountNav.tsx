@@ -4,6 +4,7 @@ const items = [
   { to: "/account", label: "Overview" },
   { to: "/game", label: "Crash game" },
   { to: "/wallet", label: "Wallet" },
+  { to: "/payments", label: "Deposits & withdrawals" },
   { to: "/profile", label: "Profile" },
   { to: "/compliance", label: "Verification" },
   { to: "/security", label: "Security" },
