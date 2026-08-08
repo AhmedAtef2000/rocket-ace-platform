@@ -86,9 +86,9 @@ export const updateProfile = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
 
-    const identityPatch: Record<string, string> = {};
-    if (!current?.country_code && data.country_code) identityPatch["country_code"] = data.country_code;
-    if (!current?.date_of_birth && data.date_of_birth) identityPatch["date_of_birth"] = data.date_of_birth;
+    const identityPatch: { country_code?: string; date_of_birth?: string } = {};
+    if (!current?.country_code && data.country_code) identityPatch.country_code = data.country_code;
+    if (!current?.date_of_birth && data.date_of_birth) identityPatch.date_of_birth = data.date_of_birth;
 
     if (Object.keys(identityPatch).length > 0) {
       const { error } = await supabaseAdmin.from("users").update(identityPatch).eq("id", userId);
@@ -104,8 +104,8 @@ export const updateProfile = createServerFn({ method: "POST" })
     return {
       ok: true as const,
       identityLocked: {
-        country: !!(current?.country_code ?? identityPatch["country_code"]),
-        dateOfBirth: !!(current?.date_of_birth ?? identityPatch["date_of_birth"]),
+        country: !!(current?.country_code ?? identityPatch.country_code),
+        dateOfBirth: !!(current?.date_of_birth ?? identityPatch.date_of_birth),
       },
     };
   });
