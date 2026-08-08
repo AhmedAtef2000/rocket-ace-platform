@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedGameRouteImport } from './routes/_authenticated/game'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedResponsibleGamblingRouteImport } from './routes/_authenticated/responsible-gambling'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
@@ -43,6 +44,11 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGameRoute = AuthenticatedGameRouteImport.update({
+  id: '/game',
+  path: '/game',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/game': typeof AuthenticatedGameRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/responsible-gambling': typeof AuthenticatedResponsibleGamblingRoute
   '/security': typeof AuthenticatedSecurityRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/game': typeof AuthenticatedGameRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/responsible-gambling': typeof AuthenticatedResponsibleGamblingRoute
   '/security': typeof AuthenticatedSecurityRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/game': typeof AuthenticatedGameRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/responsible-gambling': typeof AuthenticatedResponsibleGamblingRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/account'
+    | '/game'
     | '/profile'
     | '/responsible-gambling'
     | '/security'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/account'
+    | '/game'
     | '/profile'
     | '/responsible-gambling'
     | '/security'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/account'
+    | '/_authenticated/game'
     | '/_authenticated/profile'
     | '/_authenticated/responsible-gambling'
     | '/_authenticated/security'
@@ -175,6 +187,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/game': {
+      id: '/_authenticated/game'
+      path: '/game'
+      fullPath: '/game'
+      preLoaderRoute: typeof AuthenticatedGameRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -208,6 +227,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedGameRoute: typeof AuthenticatedGameRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedResponsibleGamblingRoute: typeof AuthenticatedResponsibleGamblingRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
@@ -216,6 +236,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedGameRoute: AuthenticatedGameRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedResponsibleGamblingRoute: AuthenticatedResponsibleGamblingRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,

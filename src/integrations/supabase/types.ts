@@ -1640,6 +1640,21 @@ export type Database = {
         }
         Returns: string
       }
+      game_cancel_round: { Args: { _round_id: string }; Returns: Json }
+      game_cash_out: {
+        Args: { _bet_id: string; _multiplier: number; _user_id: string }
+        Returns: Json
+      }
+      game_place_bet: {
+        Args: {
+          _amount: number
+          _auto_cashout?: number
+          _round_id: string
+          _user_id: string
+        }
+        Returns: string
+      }
+      game_settle_round: { Args: { _round_id: string }; Returns: Json }
       has_admin_role: {
         Args: { _role: string; _user_id: string }
         Returns: boolean
