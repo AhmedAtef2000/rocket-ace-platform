@@ -28,7 +28,8 @@ const phases: { label: string; state: "done" | "next" | "planned" }[] = [
   { label: "Phase 7 — Demo game engine", state: "done" },
   { label: "Phase 8 — Provably-fair engine", state: "done" },
   { label: "Phase 9 — Betting & cashout", state: "done" },
-  { label: "Phase 10 — Real-time broadcast", state: "next" },
+  { label: "Phase 10 — Real-time broadcast", state: "done" },
+  { label: "Phase 11 — Compliance & KYC gating", state: "next" },
 ];
 
 const guarantees = [
