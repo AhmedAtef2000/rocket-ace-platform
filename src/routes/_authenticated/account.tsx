@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getAccount, provisionAccount } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
+import { AccountNav } from "@/components/account/AccountNav";
+import { SessionRegistrar } from "@/components/account/SessionRegistrar";
 
 const title = "Your account — Rocket Flight";
 const description =
@@ -61,6 +63,7 @@ function AccountPage() {
 
   return (
     <main className="min-h-screen bg-background px-4 py-10">
+      <SessionRegistrar />
       <div className="mx-auto w-full max-w-2xl">
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold text-foreground">Your account</h1>
@@ -68,6 +71,8 @@ function AccountPage() {
             Sign out
           </Button>
         </div>
+
+        <AccountNav />
 
         {account.isPending ? (
           <p className="mt-6 text-sm text-muted-foreground">Loading your account…</p>
