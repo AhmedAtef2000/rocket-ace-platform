@@ -70,6 +70,137 @@ export type Database = {
           },
         ]
       }
+      bets: {
+        Row: {
+          amount: number
+          auto_cashout_multiplier: number | null
+          cashout_at: string | null
+          cashout_multiplier: number | null
+          created_at: string
+          currency: string
+          id: string
+          kind: Database["public"]["Enums"]["wallet_kind"]
+          payout_amount: number | null
+          placed_at: string
+          round_id: string
+          status: Database["public"]["Enums"]["bet_status"]
+          updated_at: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          auto_cashout_multiplier?: number | null
+          cashout_at?: string | null
+          cashout_multiplier?: number | null
+          created_at?: string
+          currency: string
+          id?: string
+          kind?: Database["public"]["Enums"]["wallet_kind"]
+          payout_amount?: number | null
+          placed_at?: string
+          round_id: string
+          status?: Database["public"]["Enums"]["bet_status"]
+          updated_at?: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          auto_cashout_multiplier?: number | null
+          cashout_at?: string | null
+          cashout_multiplier?: number | null
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["wallet_kind"]
+          payout_amount?: number | null
+          placed_at?: string
+          round_id?: string
+          status?: Database["public"]["Enums"]["bet_status"]
+          updated_at?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bets_currency_fkey"
+            columns: ["currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "bets_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "game_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bets_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cashouts: {
+        Row: {
+          bet_id: string
+          currency: string
+          id: string
+          multiplier: number
+          payout_amount: number
+          round_id: string
+          settled_at: string
+          user_id: string
+        }
+        Insert: {
+          bet_id: string
+          currency: string
+          id?: string
+          multiplier: number
+          payout_amount: number
+          round_id: string
+          settled_at?: string
+          user_id: string
+        }
+        Update: {
+          bet_id?: string
+          currency?: string
+          id?: string
+          multiplier?: number
+          payout_amount?: number
+          round_id?: string
+          settled_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cashouts_bet_id_fkey"
+            columns: ["bet_id"]
+            isOneToOne: true
+            referencedRelation: "bets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cashouts_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "game_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       currencies: {
         Row: {
           code: string
@@ -135,6 +266,151 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
+          },
+        ]
+      }
+      game_configurations: {
+        Row: {
+          active: boolean
+          algorithm_version: string
+          betting_duration_ms: number
+          crash_growth_rate: number
+          created_at: string
+          created_by: string | null
+          house_edge_bps: number
+          id: string
+          max_bet: number
+          max_crash_multiplier: number
+          max_exposure: number
+          max_payout: number
+          min_bet: number
+          version: number
+        }
+        Insert: {
+          active?: boolean
+          algorithm_version?: string
+          betting_duration_ms?: number
+          crash_growth_rate?: number
+          created_at?: string
+          created_by?: string | null
+          house_edge_bps?: number
+          id?: string
+          max_bet: number
+          max_crash_multiplier?: number
+          max_exposure: number
+          max_payout: number
+          min_bet: number
+          version: number
+        }
+        Update: {
+          active?: boolean
+          algorithm_version?: string
+          betting_duration_ms?: number
+          crash_growth_rate?: number
+          created_at?: string
+          created_by?: string | null
+          house_edge_bps?: number
+          id?: string
+          max_bet?: number
+          max_crash_multiplier?: number
+          max_exposure?: number
+          max_payout?: number
+          min_bet?: number
+          version?: number
+        }
+        Relationships: []
+      }
+      game_results: {
+        Row: {
+          crash_multiplier: number
+          created_at: string
+          id: string
+          players: number
+          round_id: string
+          total_payout: number
+          total_wagered: number
+        }
+        Insert: {
+          crash_multiplier: number
+          created_at?: string
+          id?: string
+          players?: number
+          round_id: string
+          total_payout?: number
+          total_wagered?: number
+        }
+        Update: {
+          crash_multiplier?: number
+          created_at?: string
+          id?: string
+          players?: number
+          round_id?: string
+          total_payout?: number
+          total_wagered?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_results_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: true
+            referencedRelation: "game_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_rounds: {
+        Row: {
+          betting_closed_at: string | null
+          betting_open_at: string | null
+          config_version: number
+          crash_multiplier: number | null
+          crashed_at: string | null
+          created_at: string
+          id: string
+          round_number: string
+          settled_at: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["round_status"]
+          total_payout: number
+          total_wagered: number
+        }
+        Insert: {
+          betting_closed_at?: string | null
+          betting_open_at?: string | null
+          config_version: number
+          crash_multiplier?: number | null
+          crashed_at?: string | null
+          created_at?: string
+          id?: string
+          round_number: string
+          settled_at?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["round_status"]
+          total_payout?: number
+          total_wagered?: number
+        }
+        Update: {
+          betting_closed_at?: string | null
+          betting_open_at?: string | null
+          config_version?: number
+          crash_multiplier?: number | null
+          crashed_at?: string | null
+          created_at?: string
+          id?: string
+          round_number?: string
+          settled_at?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["round_status"]
+          total_payout?: number
+          total_wagered?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_rounds_config_version_fkey"
+            columns: ["config_version"]
+            isOneToOne: false
+            referencedRelation: "game_configurations"
+            referencedColumns: ["version"]
           },
         ]
       }
@@ -289,6 +565,53 @@ export type Database = {
           key?: string
         }
         Relationships: []
+      }
+      provably_fair_seeds: {
+        Row: {
+          algorithm_version: string
+          client_seed: string
+          created_at: string
+          id: string
+          nonce: number
+          revealed_at: string | null
+          round_id: string
+          server_seed_encrypted: string
+          server_seed_hash: string
+          server_seed_revealed: string | null
+        }
+        Insert: {
+          algorithm_version?: string
+          client_seed: string
+          created_at?: string
+          id?: string
+          nonce: number
+          revealed_at?: string | null
+          round_id: string
+          server_seed_encrypted: string
+          server_seed_hash: string
+          server_seed_revealed?: string | null
+        }
+        Update: {
+          algorithm_version?: string
+          client_seed?: string
+          created_at?: string
+          id?: string
+          nonce?: number
+          revealed_at?: string | null
+          round_id?: string
+          server_seed_encrypted?: string
+          server_seed_hash?: string
+          server_seed_revealed?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provably_fair_seeds_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: true
+            referencedRelation: "game_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
@@ -468,7 +791,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      fairness_public: {
+        Row: {
+          algorithm_version: string | null
+          client_seed: string | null
+          crash_multiplier: number | null
+          crashed_at: string | null
+          nonce: number | null
+          revealed_at: string | null
+          round_id: string | null
+          round_number: string | null
+          server_seed_hash: string | null
+          server_seed_revealed: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provably_fair_seeds_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: true
+            referencedRelation: "game_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_admin_role: {
@@ -481,6 +826,14 @@ export type Database = {
       }
     }
     Enums: {
+      bet_status:
+        | "PENDING"
+        | "ACCEPTED"
+        | "ACTIVE"
+        | "CASHED_OUT"
+        | "LOST"
+        | "REFUNDED"
+        | "CANCELLED"
       ledger_account_type:
         | "USER_WALLET"
         | "USER_LOCKED"
@@ -490,6 +843,14 @@ export type Database = {
         | "FEE"
       ledger_direction: "DEBIT" | "CREDIT"
       ledger_owner_type: "USER" | "SYSTEM" | "PROVIDER"
+      round_status:
+        | "CREATED"
+        | "BETTING"
+        | "RUNNING"
+        | "CRASHED"
+        | "SETTLING"
+        | "SETTLED"
+        | "CANCELLED"
       user_status:
         | "PENDING_VERIFICATION"
         | "ACTIVE"
@@ -626,6 +987,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      bet_status: [
+        "PENDING",
+        "ACCEPTED",
+        "ACTIVE",
+        "CASHED_OUT",
+        "LOST",
+        "REFUNDED",
+        "CANCELLED",
+      ],
       ledger_account_type: [
         "USER_WALLET",
         "USER_LOCKED",
@@ -636,6 +1006,15 @@ export const Constants = {
       ],
       ledger_direction: ["DEBIT", "CREDIT"],
       ledger_owner_type: ["USER", "SYSTEM", "PROVIDER"],
+      round_status: [
+        "CREATED",
+        "BETTING",
+        "RUNNING",
+        "CRASHED",
+        "SETTLING",
+        "SETTLED",
+        "CANCELLED",
+      ],
       user_status: [
         "PENDING_VERIFICATION",
         "ACTIVE",
