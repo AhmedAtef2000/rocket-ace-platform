@@ -566,6 +566,32 @@ export type Database = {
         }
         Relationships: []
       }
+      provably_fair_secrets: {
+        Row: {
+          created_at: string
+          round_id: string
+          server_seed_encrypted: string
+        }
+        Insert: {
+          created_at?: string
+          round_id: string
+          server_seed_encrypted: string
+        }
+        Update: {
+          created_at?: string
+          round_id?: string
+          server_seed_encrypted?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provably_fair_secrets_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: true
+            referencedRelation: "game_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       provably_fair_seeds: {
         Row: {
           algorithm_version: string
@@ -575,7 +601,6 @@ export type Database = {
           nonce: number
           revealed_at: string | null
           round_id: string
-          server_seed_encrypted: string
           server_seed_hash: string
           server_seed_revealed: string | null
         }
@@ -587,7 +612,6 @@ export type Database = {
           nonce: number
           revealed_at?: string | null
           round_id: string
-          server_seed_encrypted: string
           server_seed_hash: string
           server_seed_revealed?: string | null
         }
@@ -599,7 +623,6 @@ export type Database = {
           nonce?: number
           revealed_at?: string | null
           round_id?: string
-          server_seed_encrypted?: string
           server_seed_hash?: string
           server_seed_revealed?: string | null
         }
@@ -791,29 +814,7 @@ export type Database = {
       }
     }
     Views: {
-      fairness_public: {
-        Row: {
-          algorithm_version: string | null
-          client_seed: string | null
-          crash_multiplier: number | null
-          crashed_at: string | null
-          nonce: number | null
-          revealed_at: string | null
-          round_id: string | null
-          round_number: string | null
-          server_seed_hash: string | null
-          server_seed_revealed: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "provably_fair_seeds_round_id_fkey"
-            columns: ["round_id"]
-            isOneToOne: true
-            referencedRelation: "game_rounds"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       has_admin_role: {
