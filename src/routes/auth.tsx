@@ -13,7 +13,7 @@ const title = "Sign in — Rocket Flight";
 const description =
   "Access your Rocket Flight account: provably fair crash rounds, wallet, responsible gambling controls and account security.";
 
-type AuthSearch = { redirect?: string };
+type AuthSearch = { redirect?: string | undefined };
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): AuthSearch => ({
