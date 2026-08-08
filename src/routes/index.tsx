@@ -29,7 +29,8 @@ const phases: { label: string; state: "done" | "next" | "planned" }[] = [
   { label: "Phase 8 — Provably-fair engine", state: "done" },
   { label: "Phase 9 — Betting & cashout", state: "done" },
   { label: "Phase 10 — Real-time broadcast", state: "done" },
-  { label: "Phase 11 — Compliance & KYC gating", state: "next" },
+  { label: "Phase 11 — Compliance & KYC gating", state: "done" },
+  { label: "Phase 12 — Crypto deposits & withdrawals", state: "next" },
 ];
 
 const guarantees = [
@@ -103,7 +104,7 @@ function Index() {
               </li>
             ))}
             <li className="pl-5 text-sm text-muted-foreground">
-              Phases 11–22 — compliance, payments, admin, hardening, deployment
+              Phases 13–22 — payments, risk, admin, hardening, deployment
             </li>
           </ul>
         </section>

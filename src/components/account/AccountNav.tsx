@@ -5,6 +5,7 @@ const items = [
   { to: "/game", label: "Crash game" },
   { to: "/wallet", label: "Wallet" },
   { to: "/profile", label: "Profile" },
+  { to: "/compliance", label: "Verification" },
   { to: "/security", label: "Security" },
   { to: "/responsible-gambling", label: "Responsible gambling" },
 ] as const;
