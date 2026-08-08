@@ -1,0 +1,21 @@
+INSERT INTO public.jurisdictions (country_code, name, status, min_age, notes) VALUES
+  ('GB','United Kingdom','ALLOWED',18,'Licence required before real-money launch'),
+  ('IE','Ireland','ALLOWED',18,NULL),
+  ('DE','Germany','ALLOWED',18,NULL),
+  ('CA','Canada','ALLOWED',19,'Provincial variation; 19 used as platform floor'),
+  ('BR','Brazil','ALLOWED',18,NULL),
+  ('ZA','South Africa','ALLOWED',18,NULL),
+  ('JP','Japan','ALLOWED',20,NULL),
+  ('AU','Australia','REVIEW',18,'Interactive Gambling Act restrictions'),
+  ('IN','India','REVIEW',18,'State-level variation'),
+  ('MX','Mexico','REVIEW',18,NULL),
+  ('US','United States','BLOCKED',21,'State-by-state licensing required'),
+  ('FR','France','BLOCKED',18,'Crash games not permitted under ANJ'),
+  ('NL','Netherlands','BLOCKED',18,'KOA licence required'),
+  ('CN','China','BLOCKED',18,NULL),
+  ('IR','Iran','BLOCKED',18,'Sanctions'),
+  ('KP','North Korea','BLOCKED',18,'Sanctions'),
+  ('SY','Syria','BLOCKED',18,'Sanctions'),
+  ('CU','Cuba','BLOCKED',18,'Sanctions'),
+  ('RU','Russia','BLOCKED',18,'Sanctions screening')
+ON CONFLICT (country_code) DO NOTHING;
