@@ -109,7 +109,7 @@ export const decideWithdrawal = createServerFn({ method: "POST" })
     const base = parseDecision(data);
     const decision = (data as { decision?: unknown })?.decision;
     if (decision !== "APPROVE" && decision !== "REJECT") throw new Error("Invalid decision.");
-    return { ...base, decision };
+    return { ...base, decision: decision as "APPROVE" | "REJECT" };
   })
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -276,7 +276,7 @@ export const decideKyc = createServerFn({ method: "POST" })
     const base = parseDecision(data);
     const decision = (data as { decision?: unknown })?.decision;
     if (decision !== "APPROVED" && decision !== "REJECTED") throw new Error("Invalid decision.");
-    return { ...base, decision };
+    return { ...base, decision: decision as "APPROVED" | "REJECTED" };
   })
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -349,7 +349,7 @@ export const resolveRiskEvent = createServerFn({ method: "POST" })
     if (status !== "RESOLVED" && status !== "DISMISSED" && status !== "ESCALATED") {
       throw new Error("Invalid status.");
     }
-    return { ...base, status };
+    return { ...base, status: status as "RESOLVED" | "DISMISSED" | "ESCALATED" };
   })
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
