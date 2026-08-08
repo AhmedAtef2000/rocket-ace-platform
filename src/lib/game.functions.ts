@@ -80,12 +80,13 @@ export const placeBet = createServerFn({ method: "POST" })
       throw new Error("Betting is closed for this round — wait for the next one.");
     }
 
-    const { data: betId, error } = await supabaseAdmin.rpc("game_place_bet", {
+    const args = {
       _user_id: userId,
       _round_id: round.id,
       _amount: data.amount,
-      _auto_cashout: data.autoCashout ?? undefined,
-    });
+      ...(data.autoCashout === null ? {} : { _auto_cashout: data.autoCashout }),
+    };
+    const { data: betId, error } = await supabaseAdmin.rpc("game_place_bet", args);
     if (error) throw new Error(friendly(error.message));
 
     return { betId, roundId: round.id };
