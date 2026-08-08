@@ -81,7 +81,8 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       openRiskEvents: risk.count ?? 0,
       openTickets: tickets.count ?? 0,
       pendingKyc: kyc.count ?? 0,
-      driftedWallets: (drift.data ?? []).length,
+      // wallet_ledger_drift() returns every wallet; only non-zero rows are drift.
+      driftedWallets: (drift.data ?? []).filter((row) => num(row.drift) !== 0).length,
     };
   });
 
