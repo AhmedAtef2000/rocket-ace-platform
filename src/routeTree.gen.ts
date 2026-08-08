@@ -20,6 +20,7 @@ import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedResponsibleGamblingRouteImport } from './routes/_authenticated/responsible-gambling'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
+import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
 
@@ -78,6 +79,11 @@ const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/responsible-gambling': typeof AuthenticatedResponsibleGamblingRoute
   '/security': typeof AuthenticatedSecurityRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/responsible-gambling': typeof AuthenticatedResponsibleGamblingRoute
   '/security': typeof AuthenticatedSecurityRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/responsible-gambling': typeof AuthenticatedResponsibleGamblingRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
+  '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/responsible-gambling'
     | '/security'
+    | '/support'
     | '/wallet'
     | '/api/public/payments-webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/responsible-gambling'
     | '/security'
+    | '/support'
     | '/wallet'
     | '/api/public/payments-webhook'
   id:
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/responsible-gambling'
     | '/_authenticated/security'
+    | '/_authenticated/support'
     | '/_authenticated/wallet'
     | '/api/public/payments-webhook'
   fileRoutesById: FileRoutesById
@@ -267,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSecurityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/support': {
+      id: '/_authenticated/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof AuthenticatedSupportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/wallet': {
       id: '/_authenticated/wallet'
       path: '/wallet'
@@ -292,6 +311,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedResponsibleGamblingRoute: typeof AuthenticatedResponsibleGamblingRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
+  AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
 }
 
@@ -303,6 +323,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedResponsibleGamblingRoute: AuthenticatedResponsibleGamblingRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
+  AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
 }
 
@@ -319,13 +340,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
