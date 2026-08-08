@@ -1630,6 +1630,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ensure_ledger_account: {
+        Args: {
+          _account_type: Database["public"]["Enums"]["ledger_account_type"]
+          _currency: string
+          _kind: Database["public"]["Enums"]["wallet_kind"]
+          _owner_id: string
+          _owner_type: Database["public"]["Enums"]["ledger_owner_type"]
+        }
+        Returns: string
+      }
       has_admin_role: {
         Args: { _role: string; _user_id: string }
         Returns: boolean
@@ -1637,6 +1647,41 @@ export type Database = {
       has_permission: {
         Args: { _permission: string; _user_id: string }
         Returns: boolean
+      }
+      move_wallet_lock: {
+        Args: {
+          _amount: number
+          _entry_type: string
+          _lock: boolean
+          _reference_id?: string
+          _reference_type?: string
+          _wallet_id: string
+        }
+        Returns: string
+      }
+      post_wallet_transaction: {
+        Args: {
+          _amount: number
+          _counter_account_type?: Database["public"]["Enums"]["ledger_account_type"]
+          _direction: Database["public"]["Enums"]["ledger_direction"]
+          _entry_type: string
+          _metadata?: Json
+          _reference_id?: string
+          _reference_type?: string
+          _wallet_id: string
+        }
+        Returns: string
+      }
+      wallet_ledger_drift: {
+        Args: never
+        Returns: {
+          currency: string
+          drift: number
+          ledger_total: number
+          user_id: string
+          wallet_id: string
+          wallet_total: number
+        }[]
       }
     }
     Enums: {
