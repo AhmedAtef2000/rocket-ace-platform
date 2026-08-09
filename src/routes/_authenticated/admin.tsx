@@ -22,6 +22,17 @@ import {
   resolveRiskEvent,
   runRiskScan,
 } from "@/lib/admin.functions";
+import {
+  adminUpdateUserProfile,
+  decideKycDocument,
+  decideManualDeposit,
+  getPlatformSettings,
+  getUserDossier,
+  listManualDeposits,
+  searchUsers,
+  setUserStatus,
+  updatePlatformSettings,
+} from "@/lib/backoffice.functions";
 
 const title = "Back office — AstroBet";
 const description =
@@ -113,6 +124,11 @@ function AdminPage() {
       {identity ? (
         <div className="mt-8 space-y-10">
           {can("analytics.view") ? <OverviewSection /> : null}
+          {can("admin.manage") ? <SettingsSection /> : null}
+          {can("user.view") ? <UsersSection canManage={can("user.suspend")} /> : null}
+          {can("finance.view") ? (
+            <ManualDepositsSection canApprove={can("withdrawal.approve")} />
+          ) : null}
           {can("analytics.view") ? <AnalyticsSection /> : null}
           {can("withdrawal.review") ? <WithdrawalsSection canApprove={can("withdrawal.approve")} /> : null}
           {can("kyc.view") ? <KycSection canDecide={can("kyc.decide")} /> : null}
