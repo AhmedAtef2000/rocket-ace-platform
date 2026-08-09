@@ -7,7 +7,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { checkRegistration, resolveLoginIdentifier } from "@/lib/registration.functions";
 import { passwordProblems } from "@/lib/password";
-import { COUNTRIES, DEFAULT_COUNTRY, composePhone, countryByIso, stripDial } from "@/lib/countries";
+import {
+  COUNTRIES,
+  DEFAULT_COUNTRY,
+  composePhone,
+  countryByIso,
+  isValidLocalPhone,
+  phoneLengthHint,
+  stripDial,
+} from "@/lib/countries";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,6 +81,11 @@ function AuthPage() {
   const problems = passwordProblems(form.password);
   const signUpDial = countryByIso(signUpCountry)?.dial ?? "+1";
   const signInDial = countryByIso(signInCountry)?.dial ?? "+1";
+  const phoneValid = isValidLocalPhone(signUpCountry, form.phone);
+  const phoneError = t("auth.phoneInvalid", {
+    c: countryByIso(signUpCountry)?.name ?? signUpCountry,
+    n: phoneLengthHint(signUpCountry),
+  });
   // Only a purely numeric identifier is treated as a phone number.
   const identifierIsPhone = /^[+\d][\d\s()-]*$/.test(identifier.trim()) && identifier.trim() !== "";
 
@@ -113,6 +126,10 @@ function AuthPage() {
 
   async function handleSignUp(event: React.FormEvent) {
     event.preventDefault();
+    if (!phoneValid) {
+      toast.error(phoneError);
+      return;
+    }
     if (problems.length > 0) {
       toast.error(t("auth.passwordNeeds", { p: problems.join(", ") }));
       return;
@@ -312,7 +329,11 @@ function AuthPage() {
                 value={form.phone}
                 onChange={setField("phone")}
                 autoComplete="tel"
+                invalid={form.phone.length > 0 && !phoneValid}
               />
+              {form.phone.length > 0 && !phoneValid ? (
+                <p className="text-xs text-destructive">{phoneError}</p>
+              ) : null}
               <div className="space-y-1.5">
                 <label
                   htmlFor="signup-currency"
@@ -354,7 +375,7 @@ function AuthPage() {
               {form.confirm && form.confirm !== form.password ? (
                 <p className="text-xs text-destructive">{t("auth.passwordsMismatch")}</p>
               ) : null}
-              <Button type="submit" className="w-full" disabled={busy}>
+              <Button type="submit" className="w-full" disabled={busy || !phoneValid}>
                 {t("auth.createAccount")}
               </Button>
               <p className="text-xs text-muted-foreground">{t("auth.ageNotice")}</p>
@@ -390,6 +411,7 @@ function PhoneField({
   value,
   onChange,
   autoComplete,
+  invalid,
 }: {
   id: string;
   label: string;
@@ -399,6 +421,7 @@ function PhoneField({
   value: string;
   onChange: (value: string) => void;
   autoComplete?: string;
+  invalid?: boolean;
 }) {
   const dial = countryByIso(iso)?.dial ?? "+1";
   return (
@@ -429,6 +452,8 @@ function PhoneField({
           autoComplete={autoComplete ?? "tel"}
           placeholder="100 000 0000"
           required
+          aria-invalid={invalid ? true : undefined}
+          {...(invalid ? { className: "border-destructive focus-visible:ring-destructive" } : {})}
           onChange={(event) => onChange(stripDial(event.target.value, dial))}
         />
       </div>

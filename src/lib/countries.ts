@@ -91,3 +91,38 @@ export function stripDial(value: string, dial: string): string {
 export function composePhone(dial: string, local: string): string {
   return `${dial}${stripDial(local, dial)}`;
 }
+
+/**
+ * Expected local (national) number length per country. Countries not listed
+ * fall back to a permissive but still meaningful 6–13 digit range.
+ */
+const PHONE_LENGTHS: Record<string, [number, number]> = {
+  EG: [10, 10], US: [10, 10], CA: [10, 10], GB: [10, 10], IE: [9, 9],
+  DE: [10, 11], AT: [10, 11], CH: [9, 9], FR: [9, 9], ES: [9, 9],
+  IT: [9, 10], NL: [9, 9], BE: [9, 9], PT: [9, 9], GR: [10, 10],
+  PL: [9, 9], SE: [9, 9], NO: [8, 8], DK: [8, 8], FI: [9, 10],
+  CZ: [9, 9], RO: [9, 9], TR: [10, 10], SA: [9, 9], AE: [9, 9],
+  QA: [8, 8], KW: [8, 8], BH: [8, 8], OM: [8, 8], JO: [9, 9],
+  LB: [7, 8], IQ: [10, 10], MA: [9, 9], DZ: [9, 9], TN: [8, 8],
+  LY: [9, 9], SD: [9, 9], NG: [10, 10], KE: [9, 9], ZA: [9, 9],
+  IN: [10, 10], PK: [10, 10], BD: [10, 10], ID: [9, 12], PH: [10, 10],
+  MY: [9, 10], SG: [8, 8], AU: [9, 9], NZ: [8, 10], BR: [10, 11],
+  AR: [10, 10], MX: [10, 10], JP: [10, 10], KR: [9, 10],
+};
+
+export function phoneLengthRange(iso: string): [number, number] {
+  return PHONE_LENGTHS[iso.toUpperCase()] ?? [6, 13];
+}
+
+/** Human-readable expected digit count, e.g. "10" or "9–10". */
+export function phoneLengthHint(iso: string): string {
+  const [min, max] = phoneLengthRange(iso);
+  return min === max ? String(min) : `${min}–${max}`;
+}
+
+/** Returns true when the local number has a plausible length for the country. */
+export function isValidLocalPhone(iso: string, local: string): boolean {
+  const digits = stripDial(local, dialFor(iso));
+  const [min, max] = phoneLengthRange(iso);
+  return digits.length >= min && digits.length <= max;
+}
