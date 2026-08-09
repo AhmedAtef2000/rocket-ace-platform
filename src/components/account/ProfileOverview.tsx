@@ -45,8 +45,8 @@ function money(currency: string, amount: number) {
   const formatted = new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount);
-  return `$${formatted} ${currency}`;
+  }).format(Math.abs(amount));
+  return `${amount < 0 ? "-" : ""}$${formatted} ${currency}`;
 }
 
 function relativeTime(iso: string | null, never: string) {
