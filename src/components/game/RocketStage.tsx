@@ -334,10 +334,11 @@ function CountdownRing({ seconds }: { seconds: number | null }) {
       <svg viewBox="0 0 100 100" className="absolute inset-0 size-full -rotate-90">
         {Array.from({ length: ticks }, (_, i) => {
           const a = (i / ticks) * Math.PI * 2;
-          const x1 = 50 + Math.cos(a) * 43;
-          const y1 = 50 + Math.sin(a) * 43;
-          const x2 = 50 + Math.cos(a) * 48;
-          const y2 = 50 + Math.sin(a) * 48;
+          const round = (n: number) => Number(n.toFixed(3));
+          const x1 = round(50 + Math.cos(a) * 43);
+          const y1 = round(50 + Math.sin(a) * 43);
+          const x2 = round(50 + Math.cos(a) * 48);
+          const y2 = round(50 + Math.sin(a) * 48);
           return (
             <line
               key={i}
