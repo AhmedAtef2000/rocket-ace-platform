@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { RocketStage } from "@/components/game/RocketStage";
 import { cashOut, getGameState, placeBet } from "@/lib/game.functions";
 import { multiplierAt } from "@/lib/game-math";
+import { validateStake } from "@/lib/stake";
 import { useGameRealtime } from "@/hooks/useGameRealtime";
 
 const title = "AstroBet — Crash Game";
