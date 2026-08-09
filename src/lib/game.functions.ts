@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertCanPlay, betInput, cashOutInput, roundView } from "@/lib/game.server";
+import { assertCanPlay, betInput, cashOutInput, maskHandle, roundView } from "@/lib/game.server";
 
 export const getGameState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -83,11 +83,6 @@ export const getGameState = createServerFn({ method: "GET" })
       })),
     };
   });
-
-function maskHandle(userId: string): string {
-  const tail = userId.replace(/-/g, "").slice(-4);
-  return `****${tail}`;
-}
 
 export const placeBet = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
