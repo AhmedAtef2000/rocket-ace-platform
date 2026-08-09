@@ -294,23 +294,68 @@ export function RocketStage({
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border shadow-orbit">
       <canvas ref={canvasRef} className="block h-[340px] w-full sm:h-[440px]" />
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.4em] text-muted-foreground">
-          {phase === "betting"
-            ? (countdownLabel ?? "Boarding")
-            : phase === "running"
-              ? "In flight"
-              : crashed
-                ? "Ignition lost"
-                : "Prepping launch"}
-        </p>
+
+      {/* Countdown dial — top-left, like the reference launch console. */}
+      {phase === "betting" ? (
+        <div className="pointer-events-none absolute left-4 top-4 w-[168px] rounded-2xl border border-border/70 bg-background/70 p-4 text-center backdrop-blur-md sm:left-6 sm:top-6">
+          <CountdownRing seconds={secondsLeft ?? null} />
+          <p className="mt-2 text-xs font-bold text-primary">Place your bet</p>
+        </div>
+      ) : null}
+
+      {/* Multiplier — right side, big and legible over the plume. */}
+      <div className="pointer-events-none absolute inset-y-0 right-4 flex flex-col items-end justify-center text-right sm:right-10">
         <p
-          className={`mt-2 font-display text-6xl font-extrabold tabular-nums drop-shadow-[0_0_28px_rgba(40,230,120,0.5)] sm:text-7xl ${
-            crashed ? "text-destructive" : "text-thrust"
+          className={`font-display text-5xl font-black tabular-nums drop-shadow-[0_0_32px_rgba(40,230,120,0.45)] sm:text-7xl ${
+            crashed ? "text-destructive" : "text-foreground"
           }`}
         >
           {formatMultiplier(multiplier)}
         </p>
+        <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+          {phase === "running"
+            ? "Current multiplier"
+            : crashed
+              ? "Crashed"
+              : (countdownLabel ?? "Current multiplier")}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CountdownRing({ seconds }: { seconds: number | null }) {
+  const total = 10;
+  const value = seconds === null ? total : Math.max(0, Math.min(total, seconds));
+  const ticks = 40;
+  const filled = Math.round((value / total) * ticks);
+  return (
+    <div className="relative mx-auto grid size-[104px] place-items-center">
+      <svg viewBox="0 0 100 100" className="absolute inset-0 size-full -rotate-90">
+        {Array.from({ length: ticks }, (_, i) => {
+          const a = (i / ticks) * Math.PI * 2;
+          const x1 = 50 + Math.cos(a) * 43;
+          const y1 = 50 + Math.sin(a) * 43;
+          const x2 = 50 + Math.cos(a) * 48;
+          const y2 = 50 + Math.sin(a) * 48;
+          return (
+            <line
+              key={i}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              strokeWidth={3}
+              strokeLinecap="round"
+              className={i < filled ? "stroke-primary" : "stroke-border"}
+            />
+          );
+        })}
+      </svg>
+      <div className="text-center leading-none">
+        <p className="text-[10px] font-semibold text-muted-foreground">Next round in</p>
+        <p className="font-display text-3xl font-black tabular-nums text-foreground">{value}</p>
+        <p className="text-[10px] font-bold tracking-widest text-muted-foreground">SEC</p>
       </div>
     </div>
   );
@@ -320,74 +365,93 @@ function drawRocket(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
+  angle: number,
   thrusting: boolean,
   now: number,
 ) {
+  const bob = thrusting ? Math.sin(now / 90) * 1.5 : Math.sin(now / 700) * 7;
   ctx.save();
-  ctx.translate(x, y + (thrusting ? Math.sin(now / 90) * 1.5 : Math.sin(now / 600) * 6));
-  const tilt = thrusting ? Math.sin(now / 220) * 0.05 : 0;
-  ctx.rotate(tilt);
+  ctx.translate(x, y + bob);
+  // Canvas rocket is authored nose-up, so rotate onto the flight vector.
+  ctx.rotate(angle + Math.PI / 2 + (thrusting ? Math.sin(now / 260) * 0.03 : 0));
+  const s = 1.45;
+  ctx.scale(s, s);
 
-  // Exhaust flame.
+  // Engine flame.
   if (thrusting) {
-    const flame = 26 + Math.sin(now / 45) * 10;
+    const flame = 30 + Math.sin(now / 42) * 12;
     const g = ctx.createLinearGradient(0, 16, 0, 16 + flame);
-    g.addColorStop(0, "rgba(255,240,180,0.95)");
-    g.addColorStop(0.4, "rgba(255,140,60,0.7)");
-    g.addColorStop(1, "rgba(255,60,60,0)");
+    g.addColorStop(0, "rgba(235,255,220,0.95)");
+    g.addColorStop(0.35, "rgba(90,245,150,0.8)");
+    g.addColorStop(1, "rgba(30,200,120,0)");
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.moveTo(-7, 16);
-    ctx.quadraticCurveTo(0, 16 + flame, 7, 16);
+    ctx.moveTo(-8, 15);
+    ctx.quadraticCurveTo(0, 16 + flame, 8, 15);
     ctx.closePath();
     ctx.fill();
   }
 
   // Fins.
-  ctx.fillStyle = "#22e06a";
+  const fin = ctx.createLinearGradient(-16, 0, 16, 0);
+  fin.addColorStop(0, "#12a352");
+  fin.addColorStop(1, "#3ff08a");
+  ctx.fillStyle = fin;
   ctx.beginPath();
-  ctx.moveTo(-6, 4);
-  ctx.lineTo(-15, 18);
-  ctx.lineTo(-6, 16);
+  ctx.moveTo(-6, 2);
+  ctx.quadraticCurveTo(-18, 12, -14, 19);
+  ctx.lineTo(-6, 15);
   ctx.closePath();
   ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(6, 4);
-  ctx.lineTo(15, 18);
-  ctx.lineTo(6, 16);
+  ctx.moveTo(6, 2);
+  ctx.quadraticCurveTo(18, 12, 14, 19);
+  ctx.lineTo(6, 15);
   ctx.closePath();
   ctx.fill();
 
-  // Body.
-  const body = ctx.createLinearGradient(-8, 0, 8, 0);
-  body.addColorStop(0, "#cfd8ff");
-  body.addColorStop(0.5, "#ffffff");
-  body.addColorStop(1, "#9aa5d8");
+  // Chrome body.
+  const body = ctx.createLinearGradient(-9, 0, 9, 0);
+  body.addColorStop(0, "#8e9bb4");
+  body.addColorStop(0.35, "#ffffff");
+  body.addColorStop(0.6, "#e6ecf5");
+  body.addColorStop(1, "#7d8aa3");
   ctx.fillStyle = body;
   ctx.beginPath();
-  ctx.moveTo(0, -30);
-  ctx.quadraticCurveTo(9, -10, 8, 16);
-  ctx.lineTo(-8, 16);
-  ctx.quadraticCurveTo(-9, -10, 0, -30);
+  ctx.moveTo(0, -32);
+  ctx.quadraticCurveTo(10, -12, 9, 15);
+  ctx.lineTo(-9, 15);
+  ctx.quadraticCurveTo(-10, -12, 0, -32);
   ctx.closePath();
   ctx.fill();
 
-  // Nose cone + window.
-  ctx.fillStyle = "#16a34a";
+  // Green nose cone.
+  const nose = ctx.createLinearGradient(-6, -32, 6, -14);
+  nose.addColorStop(0, "#5ef2a0");
+  nose.addColorStop(1, "#0f8f49");
+  ctx.fillStyle = nose;
   ctx.beginPath();
-  ctx.moveTo(0, -30);
-  ctx.quadraticCurveTo(6, -20, 4.5, -14);
-  ctx.lineTo(-4.5, -14);
-  ctx.quadraticCurveTo(-6, -20, 0, -30);
+  ctx.moveTo(0, -32);
+  ctx.quadraticCurveTo(7, -22, 5.5, -14);
+  ctx.lineTo(-5.5, -14);
+  ctx.quadraticCurveTo(-7, -22, 0, -32);
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = "#5ef2a0";
+  // Green banding near the base.
+  ctx.fillStyle = "rgba(35,215,120,0.9)";
+  ctx.fillRect(-8.4, 8, 16.8, 4);
+
+  // Porthole.
+  const glass = ctx.createRadialGradient(-1.4, -6.5, 0, 0, -5, 5.2);
+  glass.addColorStop(0, "#0b2a25");
+  glass.addColorStop(1, "#04120f");
+  ctx.fillStyle = glass;
   ctx.beginPath();
-  ctx.arc(0, -4, 4, 0, Math.PI * 2);
+  ctx.arc(0, -5, 4.6, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.7)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(120,250,180,0.85)";
+  ctx.lineWidth = 1.3;
   ctx.stroke();
 
   ctx.restore();
