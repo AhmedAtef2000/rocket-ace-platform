@@ -10,13 +10,16 @@ export const Route = createFileRoute("/api/public/health")({
         let database: "ok" | "degraded" = "ok";
 
         try {
-          const url = process.env["SUPABASE_URL"];
-          const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
+          const url = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"];
+          const key =
+            process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
           if (!url || !key) {
             database = "degraded";
           } else {
-            const response = await fetch(`${url}/rest/v1/`, { headers: { apikey: key } });
-            if (!response.ok) database = "degraded";
+            // A reachable Data API answers this probe; auth-shaped replies still
+            // prove the service is up, so only transport failures are degraded.
+            const response = await fetch(`${url}/auth/v1/health`, { headers: { apikey: key } });
+            if (response.status >= 500) database = "degraded";
           }
         } catch {
           database = "degraded";
