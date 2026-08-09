@@ -115,7 +115,9 @@ export const getAccount = createServerFn({ method: "GET" })
     const [userRow, wallets, limits] = await Promise.all([
       supabase
         .from("users")
-        .select("id, email, status, demo_mode, mfa_enabled, created_at, last_login_at")
+        .select(
+          "id, email, account_number, status, demo_mode, mfa_enabled, created_at, last_login_at",
+        )
         .eq("id", userId)
         .maybeSingle(),
       supabase
