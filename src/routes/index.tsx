@@ -4,6 +4,8 @@ import { Rocket } from "lucide-react";
 
 import { RocketStage } from "@/components/game/RocketStage";
 import { LiveActivityFeed } from "@/components/home/LiveActivityFeed";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { useI18n } from "@/lib/i18n";
 
 const title = "AstroBet — Launch. Climb. Cash Out.";
 const description =
@@ -91,6 +93,7 @@ function HeroStage() {
 }
 
 function Index() {
+  const { t } = useI18n();
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6">
