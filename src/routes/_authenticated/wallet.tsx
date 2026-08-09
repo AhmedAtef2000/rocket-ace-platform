@@ -1,9 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
 
-import { getWallets, topUpDemoWallet } from "@/lib/wallet.functions";
+import { getWallets } from "@/lib/wallet.functions";
 import { Button } from "@/components/ui/button";
 import { AccountNav } from "@/components/account/AccountNav";
 
@@ -35,26 +34,16 @@ function amount(value: string | number | null | undefined, decimals = 2) {
 }
 
 function WalletPage() {
-  const queryClient = useQueryClient();
   const fetchWallets = useServerFn(getWallets);
-  const topUp = useServerFn(topUpDemoWallet);
 
   const wallets = useQuery({
     queryKey: ["wallet", "overview"],
     queryFn: async () => fetchWallets({ data: undefined }),
   });
 
-  const topUpMutation = useMutation({
-    mutationFn: async () => topUp({ data: undefined }),
-    onSuccess: (result) => {
-      toast.success(`Added ${amount(result.amount)} demo credits.`);
-      void queryClient.invalidateQueries({ queryKey: ["wallet"] });
-      void queryClient.invalidateQueries({ queryKey: ["account"] });
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  const rows = wallets.data?.wallets ?? [];
+  const rows = (wallets.data?.wallets ?? []).filter(
+    (wallet) => String(wallet.kind).toUpperCase() !== "DEMO",
+  );
   const entries = wallets.data?.entries ?? [];
 
   return (
@@ -70,13 +59,8 @@ function WalletPage() {
             <section className="rounded-2xl border border-border bg-card/60 p-5">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-sm font-medium text-foreground">Balances</h2>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={topUpMutation.isPending}
-                  onClick={() => topUpMutation.mutate()}
-                >
-                  {topUpMutation.isPending ? "Topping up…" : "Top up demo credits"}
+                <Button size="sm" variant="outline" asChild>
+                  <Link to="/payments">Top up</Link>
                 </Button>
               </div>
 
@@ -107,8 +91,7 @@ function WalletPage() {
               )}
 
               <p className="mt-3 text-xs text-muted-foreground">
-                Balances are projections of the ledger. Demo credits have no cash value and can
-                never move to or from a real-money wallet.
+                Balances are projections of the ledger.
               </p>
             </section>
 
