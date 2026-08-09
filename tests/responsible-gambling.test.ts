@@ -3,23 +3,23 @@ import { deviceLabelFrom, isActive, isoInDays, splitLimitChanges } from "@/lib/u
 
 describe("responsible gambling limits", () => {
   it("applies tightening immediately", () => {
-    const result = splitLimitChanges({ daily_deposit_limit: 500 }, { daily_deposit_limit: 100 });
-    expect(result.applied["daily_deposit_limit"]).toBe(100);
+    const result = splitLimitChanges({ deposit_daily_limit: 500 }, { deposit_daily_limit: 100 });
+    expect(result.applied["deposit_daily_limit"]).toBe(100);
     expect(result.rejected).toHaveLength(0);
   });
 
   it("refuses loosening and removal self-service", () => {
-    expect(splitLimitChanges({ daily_deposit_limit: 100 }, { daily_deposit_limit: 900 }).rejected).toContain(
-      "daily_deposit_limit",
+    expect(splitLimitChanges({ deposit_daily_limit: 100 }, { deposit_daily_limit: 900 }).rejected).toContain(
+      "deposit_daily_limit",
     );
-    expect(splitLimitChanges({ daily_deposit_limit: 100 }, { daily_deposit_limit: null }).rejected).toContain(
-      "daily_deposit_limit",
+    expect(splitLimitChanges({ deposit_daily_limit: 100 }, { deposit_daily_limit: null }).rejected).toContain(
+      "deposit_daily_limit",
     );
   });
 
   it("treats setting a first-ever limit as tightening", () => {
-    const result = splitLimitChanges({ daily_loss_limit: null }, { daily_loss_limit: 50 });
-    expect(result.applied["daily_loss_limit"]).toBe(50);
+    const result = splitLimitChanges({ loss_daily_limit: null }, { loss_daily_limit: 50 });
+    expect(result.applied["loss_daily_limit"]).toBe(50);
   });
 
   it("cooling-off windows read as active until they expire", () => {

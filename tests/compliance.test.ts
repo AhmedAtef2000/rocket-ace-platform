@@ -46,6 +46,6 @@ describe("KYC decisioning", () => {
 
   it("validates KYC submissions", () => {
     expect(() => parseKycInput({ sourceOfFunds: "", declaredPep: false })).toThrow();
-    expect(parseKycInput({ sourceOfFunds: "Salary", declaredPep: true }).declaredPep).toBe(true);
+    expect(parseKycInput({ sourceOfFunds: "EMPLOYMENT", declaredPep: true }).declaredPep).toBe(true);
   });
 });
