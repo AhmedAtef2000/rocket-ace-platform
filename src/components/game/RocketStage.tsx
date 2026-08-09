@@ -155,7 +155,7 @@ export function RocketStage({
             vx: (Math.random() - 0.5) * 0.5,
             vy: 1.6 + Math.random() * 2.4 + climb * 3,
             life: 1,
-            hue: 200 + Math.random() * 90,
+            hue: 120 + Math.random() * 45,
           });
         }
       }
