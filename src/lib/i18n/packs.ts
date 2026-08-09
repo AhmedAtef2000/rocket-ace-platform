@@ -15,6 +15,7 @@ import support from "./support";
 import fairness from "./fairness";
 import compliance from "./compliance";
 import admin from "./admin";
+import user360 from "./user360";
 import misc from "./misc";
 
 export const packs: Pack[] = [
@@ -26,5 +27,6 @@ export const packs: Pack[] = [
   fairness,
   compliance,
   admin,
+  user360,
   misc,
 ];
