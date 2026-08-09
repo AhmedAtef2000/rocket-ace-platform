@@ -665,6 +665,13 @@ export type Database = {
             foreignKeyName: "game_rounds_config_version_fkey"
             columns: ["config_version"]
             isOneToOne: false
+            referencedRelation: "game_config_public"
+            referencedColumns: ["version"]
+          },
+          {
+            foreignKeyName: "game_rounds_config_version_fkey"
+            columns: ["config_version"]
+            isOneToOne: false
             referencedRelation: "game_configurations"
             referencedColumns: ["version"]
           },
@@ -1648,7 +1655,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      game_config_public: {
+        Row: {
+          id: string | null
+          max_bet: number | null
+          max_crash_multiplier: number | null
+          min_bet: number | null
+          version: number | null
+        }
+        Insert: {
+          id?: string | null
+          max_bet?: number | null
+          max_crash_multiplier?: number | null
+          min_bet?: number | null
+          version?: number | null
+        }
+        Update: {
+          id?: string | null
+          max_bet?: number | null
+          max_crash_multiplier?: number | null
+          min_bet?: number | null
+          version?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_bootstrap_super_admin: {
