@@ -4,10 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { useI18n } from "@/lib/i18n";
+import { useI18n, LANGUAGES, type TranslationKey } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminShell, type AdminSection } from "@/components/admin/AdminShell";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { AdminResourceTable } from "@/components/admin/AdminResourceTable";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -48,12 +49,57 @@ const SECTIONS: AdminSection[] = [
   "kyc",
   "deposits",
   "withdrawals",
+  "transactions",
+  "wallets",
+  "bets",
+  "rounds",
+  "gamesettings",
+  "fairness",
+  "limits",
   "risk",
+  "banned",
+  "ips",
+  "devices",
+  "promotions",
+  "bonuses",
+  "vip",
   "support",
+  "messages",
+  "announcements",
   "analytics",
+  "reports",
   "audit",
+  "syslogs",
+  "admins",
+  "backup",
+  "currencies",
+  "methods",
+  "localization",
   "settings",
 ];
+
+/** Sections backed by the shared read-only resource table. */
+const RESOURCE_SECTIONS: Partial<Record<AdminSection, { permission: string; label: TranslationKey }>> = {
+  transactions: { permission: "finance.view", label: "admin.nav.transactions" },
+  wallets: { permission: "finance.view", label: "admin.nav.wallets" },
+  bets: { permission: "analytics.view", label: "admin.nav.bets" },
+  rounds: { permission: "analytics.view", label: "admin.nav.rounds" },
+  gamesettings: { permission: "analytics.view", label: "admin.nav.gamesettings" },
+  fairness: { permission: "analytics.view", label: "admin.nav.fairness" },
+  limits: { permission: "user.view", label: "admin.nav.limits" },
+  banned: { permission: "user.view", label: "admin.nav.banned" },
+  ips: { permission: "risk.view", label: "admin.nav.ips" },
+  devices: { permission: "risk.view", label: "admin.nav.devices" },
+  promotions: { permission: "analytics.view", label: "admin.nav.promotions" },
+  bonuses: { permission: "finance.view", label: "admin.nav.bonuses" },
+  vip: { permission: "finance.view", label: "admin.nav.vip" },
+  messages: { permission: "support.view", label: "admin.nav.messages" },
+  announcements: { permission: "support.view", label: "admin.nav.announcements" },
+  currencies: { permission: "analytics.view", label: "admin.nav.currencies" },
+  methods: { permission: "analytics.view", label: "admin.nav.methods" },
+  admins: { permission: "admin.manage", label: "admin.nav.admins" },
+  syslogs: { permission: "audit.view", label: "admin.nav.syslogs" },
+};
 
 export const Route = createFileRoute("/_authenticated/admin")({
   validateSearch: (search: Record<string, unknown>): { section: AdminSection } => {
@@ -143,8 +189,34 @@ function AdminPage() {
     );
   }
 
+  const resource = RESOURCE_SECTIONS[section as AdminSection];
+
   const body = (() => {
+    if (resource) {
+      return can(resource.permission) ? (
+        <AdminResourceTable resource={section} title={t(resource.label)} subtitle={t("admin.res.subtitle")} />
+      ) : null;
+    }
     switch (section) {
+      case "reports":
+        return can("analytics.view") ? <AnalyticsSection /> : null;
+      case "localization":
+        return can("analytics.view") ? (
+          <InfoSection title={t("admin.localization.title")} body={t("admin.localization.body")}>
+            <ul className="mt-3 grid gap-2 sm:grid-cols-3">
+              {LANGUAGES.map((language) => (
+                <li key={language.code} className="rounded-lg border border-border px-3 py-2 text-sm font-semibold">
+                  {language.label}
+                  <span className="ms-2 text-xs uppercase text-muted-foreground">{language.code}</span>
+                </li>
+              ))}
+            </ul>
+          </InfoSection>
+        ) : null;
+      case "backup":
+        return can("admin.manage") ? (
+          <InfoSection title={t("admin.backup.title")} body={t("admin.backup.body")} />
+        ) : null;
       case "users":
         return can("user.view") ? <UsersSection canManage={can("user.suspend")} /> : null;
       case "kyc":
@@ -177,6 +249,26 @@ function AdminPage() {
     >
       {body ?? <p className="text-sm text-muted-foreground">{t("admin.noAccess.askAdmin")}</p>}
     </AdminShell>
+  );
+}
+
+function InfoSection({
+  title,
+  body,
+  children,
+}: {
+  title: string;
+  body: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-2">
+      <h1 className="font-display text-2xl font-black tracking-tight">{title}</h1>
+      <div className="rounded-xl border border-border bg-card/60 p-4">
+        <p className="text-sm text-muted-foreground">{body}</p>
+        {children}
+      </div>
+    </section>
   );
 }
 

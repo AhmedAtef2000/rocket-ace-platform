@@ -5,18 +5,37 @@ import {
   BadgeCheck,
   BarChart3,
   Bell,
+  Bitcoin,
+  Blocks,
   CircleDollarSign,
   ClipboardList,
+  Coins,
+  Crown,
+  DatabaseBackup,
+  FileBarChart,
   Gauge,
+  Gift,
+  Globe,
+  Languages,
   LayoutDashboard,
   LifeBuoy,
+  ListChecks,
   LogOut,
   MailOpen,
+  Megaphone,
   Menu,
+  MonitorSmartphone,
+  Network,
+  Receipt,
   Rocket,
   Search,
   Settings,
   ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  Terminal,
+  UserCog,
+  UserX,
   Users,
   Wallet,
   X,
@@ -32,10 +51,32 @@ export type AdminSection =
   | "kyc"
   | "deposits"
   | "withdrawals"
+  | "transactions"
+  | "wallets"
+  | "bets"
+  | "rounds"
+  | "gamesettings"
+  | "fairness"
+  | "limits"
   | "risk"
+  | "banned"
+  | "ips"
+  | "devices"
+  | "promotions"
+  | "bonuses"
+  | "vip"
   | "support"
+  | "messages"
+  | "announcements"
   | "analytics"
+  | "reports"
   | "audit"
+  | "syslogs"
+  | "admins"
+  | "backup"
+  | "currencies"
+  | "methods"
+  | "localization"
   | "settings";
 
 type Item = {
@@ -55,26 +96,69 @@ export const adminGroups: Group[] = [
       { id: "kyc", key: "admin.nav.kyc", icon: BadgeCheck, permission: "kyc.view" },
       { id: "deposits", key: "admin.nav.deposits", icon: CircleDollarSign, permission: "finance.view" },
       { id: "withdrawals", key: "admin.nav.withdrawals", icon: Wallet, permission: "withdrawal.review" },
+      { id: "transactions", key: "admin.nav.transactions", icon: Receipt, permission: "finance.view" },
+      { id: "wallets", key: "admin.nav.wallets", icon: Coins, permission: "finance.view" },
+      { id: "bets", key: "admin.nav.bets", icon: ListChecks, permission: "analytics.view" },
+      { id: "rounds", key: "admin.nav.rounds", icon: Rocket, permission: "analytics.view" },
+    ],
+  },
+  {
+    key: "admin.nav.group.game",
+    items: [
+      { id: "gamesettings", key: "admin.nav.gamesettings", icon: Blocks, permission: "analytics.view" },
+      { id: "fairness", key: "admin.nav.fairness", icon: ShieldCheck, permission: "analytics.view" },
+      { id: "limits", key: "admin.nav.limits", icon: Gauge, permission: "user.view" },
     ],
   },
   {
     key: "admin.nav.group.risk",
     items: [
       { id: "risk", key: "admin.nav.risk", icon: ShieldAlert, permission: "risk.view" },
-      { id: "audit", key: "admin.nav.audit", icon: ClipboardList, permission: "audit.view" },
+      { id: "banned", key: "admin.nav.banned", icon: UserX, permission: "user.view" },
+      { id: "ips", key: "admin.nav.ips", icon: Network, permission: "risk.view" },
+      { id: "devices", key: "admin.nav.devices", icon: MonitorSmartphone, permission: "risk.view" },
+    ],
+  },
+  {
+    key: "admin.nav.group.marketing",
+    items: [
+      { id: "promotions", key: "admin.nav.promotions", icon: Sparkles, permission: "analytics.view" },
+      { id: "bonuses", key: "admin.nav.bonuses", icon: Gift, permission: "finance.view" },
+      { id: "vip", key: "admin.nav.vip", icon: Crown, permission: "finance.view" },
     ],
   },
   {
     key: "admin.nav.group.support",
-    items: [{ id: "support", key: "admin.nav.support", icon: LifeBuoy, permission: "support.view" }],
-  },
-  {
-    key: "admin.nav.group.analytics",
-    items: [{ id: "analytics", key: "admin.nav.analytics", icon: BarChart3, permission: "analytics.view" }],
+    items: [
+      { id: "support", key: "admin.nav.support", icon: LifeBuoy, permission: "support.view" },
+      { id: "messages", key: "admin.nav.messages", icon: MailOpen, permission: "support.view" },
+      { id: "announcements", key: "admin.nav.announcements", icon: Megaphone, permission: "support.view" },
+    ],
   },
   {
     key: "admin.nav.group.settings",
-    items: [{ id: "settings", key: "admin.nav.settings", icon: Settings, permission: "admin.manage" }],
+    items: [
+      { id: "settings", key: "admin.nav.settings", icon: Settings, permission: "admin.manage" },
+      { id: "methods", key: "admin.nav.methods", icon: Bitcoin, permission: "analytics.view" },
+      { id: "currencies", key: "admin.nav.currencies", icon: Globe, permission: "analytics.view" },
+      { id: "localization", key: "admin.nav.localization", icon: Languages, permission: "analytics.view" },
+    ],
+  },
+  {
+    key: "admin.nav.group.analytics",
+    items: [
+      { id: "analytics", key: "admin.nav.analytics", icon: BarChart3, permission: "analytics.view" },
+      { id: "reports", key: "admin.nav.reports", icon: FileBarChart, permission: "analytics.view" },
+    ],
+  },
+  {
+    key: "admin.nav.group.system",
+    items: [
+      { id: "admins", key: "admin.nav.admins", icon: UserCog, permission: "admin.manage" },
+      { id: "audit", key: "admin.nav.audit", icon: ClipboardList, permission: "audit.view" },
+      { id: "syslogs", key: "admin.nav.syslogs", icon: Terminal, permission: "audit.view" },
+      { id: "backup", key: "admin.nav.backup", icon: DatabaseBackup, permission: "admin.manage" },
+    ],
   },
 ];
 
