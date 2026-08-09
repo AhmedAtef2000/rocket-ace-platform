@@ -3,10 +3,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Rocket } from "lucide-react";
 
 import { RocketStage } from "@/components/game/RocketStage";
+import { LiveActivityFeed } from "@/components/home/LiveActivityFeed";
 
 const title = "AstroBet — Launch. Climb. Cash Out.";
 const description =
-  "AstroBet is a cinematic provably-fair crash game. Ride the rocket, watch the multiplier climb and cash out before ignition fails. Demo credits only.";
+  "AstroBet is a cinematic provably-fair crash game. Ride the rocket, watch the multiplier climb and cash out before ignition fails.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,17 +38,10 @@ const pillars = [
   },
 ];
 
-const guarantees = [
-  "Server is authoritative for every balance, bet, crash point and payout.",
-  "Double-entry ledger is append-only; corrections use compensating entries.",
-  "Crash multipliers are write-once at the database level — no operator override exists.",
-  "Encrypted server seeds are stored in a table no client role can read.",
-  "Real-money integrations stay disabled until licensed providers are configured.",
-];
-
 function HeroStage() {
   const [multiplier, setMultiplier] = useState(1);
   const [phase, setPhase] = useState<"betting" | "running" | "crashed">("betting");
+  const [secondsLeft, setSecondsLeft] = useState(10);
 
   useEffect(() => {
     let raf = 0;
@@ -59,7 +53,8 @@ function HeroStage() {
       const t = now - start;
       if (stage === "betting") {
         setMultiplier(1);
-        if (t > 2600) {
+        setSecondsLeft(Math.max(0, Math.ceil((10000 - t) / 1000)));
+        if (t > 10000) {
           stage = "running";
           setPhase("running");
           start = now;
@@ -86,7 +81,13 @@ function HeroStage() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  return <RocketStage phase={phase} multiplier={multiplier} countdownLabel="Boarding" />;
+  return (
+    <RocketStage
+      phase={phase}
+      multiplier={multiplier}
+      countdownLabel={phase === "betting" ? `Launching in ${secondsLeft}s` : "Boarding"}
+    />
+  );
 }
 
 function Index() {
@@ -99,12 +100,22 @@ function Index() {
           </span>
           <span className="font-display text-lg font-extrabold tracking-tight">AstroBet</span>
         </div>
-        <Link
-          to="/auth"
-          className="rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
-        >
-          Sign in
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/auth"
+            search={{ mode: "signin" }}
+            className="rounded-full border border-border px-4 py-2 text-sm font-medium transition-all duration-150 hover:bg-secondary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            Sign in
+          </Link>
+          <Link
+            to="/auth"
+            search={{ mode: "signup" }}
+            className="rounded-full bg-thrust px-4 py-2 text-sm font-semibold text-primary-foreground shadow-orbit transition-all duration-150 hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            Register
+          </Link>
+        </div>
       </header>
 
       <section
@@ -114,7 +125,7 @@ function Index() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-20 pt-8 lg:grid-cols-2">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-primary">
-              Demo mode · 18+
+              Provably fair · 18+
             </p>
             <h1 className="mt-6 font-display text-5xl font-extrabold leading-[1.05] sm:text-6xl">
               Your heart beats
@@ -128,6 +139,7 @@ function Index() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/auth"
+                search={{ mode: "signup" }}
                 className="inline-flex items-center justify-center rounded-full bg-thrust px-7 py-3 text-sm font-semibold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.03]"
               >
                 Launch your first round
@@ -177,18 +189,11 @@ function Index() {
 
       <section className="mx-auto max-w-6xl px-5 pb-20">
         <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-          Integrity enforced in the database
+          Live player results
         </h2>
-        <ul className="mt-6 grid gap-4 md:grid-cols-2">
-          {guarantees.map((g) => (
-            <li
-              key={g}
-              className="rounded-2xl border border-border bg-card p-5 text-sm leading-relaxed text-card-foreground"
-            >
-              {g}
-            </li>
-          ))}
-        </ul>
+        <div className="mt-6">
+          <LiveActivityFeed />
+        </div>
       </section>
 
       <footer className="border-t border-border">
