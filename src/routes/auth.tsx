@@ -14,11 +14,12 @@ const title = "Sign in — AstroBet";
 const description =
   "Access your AstroBet account: provably fair crash rounds, wallet, responsible gambling controls and account security.";
 
-type AuthSearch = { redirect?: string | undefined };
+type AuthSearch = { redirect?: string | undefined; mode?: "signin" | "signup" | undefined };
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): AuthSearch => ({
     redirect: typeof search["redirect"] === "string" ? search["redirect"] : undefined,
+    mode: search["mode"] === "signup" ? "signup" : search["mode"] === "signin" ? "signin" : undefined,
   }),
   head: () => ({
     meta: [
@@ -111,10 +112,10 @@ function AuthPage() {
     <AuthShell>
         <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">Account access</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Demo mode only. No real-money play is enabled on this build.
+          Sign in to your AstroBet account, or create one in under a minute.
         </p>
 
-        <Tabs defaultValue="signin" className="mt-6">
+        <Tabs defaultValue={search.mode === "signup" ? "signup" : "signin"} className="mt-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign in</TabsTrigger>
             <TabsTrigger value="signup">Create account</TabsTrigger>
