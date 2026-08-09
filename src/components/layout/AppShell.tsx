@@ -157,7 +157,6 @@ export const topNav = [
   { to: "/", label: "Home", key: "nav.home" },
   { to: "/game", label: "Crash", key: "nav.crash" },
   { to: "/wallet", label: "Wallet", key: "nav.wallet" },
-  { to: "/payments", label: "Transactions", key: "nav.transactions" },
   { to: "/fairness", label: "Fairness", key: "nav.fairness" },
   { to: "/support", label: "Support", key: "nav.support" },
 ] as const satisfies readonly { to: string; label: string; key: TranslationKey }[];
@@ -166,7 +165,6 @@ const railItems = [
   { to: "/account", label: "Overview", key: "nav.overview", icon: LayoutGrid },
   { to: "/game", label: "Crash", key: "nav.crash", icon: Rocket },
   { to: "/wallet", label: "Wallet", key: "nav.wallet", icon: Wallet },
-  { to: "/payments", label: "Transactions", key: "nav.transactions", icon: Receipt },
   { to: "/profile", label: "Profile", key: "nav.profile", icon: UserRound },
   { to: "/compliance", label: "Verification", key: "nav.verification", icon: BadgeCheck },
   { to: "/notifications", label: "Messages", key: "nav.messages", icon: MailOpen },
@@ -192,7 +190,6 @@ export function BrandMark() {
 const gatedLabels = [
   "Crash",
   "Wallet",
-  "Transactions",
   "Profile",
   "Verification",
   "Messages",
@@ -204,7 +201,6 @@ const gatedLabels = [
 const gatedTopNavKeys = new Set([
   "nav.crash",
   "nav.wallet",
-  "nav.transactions",
   "nav.fairness",
   "nav.support",
 ]);
@@ -264,7 +260,7 @@ function BalanceCard({ balance, publicView }: { balance: number; publicView: boo
       ) : null}
       <div className="mt-3 grid gap-2">
         <Link
-          to={publicView ? "/auth" : "/payments"}
+          to={publicView ? "/auth" : "/wallet"}
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-thrust px-3 py-2 text-xs font-bold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.02]"
         >
           <ArrowDownToLine className="size-4" aria-hidden />
@@ -379,7 +375,7 @@ export function AppShell({
             ) : (
               <>
                 <Link
-                  to="/payments"
+                  to="/wallet"
                   className="rounded-xl bg-thrust px-4 py-2 text-xs font-bold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.03]"
                 >
                   {t("nav.deposit")}
