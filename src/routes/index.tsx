@@ -96,17 +96,17 @@ function HeroStage() {
   );
 }
 
-const trust = [
-  { icon: ShieldCheck, title: "Provably Fair", body: "100% verifiable" },
-  { icon: Zap, title: "Fast Withdrawals", body: "Within 1 hours" },
-  { icon: Lock, title: "Secure & Trusted", body: "Encrypted end to end" },
-  { icon: Headphones, title: "24/7 Support", body: "Here for you" },
+const trust: { icon: typeof ShieldCheck; title: TranslationKey; body: TranslationKey }[] = [
+  { icon: ShieldCheck, title: "home.trustFairTitle", body: "home.trustFairBody" },
+  { icon: Zap, title: "home.trustFastTitle", body: "home.trustFastBody" },
+  { icon: Lock, title: "home.trustSecureTitle", body: "home.trustSecureBody" },
+  { icon: Headphones, title: "home.trustSupportTitle", body: "home.trustSupportBody" },
 ];
 
 const presets = [5, 10, 25, 50];
 
 function BetPanelPreview() {
-  const { formatMoney } = useI18n();
+  const { t, formatMoney } = useI18n();
   const [amount, setAmount] = useState("10.00");
   const [auto, setAuto] = useState("2.00");
 
@@ -114,7 +114,7 @@ function BetPanelPreview() {
     <div className="mt-3 grid gap-3 panel-inset p-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto]">
       <div>
         <label htmlFor="home-amount" className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          Bet amount
+          {t("home.betAmount")}
         </label>
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           <input
@@ -139,16 +139,16 @@ function BetPanelPreview() {
             onClick={() => setAmount("100.00")}
             className="chip border-primary/60 text-primary"
           >
-            MAX
+            {t("home.max")}
           </button>
         </div>
         <p className="mt-1.5 text-[11px] text-muted-foreground">
-          Stake shown as {formatMoney(Number(amount) || 0)}
+          {t("home.stakeShown", { v: formatMoney(Number(amount) || 0) })}
         </p>
       </div>
       <div>
         <label htmlFor="home-auto" className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          Auto cashout
+          {t("home.autoCashout")}
         </label>
         <input
           id="home-auto"
@@ -162,7 +162,7 @@ function BetPanelPreview() {
         to="/game"
         className="inline-flex items-center justify-center gap-2 self-end rounded-xl bg-thrust px-6 py-3 text-sm font-black text-primary-foreground shadow-orbit transition-transform hover:scale-[1.02]"
       >
-        Place Bet <Rocket className="size-4" aria-hidden />
+        {t("home.placeBet")} <Rocket className="size-4" aria-hidden />
       </Link>
     </div>
   );
@@ -197,7 +197,7 @@ function makeFeedRow(): FeedRow {
 }
 
 function RecentRoundsPanel() {
-  const { formatMoney } = useI18n();
+  const { t, formatMoney } = useI18n();
   const [rows, setRows] = useState<FeedRow[]>([]);
 
   useEffect(() => {
@@ -210,16 +210,16 @@ function RecentRoundsPanel() {
   return (
     <aside className="panel p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-display text-base font-black">Recent rounds</h2>
-        <span className="chip text-primary">Live</span>
+        <h2 className="font-display text-base font-black">{t("home.recentRounds")}</h2>
+        <span className="chip text-primary">{t("home.live")}</span>
       </div>
       <div className="max-h-[420px] overflow-y-auto pr-1">
       <table className="w-full text-sm">
         <thead className="text-[10px] uppercase tracking-widest text-muted-foreground">
           <tr>
-            <th scope="col" className="py-2 text-start font-semibold">Player</th>
-            <th scope="col" className="py-2 text-end font-semibold">Crash</th>
-            <th scope="col" className="py-2 text-end font-semibold">Result</th>
+            <th scope="col" className="py-2 text-start font-semibold">{t("home.colPlayer")}</th>
+            <th scope="col" className="py-2 text-end font-semibold">{t("home.colCrash")}</th>
+            <th scope="col" className="py-2 text-end font-semibold">{t("home.colResult")}</th>
           </tr>
         </thead>
         <tbody>
@@ -246,7 +246,7 @@ function RecentRoundsPanel() {
         to="/fairness"
         className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-secondary"
       >
-        Check Round
+        {t("home.checkRound")}
       </Link>
     </aside>
   );
@@ -264,7 +264,7 @@ function Index() {
           <div className="panel p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div className="min-w-0">
-                <h1 className="page-title truncate">Astro Crash</h1>
+                <h1 className="page-title truncate">{t("home.astroCrash")}</h1>
                 <p className="text-xs font-semibold text-muted-foreground">
                   {t("home.badge")}
                 </p>
@@ -278,9 +278,9 @@ function Index() {
 
         <section className="grid gap-4 lg:grid-cols-3">
           {[
-            { icon: Gift, title: "Welcome boost", body: t("home.pillar1Body"), cta: "Play", to: "/game" as const, tone: "bg-thrust text-primary-foreground" },
-            { icon: Percent, title: "Low house edge", body: t("home.pillar2Body"), cta: t("home.ctaSecondary"), to: "/fairness" as const, tone: "bg-ember text-primary-foreground" },
-            { icon: Users, title: "Refer & earn", body: t("home.pillar3Body"), cta: "Invite", to: "/auth" as const, tone: "bg-gold text-primary-foreground" },
+            { icon: Gift, title: t("home.welcomeBoost"), body: t("home.pillar1Body"), cta: t("home.play"), to: "/game" as const, tone: "bg-thrust text-primary-foreground" },
+            { icon: Percent, title: t("home.lowEdge"), body: t("home.pillar2Body"), cta: t("home.ctaSecondary"), to: "/fairness" as const, tone: "bg-ember text-primary-foreground" },
+            { icon: Users, title: t("home.referEarn"), body: t("home.pillar3Body"), cta: t("home.invite"), to: "/auth" as const, tone: "bg-gold text-primary-foreground" },
           ].map((card) => (
             <article key={card.title} className={`rounded-3xl p-5 ${card.tone}`}>
               <card.icon className="size-6" aria-hidden />
@@ -298,8 +298,8 @@ function Index() {
 
         <section className="panel p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-base font-black">Games</h2>
-            <span className="chip text-muted-foreground">Crash is our only game</span>
+            <h2 className="font-display text-base font-black">{t("home.games")}</h2>
+            <span className="chip text-muted-foreground">{t("home.onlyGame")}</span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Link
@@ -307,13 +307,13 @@ function Index() {
               className="group relative overflow-hidden rounded-2xl border border-primary/40 bg-thrust p-5 text-primary-foreground shadow-orbit"
             >
               <Rocket className="size-7" aria-hidden />
-              <p className="mt-6 font-display text-lg font-black">Astro Crash</p>
-              <p className="text-xs font-semibold opacity-90">Play now</p>
+              <p className="mt-6 font-display text-lg font-black">{t("home.astroCrash")}</p>
+              <p className="text-xs font-semibold opacity-90">{t("home.playNow")}</p>
             </Link>
-            {["Auto-bet mode", "Tournaments", "High-roller table"].map((soon) => (
+            {(["home.gameAutoBet", "home.gameTournaments", "home.gameHighRoller"] as TranslationKey[]).map((soon) => (
               <div key={soon} className="panel-inset flex flex-col justify-between p-5 opacity-70">
-                <span className="chip w-fit text-muted-foreground">Coming soon</span>
-                <p className="mt-6 font-display text-lg font-black">{soon}</p>
+                <span className="chip w-fit text-muted-foreground">{t("home.comingSoon")}</span>
+                <p className="mt-6 font-display text-lg font-black">{t(soon)}</p>
               </div>
             ))}
           </div>
@@ -326,8 +326,8 @@ function Index() {
                 <item.icon className="size-5" aria-hidden />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-sm font-bold">{item.title}</span>
-                <span className="block truncate text-xs text-muted-foreground">{item.body}</span>
+                <span className="block truncate text-sm font-bold">{t(item.title)}</span>
+                <span className="block truncate text-xs text-muted-foreground">{t(item.body)}</span>
               </span>
             </div>
           ))}
