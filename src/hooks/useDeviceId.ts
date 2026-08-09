@@ -2,6 +2,15 @@ import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "rf.device.id";
 
+/** Persists a device id issued by the server (e.g. after an account switch). */
+export function storeDeviceId(id: string): void {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, id);
+  } catch {
+    /* storage unavailable — the id stays in memory for this tab */
+  }
+}
+
 /** Stable per-browser identifier used as the user_sessions row id. */
 export function useDeviceId(): string | null {
   const [deviceId, setDeviceId] = useState<string | null>(null);

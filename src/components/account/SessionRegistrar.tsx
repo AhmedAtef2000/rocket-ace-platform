@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { registerSession } from "@/lib/user.functions";
-import { useDeviceId } from "@/hooks/useDeviceId";
+import { storeDeviceId, useDeviceId } from "@/hooks/useDeviceId";
 
 /** Records this device as an active session and signs out if it was revoked. */
 export function SessionRegistrar() {
@@ -25,6 +25,7 @@ export function SessionRegistrar() {
         const result = await register({
           data: { deviceId, userAgent: navigator.userAgent },
         });
+        if (result.deviceId && result.deviceId !== deviceId) storeDeviceId(result.deviceId);
         if (result.revoked) {
           await supabase.auth.signOut();
           toast.info("This device was signed out from your account settings.");
