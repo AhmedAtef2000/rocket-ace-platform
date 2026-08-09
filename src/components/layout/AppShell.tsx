@@ -318,7 +318,7 @@ export function AppShell({
     (top, w) => Math.max(top, Number(w.available_amount ?? 0)),
     0,
   );
-  const username = user?.email ? user.email.split("@")[0] : null;
+  const username = user?.email ? (user.email.split("@")[0] ?? null) : null;
 
   return (
     <div
