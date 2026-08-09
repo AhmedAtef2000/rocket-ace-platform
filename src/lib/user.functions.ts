@@ -74,15 +74,23 @@ export const updateProfile = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .maybeSingle();
 
-    const patch: Record<string, string | null> = {
+    const patch: {
+      address_line_1: string | null;
+      address_line_2: string | null;
+      city: string | null;
+      postal_code: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+      phone?: string | null;
+    } = {
       address_line_1: data.address_line_1,
       address_line_2: data.address_line_2,
       city: data.city,
       postal_code: data.postal_code,
     };
-    if (!existingProfile?.first_name) patch["first_name"] = data.first_name;
-    if (!existingProfile?.last_name) patch["last_name"] = data.last_name;
-    if (!existingProfile?.phone) patch["phone"] = data.phone;
+    if (!existingProfile?.first_name) patch.first_name = data.first_name;
+    if (!existingProfile?.last_name) patch.last_name = data.last_name;
+    if (!existingProfile?.phone) patch.phone = data.phone;
 
     const { error: profileError } = await supabase
       .from("user_profiles")
