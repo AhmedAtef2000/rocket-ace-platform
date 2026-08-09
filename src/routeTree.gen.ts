@@ -19,7 +19,6 @@ import { Route as AuthenticatedComplianceRouteImport } from './routes/_authentic
 import { Route as AuthenticatedFairnessRouteImport } from './routes/_authenticated/fairness'
 import { Route as AuthenticatedGameRouteImport } from './routes/_authenticated/game'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
-import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
@@ -79,11 +78,6 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -136,7 +130,6 @@ export interface FileRoutesByFullPath {
   '/fairness': typeof AuthenticatedFairnessRoute
   '/game': typeof AuthenticatedGameRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
-  '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/security': typeof AuthenticatedSecurityRoute
   '/support': typeof AuthenticatedSupportRoute
@@ -156,7 +149,6 @@ export interface FileRoutesByTo {
   '/fairness': typeof AuthenticatedFairnessRoute
   '/game': typeof AuthenticatedGameRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
-  '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/security': typeof AuthenticatedSecurityRoute
   '/support': typeof AuthenticatedSupportRoute
@@ -178,7 +170,6 @@ export interface FileRoutesById {
   '/_authenticated/fairness': typeof AuthenticatedFairnessRoute
   '/_authenticated/game': typeof AuthenticatedGameRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
-  '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
@@ -200,7 +191,6 @@ export interface FileRouteTypes {
     | '/fairness'
     | '/game'
     | '/notifications'
-    | '/payments'
     | '/profile'
     | '/security'
     | '/support'
@@ -220,7 +210,6 @@ export interface FileRouteTypes {
     | '/fairness'
     | '/game'
     | '/notifications'
-    | '/payments'
     | '/profile'
     | '/security'
     | '/support'
@@ -241,7 +230,6 @@ export interface FileRouteTypes {
     | '/_authenticated/fairness'
     | '/_authenticated/game'
     | '/_authenticated/notifications'
-    | '/_authenticated/payments'
     | '/_authenticated/profile'
     | '/_authenticated/security'
     | '/_authenticated/support'
@@ -335,13 +323,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/payments': {
-      id: '/_authenticated/payments'
-      path: '/payments'
-      fullPath: '/payments'
-      preLoaderRoute: typeof AuthenticatedPaymentsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -408,7 +389,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFairnessRoute: typeof AuthenticatedFairnessRoute
   AuthenticatedGameRoute: typeof AuthenticatedGameRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
-  AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
@@ -422,7 +402,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFairnessRoute: AuthenticatedFairnessRoute,
   AuthenticatedGameRoute: AuthenticatedGameRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
-  AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
@@ -445,3 +424,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

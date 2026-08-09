@@ -12,7 +12,6 @@ import {
   LogOut,
   MailOpen,
   Menu,
-  Receipt,
   Rocket,
   Settings,
   ShieldCheck,
