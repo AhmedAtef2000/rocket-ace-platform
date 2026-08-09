@@ -10,16 +10,18 @@ export const CRYPTO_META: Record<string, { name: string; tint: string }> = {
   ETH: { name: "Ethereum", tint: "text-indigo-300" },
 };
 
-/** Networks are labelled for humans but keep their canonical server value. */
-export const NETWORK_LABEL: Record<string, string> = {
-  TRON: "TRC20",
-  ETHEREUM: "ERC20",
-  BSC: "BEP20",
-  BITCOIN: "BTC",
+/** Networks are labelled for humans but keep their canonical server value.
+ * Display labels live in the wallet i18n pack (wallet.network.*); this map
+ * only resolves the translation key for a given network code. */
+export const NETWORK_LABEL_KEY: Record<string, string> = {
+  TRON: "wallet.network.tron",
+  ETHEREUM: "wallet.network.ethereum",
+  BSC: "wallet.network.bsc",
+  BITCOIN: "wallet.network.bitcoin",
 };
 
-export function networkLabel(network: string): string {
-  return NETWORK_LABEL[network] ?? network;
+export function networkLabelKey(network: string): string {
+  return NETWORK_LABEL_KEY[network] ?? network;
 }
 
 /** Stablecoins track the dollar 1:1; anything else needs a live rate we do not fake. */

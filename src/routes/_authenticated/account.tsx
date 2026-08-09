@@ -9,6 +9,7 @@ import { getAccount, provisionAccount } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
 import { AccountNav } from "@/components/account/AccountNav";
 import { SessionRegistrar } from "@/components/account/SessionRegistrar";
+import { useI18n } from "@/lib/i18n";
 
 const title = "Your account — AstroBet";
 const description =
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/account")({
 });
 
 function AccountPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const provision = useServerFn(provisionAccount);
@@ -49,7 +51,7 @@ function AccountPage() {
   });
 
   useEffect(() => {
-    if (provisioned.isError) toast.error("Could not prepare your account. Try refreshing.");
+    if (provisioned.isError) toast.error(t("acct.couldNotPrepare"));
   }, [provisioned.isError]);
 
   async function handleSignOut() {
@@ -66,31 +68,31 @@ function AccountPage() {
       <SessionRegistrar />
       <div className="w-full">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Your account</h1>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("acct.yourAccount")}</h1>
           <Button variant="outline" onClick={handleSignOut}>
-            Sign out
+            {t("acct.signOut")}
           </Button>
         </div>
 
         <AccountNav />
 
         {account.isPending ? (
-          <p className="mt-6 text-sm text-muted-foreground">Loading your account…</p>
+          <p className="mt-6 text-sm text-muted-foreground">{t("acct.loading")}</p>
         ) : (
           <div className="mt-6 space-y-6">
             <section className="rounded-2xl border border-border bg-card/60 p-5">
-              <h2 className="text-sm font-medium text-foreground">Identity</h2>
+              <h2 className="text-sm font-medium text-foreground">{t("acct.identity")}</h2>
               <dl className="mt-3 space-y-2 text-sm">
-                <Row label="Email" value={user?.email ?? "—"} />
-                <Row label="Status" value={user?.status ?? "—"} />
-                <Row label="MFA" value={user?.mfa_enabled ? "Enabled" : "Not enabled"} />
+                <Row label={t("acct.email")} value={user?.email ?? "—"} />
+                <Row label={t("acct.status")} value={user?.status ?? "—"} />
+                <Row label={t("acct.mfa")} value={user?.mfa_enabled ? t("acct.mfaEnabled") : t("acct.mfaNotEnabled")} />
               </dl>
             </section>
 
             <section className="rounded-2xl border border-border bg-card/60 p-5">
-              <h2 className="text-sm font-medium text-foreground">Wallets</h2>
+              <h2 className="text-sm font-medium text-foreground">{t("acct.wallets")}</h2>
               {wallets.length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">No wallets yet.</p>
+                <p className="mt-2 text-sm text-muted-foreground">{t("acct.noWallets")}</p>
               ) : (
                 <ul className="mt-3 space-y-2 text-sm">
                   {wallets.map((wallet) => (
@@ -103,9 +105,7 @@ function AccountPage() {
                   ))}
                 </ul>
               )}
-              <p className="mt-3 text-xs text-muted-foreground">
-                Balances are ledger projections updated after every settled round.
-              </p>
+              <p className="mt-3 text-xs text-muted-foreground">{t("acct.balancesNote")}</p>
             </section>
           </div>
         )}

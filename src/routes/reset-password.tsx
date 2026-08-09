@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/layout/AppShell";
+import { useI18n } from "@/lib/i18n";
 
 const title = "Reset password — AstroBet";
 const description = "Set a new password for your AstroBet account.";
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [ready, setReady] = useState(false);
@@ -49,19 +51,19 @@ function ResetPasswordPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Password updated");
+    toast.success(t("ui.passwordUpdated"));
     void navigate({ to: "/account" });
   }
 
   return (
     <AuthShell>
         <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">
-          Set a new password
+          {t("ui.setNewPassword")}
         </h1>
         {ready ? (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="new-password">New password</Label>
+              <Label htmlFor="new-password">{t("ui.newPassword")}</Label>
               <Input
                 id="new-password"
                 type="password"
@@ -72,12 +74,12 @@ function ResetPasswordPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={busy}>
-              Update password
+              {t("ui.updatePassword")}
             </Button>
           </form>
         ) : (
           <p className="mt-4 text-sm text-muted-foreground">
-            Open this page from the password reset link in your email.
+            {t("ui.resetLinkHint")}
           </p>
         )}
     </AuthShell>

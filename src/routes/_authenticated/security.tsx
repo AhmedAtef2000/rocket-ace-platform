@@ -17,6 +17,7 @@ import { useDeviceId } from "@/hooks/useDeviceId";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n";
 
 const title = "Security — AstroBet";
 const description =
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/security")({
 type Factor = { id: string; status: string; friendly_name?: string | undefined };
 
 function SecurityPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const deviceId = useDeviceId();
   const fetchAll = useServerFn(getUserManagement);
@@ -99,7 +101,7 @@ function SecurityPage() {
     },
     onSuccess: async () => {
       setEnrolling(null);
-      toast.success("Two-factor authentication is on.");
+      toast.success(t("acct.security.twoFactorEnabled"));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["mfa", "factors"] }),
         queryClient.invalidateQueries({ queryKey: ["user-management"] }),
@@ -117,7 +119,7 @@ function SecurityPage() {
       return sync({ data: { enabled: false } });
     },
     onSuccess: async () => {
-      toast.success("Two-factor authentication removed.");
+      toast.success(t("acct.security.twoFactorRemoved"));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["mfa", "factors"] }),
         queryClient.invalidateQueries({ queryKey: ["user-management"] }),
@@ -129,7 +131,7 @@ function SecurityPage() {
   const signOutDevice = useMutation({
     mutationFn: async (sessionId: string) => revokeOne({ data: { sessionId } }),
     onSuccess: async () => {
-      toast.success("Device signed out.");
+      toast.success(t("acct.security.deviceSignedOut"));
       await queryClient.invalidateQueries({ queryKey: ["user-management"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -141,7 +143,7 @@ function SecurityPage() {
       return revokeRest({ data: { keepId: deviceId } });
     },
     onSuccess: async () => {
-      toast.success("All other devices signed out.");
+      toast.success(t("acct.security.allOthersSignedOut"));
       await queryClient.invalidateQueries({ queryKey: ["user-management"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -153,16 +155,16 @@ function SecurityPage() {
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
       <SessionRegistrar />
       <div className="w-full">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">Security</h1>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("acct.security.title")}</h1>
         <AccountNav />
 
         <section className="mt-6 space-y-4 rounded-2xl border border-border bg-card/60 p-5">
           <div>
-            <h2 className="text-sm font-medium text-foreground">Two-factor authentication</h2>
+            <h2 className="text-sm font-medium text-foreground">{t("acct.security.twoFactor")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {verified.length > 0
-                ? "An authenticator app is protecting withdrawals and sign-in."
-                : "Add an authenticator app (TOTP). Required before real-money withdrawals."}
+                ? t("acct.security.twoFactorOn")
+                : t("acct.security.twoFactorOff")}
             </p>
           </div>
 
@@ -172,17 +174,17 @@ function SecurityPage() {
               onClick={() => disableMfa.mutate()}
               disabled={disableMfa.isPending}
             >
-              {disableMfa.isPending ? "Removing…" : "Remove two-factor"}
+              {disableMfa.isPending ? t("acct.security.removing") : t("acct.security.removeTwoFactor")}
             </Button>
           ) : enrolling ? (
             <div className="space-y-4">
               <img
                 src={enrolling.qr}
-                alt="QR code to add AstroBet to your authenticator app"
+                alt={t("acct.security.qrAlt")}
                 className="size-44 rounded-md bg-card p-2"
               />
               <div className="space-y-2">
-                <Label htmlFor="totp">6-digit code</Label>
+                <Label htmlFor="totp">{t("acct.security.sixDigitCode")}</Label>
                 <Input
                   id="totp"
                   inputMode="numeric"
@@ -194,50 +196,50 @@ function SecurityPage() {
               </div>
               <div className="flex gap-2">
                 <Button onClick={() => confirmEnroll.mutate()} disabled={confirmEnroll.isPending}>
-                  {confirmEnroll.isPending ? "Verifying…" : "Verify and enable"}
+                  {confirmEnroll.isPending ? t("acct.security.verifying") : t("acct.security.verifyAndEnable")}
                 </Button>
                 <Button variant="ghost" onClick={() => setEnrolling(null)}>
-                  Cancel
+                  {t("acct.security.cancel")}
                 </Button>
               </div>
             </div>
           ) : (
             <Button onClick={() => startEnroll.mutate()} disabled={startEnroll.isPending}>
-              {startEnroll.isPending ? "Preparing…" : "Set up authenticator app"}
+              {startEnroll.isPending ? t("acct.security.preparing") : t("acct.security.setUpAuthenticator")}
             </Button>
           )}
         </section>
 
         <section className="mt-6 space-y-4 rounded-2xl border border-border bg-card/60 p-5">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-sm font-medium text-foreground">Active devices</h2>
+            <h2 className="text-sm font-medium text-foreground">{t("acct.security.activeDevices")}</h2>
             <Button
               variant="outline"
               size="sm"
               onClick={() => signOutOthers.mutate()}
               disabled={signOutOthers.isPending || sessions.length < 2}
             >
-              Sign out others
+              {t("acct.security.signOutOthers")}
             </Button>
           </div>
 
           {account.isPending ? (
-            <p className="text-sm text-muted-foreground">Loading devices…</p>
+            <p className="text-sm text-muted-foreground">{t("acct.security.loadingDevices")}</p>
           ) : sessions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No tracked devices yet.</p>
+            <p className="text-sm text-muted-foreground">{t("acct.security.noDevices")}</p>
           ) : (
             <ul className="space-y-3 text-sm">
               {sessions.map((session) => (
                 <li key={session.id} className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-foreground">
-                      {session.device_label ?? "Unknown device"}
+                      {session.device_label ?? t("acct.security.unknownDevice")}
                       {session.id === deviceId ? (
-                        <span className="ml-2 text-xs text-primary">This device</span>
+                        <span className="ml-2 text-xs text-primary">{t("acct.security.thisDevice")}</span>
                       ) : null}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Last seen {new Date(session.last_seen_at).toLocaleString()}
+                      {t("acct.security.lastSeen", { time: new Date(session.last_seen_at).toLocaleString() })}
                     </p>
                   </div>
                   {session.id === deviceId ? null : (
@@ -247,7 +249,7 @@ function SecurityPage() {
                       onClick={() => signOutDevice.mutate(session.id)}
                       disabled={signOutDevice.isPending}
                     >
-                      Sign out
+                      {t("acct.security.signOut")}
                     </Button>
                   )}
                 </li>

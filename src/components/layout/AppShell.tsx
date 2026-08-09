@@ -111,7 +111,7 @@ function AccountMenu({ username, balance }: { username: string | null; balance: 
               </div>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                  ID
+                  {t("ui.accountId")}
                 </span>
                 <span dir="ltr" className="font-mono text-xs tabular-nums">
                   {accountNumber ?? "—"}
@@ -226,7 +226,7 @@ function SideNav({
       : []),
   ];
   return (
-    <nav className="flex flex-col gap-0.5" aria-label="Sections">
+    <nav className="flex flex-col gap-0.5" aria-label={t("ui.sectionsNav")}>
       {items.map((item) => (
         <Link
           key={item.label}
@@ -331,7 +331,7 @@ export function AppShell({
             <button
               type="button"
               onClick={() => setOpen(true)}
-              aria-label="Open menu"
+              aria-label={t("ui.openMenu")}
               className="grid size-9 shrink-0 place-items-center rounded-xl border border-border lg:hidden"
             >
               <Menu className="size-4" aria-hidden />
@@ -339,7 +339,7 @@ export function AppShell({
             <BrandMark />
           </div>
 
-          <nav className="hidden min-w-0 items-center gap-1 xl:flex" aria-label="Primary">
+          <nav className="hidden min-w-0 items-center gap-1 xl:flex" aria-label={t("ui.primaryNav")}>
             {topNav
               .filter((item) => !(publicView && gatedTopNavKeys.has(item.key)))
               .map((item) => (
@@ -424,7 +424,7 @@ export function AppShell({
           <div className="absolute inset-y-0 start-0 w-72 overflow-y-auto panel p-3">
             <div className="mb-3 flex items-center justify-between">
               <BrandMark />
-              <button type="button" aria-label="Close menu" onClick={() => setOpen(false)}>
+              <button type="button" aria-label={t("ui.closeMenu")} onClick={() => setOpen(false)}>
                 <X className="size-5" aria-hidden />
               </button>
             </div>

@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
+import { useI18n } from "@/lib/i18n";
+
 import { AccountNav } from "@/components/account/AccountNav";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,6 +69,7 @@ function fmt(value: number): string {
 }
 
 function AdminPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchSession = useServerFn(getAdminSession);
   const claim = useServerFn(claimSuperAdmin);
@@ -79,7 +82,7 @@ function AdminPage() {
   const claimMutation = useMutation({
     mutationFn: async () => claim({ data: undefined }),
     onSuccess: () => {
-      toast.success("Super admin access granted");
+      toast.success(t("admin.claimSuccess"));
       void queryClient.invalidateQueries({ queryKey: ["admin"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -90,24 +93,27 @@ function AdminPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
-      <h1 className="font-display text-3xl font-extrabold tracking-tight">Back office</h1>
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("admin.title")}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {identity
-          ? `Signed in as ${identity.roleKey.replace(/_/g, " ").toLowerCase()} · ${identity.permissions.length} permissions`
-          : "Staff-only console. Every action here is written to the audit trail."}
+          ? t("admin.subtitle.signedIn", {
+              role: identity.roleKey.replace(/_/g, " ").toLowerCase(),
+              count: identity.permissions.length,
+            })
+          : t("admin.subtitle.staffOnly")}
       </p>
       <AccountNav />
 
-      {session.isLoading ? <p className="mt-8 text-sm text-muted-foreground">Loading…</p> : null}
+      {session.isLoading ? <p className="mt-8 text-sm text-muted-foreground">{t("admin.loading")}</p> : null}
 
       {!identity && session.data ? (
         <section className="mt-8 rounded-xl border border-border p-5">
-          <h2 className="text-lg font-medium">No back-office access</h2>
+          <h2 className="text-lg font-medium">{t("admin.noAccess.title")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            This account has no operator role.{" "}
+            {t("admin.noAccess.body")}{" "}
             {session.data.bootstrapAvailable
-              ? "No administrator exists yet, so this account can claim the first Super Admin role. The claim closes permanently once used."
-              : "Ask an existing Super Admin to grant you a role."}
+              ? t("admin.noAccess.bootstrap")
+              : t("admin.noAccess.askAdmin")}
           </p>
           {session.data.bootstrapAvailable ? (
             <Button
@@ -115,7 +121,7 @@ function AdminPage() {
               disabled={claimMutation.isPending}
               onClick={() => claimMutation.mutate()}
             >
-              Claim Super Admin
+              {t("admin.claimSuperAdmin")}
             </Button>
           ) : null}
         </section>
@@ -142,6 +148,7 @@ function AdminPage() {
 }
 
 function OverviewSection() {
+  const { t } = useI18n();
   const fetchOverview = useServerFn(getAdminOverview);
   const overview = useQuery({
     queryKey: ["admin", "overview"],
@@ -151,24 +158,25 @@ function OverviewSection() {
   const d = overview.data;
   return (
     <section>
-      <h2 className="text-lg font-medium">Overview</h2>
+      <h2 className="text-lg font-medium">{t("admin.overview.title")}</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        <Metric label="Players" value={d ? d.users : "—"} />
-        <Metric label="Rounds 24h" value={d ? d.rounds24h : "—"} />
-        <Metric label="Wagered 24h" value={d ? fmt(d.wagered24h) : "—"} />
-        <Metric label="GGR 24h" value={d ? fmt(d.ggr24h) : "—"} />
-        <Metric label="Pending payouts" value={d ? d.pendingWithdrawals : "—"} />
-        <Metric label="Payout value" value={d ? fmt(d.pendingWithdrawalValue) : "—"} />
-        <Metric label="Open risk events" value={d ? d.openRiskEvents : "—"} />
-        <Metric label="Open tickets" value={d ? d.openTickets : "—"} />
-        <Metric label="KYC queue" value={d ? d.pendingKyc : "—"} />
-        <Metric label="Ledger drift" value={d ? d.driftedWallets : "—"} />
+        <Metric label={t("admin.overview.players")} value={d ? d.users : "—"} />
+        <Metric label={t("admin.overview.rounds24h")} value={d ? d.rounds24h : "—"} />
+        <Metric label={t("admin.overview.wagered24h")} value={d ? fmt(d.wagered24h) : "—"} />
+        <Metric label={t("admin.overview.ggr24h")} value={d ? fmt(d.ggr24h) : "—"} />
+        <Metric label={t("admin.overview.pendingPayouts")} value={d ? d.pendingWithdrawals : "—"} />
+        <Metric label={t("admin.overview.payoutValue")} value={d ? fmt(d.pendingWithdrawalValue) : "—"} />
+        <Metric label={t("admin.overview.openRiskEvents")} value={d ? d.openRiskEvents : "—"} />
+        <Metric label={t("admin.overview.openTickets")} value={d ? d.openTickets : "—"} />
+        <Metric label={t("admin.overview.kycQueue")} value={d ? d.pendingKyc : "—"} />
+        <Metric label={t("admin.overview.ledgerDrift")} value={d ? d.driftedWallets : "—"} />
       </div>
     </section>
   );
 }
 
 function WithdrawalsSection({ canApprove }: { canApprove: boolean }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchList = useServerFn(listPendingWithdrawals);
   const decide = useServerFn(decideWithdrawal);
@@ -183,7 +191,7 @@ function WithdrawalsSection({ canApprove }: { canApprove: boolean }) {
     mutationFn: async (input: { id: string; decision: "APPROVE" | "REJECT" }) =>
       decide({ data: { ...input, note: notes[input.id] ?? "" } }),
     onSuccess: () => {
-      toast.success("Decision recorded");
+      toast.success(t("admin.withdrawals.decisionRecorded"));
       void queryClient.invalidateQueries({ queryKey: ["admin"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -191,10 +199,10 @@ function WithdrawalsSection({ canApprove }: { canApprove: boolean }) {
 
   return (
     <section>
-      <h2 className="text-lg font-medium">Withdrawal approvals</h2>
+      <h2 className="text-lg font-medium">{t("admin.withdrawals.title")}</h2>
       <div className="mt-4 space-y-3">
         {list.data?.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Queue is clear.</p>
+          <p className="text-sm text-muted-foreground">{t("admin.withdrawals.queueClear")}</p>
         ) : null}
         {(list.data ?? []).map((w) => (
           <article key={w.id} className="rounded-xl border border-border p-4">
@@ -205,8 +213,12 @@ function WithdrawalsSection({ canApprove }: { canApprove: boolean }) {
                 </p>
                 <p className="text-xs text-muted-foreground break-all">{w.destination_address}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {w.status} · risk {w.risk_status} · approvals {w.approvals_count}/
-                  {w.approvals_required}
+                  {t("admin.withdrawals.statusLine", {
+                    status: w.status,
+                    risk: w.risk_status,
+                    approvalsCount: w.approvals_count,
+                    approvalsRequired: w.approvals_required,
+                  })}
                 </p>
               </div>
             </div>
@@ -215,21 +227,21 @@ function WithdrawalsSection({ canApprove }: { canApprove: boolean }) {
                 <input
                   value={notes[w.id] ?? ""}
                   onChange={(e) => setNotes((p) => ({ ...p, [w.id]: e.target.value }))}
-                  placeholder="Decision note"
+                  placeholder={t("admin.withdrawals.decisionNotePlaceholder")}
                   className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
                 />
                 <Button
                   disabled={mutation.isPending}
                   onClick={() => mutation.mutate({ id: w.id, decision: "APPROVE" })}
                 >
-                  Approve
+                  {t("admin.withdrawals.approve")}
                 </Button>
                 <Button
                   variant="destructive"
                   disabled={mutation.isPending}
                   onClick={() => mutation.mutate({ id: w.id, decision: "REJECT" })}
                 >
-                  Reject
+                  {t("admin.withdrawals.reject")}
                 </Button>
               </div>
             ) : null}
@@ -241,6 +253,7 @@ function WithdrawalsSection({ canApprove }: { canApprove: boolean }) {
 }
 
 function KycSection({ canDecide }: { canDecide: boolean }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchList = useServerFn(listKycQueue);
   const decide = useServerFn(decideKyc);
@@ -255,7 +268,7 @@ function KycSection({ canDecide }: { canDecide: boolean }) {
     mutationFn: async (input: { id: string; decision: "APPROVED" | "REJECTED" }) =>
       decide({ data: { ...input, note: notes[input.id] ?? "" } }),
     onSuccess: () => {
-      toast.success("Case updated");
+      toast.success(t("admin.kyc.caseUpdated"));
       void queryClient.invalidateQueries({ queryKey: ["admin"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -263,17 +276,17 @@ function KycSection({ canDecide }: { canDecide: boolean }) {
 
   return (
     <section>
-      <h2 className="text-lg font-medium">KYC queue</h2>
+      <h2 className="text-lg font-medium">{t("admin.kyc.title")}</h2>
       <div className="mt-4 space-y-3">
         {list.data?.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No cases awaiting review.</p>
+          <p className="text-sm text-muted-foreground">{t("admin.kyc.empty")}</p>
         ) : null}
         {(list.data ?? []).map((c) => (
           <article key={c.id} className="rounded-xl border border-border p-4 text-sm">
             <p className="font-medium">
-              {c.status} · risk {c.risk_level}
+              {t("admin.kyc.statusLine", { status: c.status, risk: c.risk_level })}
             </p>
-            <p className="text-xs text-muted-foreground break-all">User {c.user_id}</p>
+            <p className="text-xs text-muted-foreground break-all">{t("admin.kyc.userLabel", { id: c.user_id })}</p>
             {c.rejection_reason ? (
               <p className="mt-1 text-xs text-muted-foreground">{c.rejection_reason}</p>
             ) : null}
@@ -282,21 +295,21 @@ function KycSection({ canDecide }: { canDecide: boolean }) {
                 <input
                   value={notes[c.id] ?? ""}
                   onChange={(e) => setNotes((p) => ({ ...p, [c.id]: e.target.value }))}
-                  placeholder="Reviewer note"
+                  placeholder={t("admin.kyc.notePlaceholder")}
                   className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
                 />
                 <Button
                   disabled={mutation.isPending}
                   onClick={() => mutation.mutate({ id: c.id, decision: "APPROVED" })}
                 >
-                  Approve
+                  {t("admin.kyc.approve")}
                 </Button>
                 <Button
                   variant="destructive"
                   disabled={mutation.isPending}
                   onClick={() => mutation.mutate({ id: c.id, decision: "REJECTED" })}
                 >
-                  Reject
+                  {t("admin.kyc.reject")}
                 </Button>
               </div>
             ) : null}
@@ -308,6 +321,7 @@ function KycSection({ canDecide }: { canDecide: boolean }) {
 }
 
 function RiskSection({ canResolve }: { canResolve: boolean }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchList = useServerFn(listRiskEvents);
   const resolve = useServerFn(resolveRiskEvent);
@@ -321,7 +335,7 @@ function RiskSection({ canResolve }: { canResolve: boolean }) {
   const scanMutation = useMutation({
     mutationFn: async () => scan({ data: undefined }),
     onSuccess: (result) => {
-      toast.success(`Scanned ${result.scanned} accounts · ${result.flagged} flagged`);
+      toast.success(t("admin.risk.scanResult", { scanned: result.scanned, flagged: result.flagged }));
       void queryClient.invalidateQueries({ queryKey: ["admin"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -331,7 +345,7 @@ function RiskSection({ canResolve }: { canResolve: boolean }) {
     mutationFn: async (input: { id: string; status: "RESOLVED" | "DISMISSED" | "ESCALATED" }) =>
       resolve({ data: input }),
     onSuccess: () => {
-      toast.success("Risk event updated");
+      toast.success(t("admin.risk.updated"));
       void queryClient.invalidateQueries({ queryKey: ["admin"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -340,26 +354,26 @@ function RiskSection({ canResolve }: { canResolve: boolean }) {
   return (
     <section>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-medium">Risk & fraud</h2>
+        <h2 className="text-lg font-medium">{t("admin.risk.title")}</h2>
         <Button
           variant="secondary"
           disabled={scanMutation.isPending}
           onClick={() => scanMutation.mutate()}
         >
-          {scanMutation.isPending ? "Scanning…" : "Run risk scan"}
+          {scanMutation.isPending ? t("admin.risk.scanning") : t("admin.risk.runScan")}
         </Button>
       </div>
       <div className="mt-4 space-y-3">
         {list.data?.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No open risk events.</p>
+          <p className="text-sm text-muted-foreground">{t("admin.risk.empty")}</p>
         ) : null}
         {(list.data ?? []).map((e) => (
           <article key={e.id} className="rounded-xl border border-border p-4 text-sm">
             <p className="font-medium">
-              {e.event_type} · score {e.risk_score} · {e.severity}
+              {t("admin.risk.eventLine", { type: e.event_type, score: e.risk_score, severity: e.severity })}
             </p>
             <p className="text-xs text-muted-foreground break-all">
-              {e.source} · user {e.user_id ?? "—"}
+              {t("admin.risk.sourceLine", { source: e.source, user: e.user_id ?? "—" })}
             </p>
             {e.description ? <p className="mt-1">{e.description}</p> : null}
             {canResolve ? (
@@ -368,21 +382,21 @@ function RiskSection({ canResolve }: { canResolve: boolean }) {
                   size="sm"
                   onClick={() => mutation.mutate({ id: e.id, status: "RESOLVED" })}
                 >
-                  Resolve
+                  {t("admin.risk.resolve")}
                 </Button>
                 <Button
                   size="sm"
                   variant="secondary"
                   onClick={() => mutation.mutate({ id: e.id, status: "ESCALATED" })}
                 >
-                  Escalate
+                  {t("admin.risk.escalate")}
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => mutation.mutate({ id: e.id, status: "DISMISSED" })}
                 >
-                  Dismiss
+                  {t("admin.risk.dismiss")}
                 </Button>
               </div>
             ) : null}
@@ -394,6 +408,7 @@ function RiskSection({ canResolve }: { canResolve: boolean }) {
 }
 
 function TicketsSection({ canReply }: { canReply: boolean }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchList = useServerFn(listAdminTickets);
   const answer = useServerFn(answerTicket);
@@ -408,7 +423,7 @@ function TicketsSection({ canReply }: { canReply: boolean }) {
     mutationFn: async (input: { ticketId: string; resolve: boolean }) =>
       answer({ data: { ...input, body: drafts[input.ticketId] ?? "" } }),
     onSuccess: (_r, input) => {
-      toast.success("Reply sent");
+      toast.success(t("admin.tickets.sent"));
       setDrafts((p) => ({ ...p, [input.ticketId]: "" }));
       void queryClient.invalidateQueries({ queryKey: ["admin"] });
     },
@@ -417,19 +432,24 @@ function TicketsSection({ canReply }: { canReply: boolean }) {
 
   return (
     <section>
-      <h2 className="text-lg font-medium">Support queue</h2>
+      <h2 className="text-lg font-medium">{t("admin.tickets.title")}</h2>
       <div className="mt-4 space-y-3">
         {list.data?.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No open tickets.</p>
+          <p className="text-sm text-muted-foreground">{t("admin.tickets.empty")}</p>
         ) : null}
-        {(list.data ?? []).map((t) => (
-          <article key={t.id} className="rounded-xl border border-border p-4 text-sm">
-            <p className="font-medium">{t.subject}</p>
+        {(list.data ?? []).map((ticket) => (
+          <article key={ticket.id} className="rounded-xl border border-border p-4 text-sm">
+            <p className="font-medium">{ticket.subject}</p>
             <p className="text-xs text-muted-foreground">
-              {t.reference} · {t.category} · {t.priority} · {t.status}
+              {t("admin.tickets.metaLine", {
+                reference: ticket.reference,
+                category: ticket.category,
+                priority: ticket.priority,
+                status: ticket.status,
+              })}
             </p>
             <ol className="mt-3 space-y-2">
-              {t.messages.map((m) => (
+              {ticket.messages.map((m) => (
                 <li key={m.id} className="rounded-lg bg-muted/40 p-2">
                   <span className="text-xs text-muted-foreground">{m.author_type}</span>
                   <p className="whitespace-pre-wrap">{m.body}</p>
@@ -439,23 +459,23 @@ function TicketsSection({ canReply }: { canReply: boolean }) {
             {canReply ? (
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                 <input
-                  value={drafts[t.id] ?? ""}
-                  onChange={(e) => setDrafts((p) => ({ ...p, [t.id]: e.target.value }))}
-                  placeholder="Reply to player"
+                  value={drafts[ticket.id] ?? ""}
+                  onChange={(e) => setDrafts((p) => ({ ...p, [ticket.id]: e.target.value }))}
+                  placeholder={t("admin.tickets.replyPlaceholder")}
                   className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
                 />
                 <Button
                   disabled={mutation.isPending}
-                  onClick={() => mutation.mutate({ ticketId: t.id, resolve: false })}
+                  onClick={() => mutation.mutate({ ticketId: ticket.id, resolve: false })}
                 >
-                  Reply
+                  {t("admin.tickets.reply")}
                 </Button>
                 <Button
                   variant="secondary"
                   disabled={mutation.isPending}
-                  onClick={() => mutation.mutate({ ticketId: t.id, resolve: true })}
+                  onClick={() => mutation.mutate({ ticketId: ticket.id, resolve: true })}
                 >
-                  Reply & resolve
+                  {t("admin.tickets.replyResolve")}
                 </Button>
               </div>
             ) : null}
@@ -467,6 +487,7 @@ function TicketsSection({ canReply }: { canReply: boolean }) {
 }
 
 function AuditSection() {
+  const { t } = useI18n();
   const fetchLogs = useServerFn(listAuditLogs);
   const logs = useQuery({
     queryKey: ["admin", "audit"],
@@ -474,13 +495,13 @@ function AuditSection() {
   });
   return (
     <section>
-      <h2 className="text-lg font-medium">Audit trail</h2>
+      <h2 className="text-lg font-medium">{t("admin.audit.title")}</h2>
       <ul className="mt-4 space-y-2 text-sm">
         {(logs.data ?? []).map((log) => (
           <li key={log.id} className="rounded-xl border border-border bg-card/50 px-3 py-2">
             <span className="font-medium">{log.action}</span>{" "}
             <span className="text-xs text-muted-foreground">
-              {log.actor_role ?? "SYSTEM"} · {log.resource_type ?? "—"} ·{" "}
+              {log.actor_role ?? t("admin.audit.system")} · {log.resource_type ?? "—"} ·{" "}
               {new Date(log.created_at).toLocaleString()}
             </span>
           </li>
@@ -490,6 +511,7 @@ function AuditSection() {
   );
 }
 function AnalyticsSection() {
+  const { t } = useI18n();
   const fetchAnalytics = useServerFn(getAdminAnalytics);
   const analytics = useQuery({
     queryKey: ["admin", "analytics"],
@@ -501,23 +523,23 @@ function AnalyticsSection() {
 
   return (
     <section>
-      <h2 className="text-lg font-medium">Analytics · last {d?.days ?? 14} days</h2>
+      <h2 className="text-lg font-medium">{t("admin.analytics.title", { days: d?.days ?? 14 })}</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        <Metric label="Wagered" value={d ? fmt(d.totals.wagered) : "—"} />
-        <Metric label="Returned" value={d ? fmt(d.totals.payout) : "—"} />
-        <Metric label="GGR" value={d ? fmt(d.totals.ggr) : "—"} />
-        <Metric label="Hold %" value={d ? `${d.totals.holdPercent.toFixed(2)}%` : "—"} />
-        <Metric label="Rounds" value={d ? d.totals.rounds : "—"} />
-        <Metric label="New players" value={d ? d.totals.newUsers : "—"} />
-        <Metric label="Deposit volume" value={d ? fmt(d.totals.depositVolume) : "—"} />
-        <Metric label="Payout volume" value={d ? fmt(d.totals.withdrawalVolume) : "—"} />
+        <Metric label={t("admin.analytics.wagered")} value={d ? fmt(d.totals.wagered) : "—"} />
+        <Metric label={t("admin.analytics.returned")} value={d ? fmt(d.totals.payout) : "—"} />
+        <Metric label={t("admin.analytics.ggr")} value={d ? fmt(d.totals.ggr) : "—"} />
+        <Metric label={t("admin.analytics.holdPercent")} value={d ? `${d.totals.holdPercent.toFixed(2)}%` : "—"} />
+        <Metric label={t("admin.analytics.rounds")} value={d ? d.totals.rounds : "—"} />
+        <Metric label={t("admin.analytics.newPlayers")} value={d ? d.totals.newUsers : "—"} />
+        <Metric label={t("admin.analytics.depositVolume")} value={d ? fmt(d.totals.depositVolume) : "—"} />
+        <Metric label={t("admin.analytics.payoutVolume")} value={d ? fmt(d.totals.withdrawalVolume) : "—"} />
       </div>
 
       <div className="mt-5 rounded-xl border border-border p-5">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">Daily wagered vs GGR</p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("admin.analytics.chartTitle")}</p>
         <div className="mt-4 flex h-32 items-end gap-1">
           {(d?.series ?? []).map((bucket) => (
-            <div key={bucket.day} className="flex flex-1 flex-col items-center gap-1" title={`${bucket.day}: wagered ${fmt(bucket.wagered)} · GGR ${fmt(bucket.ggr)}`}>
+            <div key={bucket.day} className="flex flex-1 flex-col items-center gap-1" title={t("admin.analytics.chartTooltip", { day: bucket.day, wagered: fmt(bucket.wagered), ggr: fmt(bucket.ggr) })}>
               <div className="flex h-28 w-full items-end gap-0.5">
                 <div
                   className="flex-1 rounded-t bg-primary/60"
@@ -535,16 +557,16 @@ function AnalyticsSection() {
       </div>
 
       <div className="mt-5 rounded-xl border border-border p-5">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">Top players by wagered</p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("admin.analytics.topPlayersTitle")}</p>
         {(d?.topPlayers ?? []).length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">No betting activity in this window.</p>
+          <p className="mt-3 text-sm text-muted-foreground">{t("admin.analytics.topPlayersEmpty")}</p>
         ) : (
           <ul className="mt-3 space-y-2 text-sm">
             {(d?.topPlayers ?? []).map((player) => (
               <li key={player.userId} className="flex flex-wrap justify-between gap-2">
                 <span className="font-mono text-xs text-muted-foreground">{player.userId.slice(0, 8)}…</span>
                 <span className="tabular-nums">
-                  {player.bets} bets · wagered {fmt(player.wagered)} · net{" "}
+                  {t("admin.analytics.playerLine", { bets: player.bets, wagered: fmt(player.wagered) })}{" "}
                   <span className={player.net >= 0 ? "text-success" : "text-destructive"}>
                     {fmt(player.net)}
                   </span>
@@ -583,6 +605,7 @@ function Field({
 }
 
 function SettingsSection() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchSettings = useServerFn(getPlatformSettings);
   const save = useServerFn(updatePlatformSettings);
@@ -610,7 +633,7 @@ function SettingsSection() {
   const mutation = useMutation({
     mutationFn: async () => save({ data: { ...form, maintenanceMode: maintenance } }),
     onSuccess: () => {
-      toast.success("Settings saved");
+      toast.success(t("admin.settings.saved"));
       void queryClient.invalidateQueries({ queryKey: ["admin", "settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -620,19 +643,19 @@ function SettingsSection() {
 
   return (
     <section>
-      <h2 className="text-lg font-medium">System settings</h2>
+      <h2 className="text-lg font-medium">{t("admin.settings.title")}</h2>
       <div className="mt-4 grid gap-3 rounded-xl border border-border p-5 sm:grid-cols-2">
-        <Field label="Site name" value={form["siteName"] ?? ""} onChange={set("siteName")} />
-        <Field label="Support email" value={form["supportEmail"] ?? ""} onChange={set("supportEmail")} />
-        <Field label="Tagline" value={form["tagline"] ?? ""} onChange={set("tagline")} />
+        <Field label={t("admin.settings.siteName")} value={form["siteName"] ?? ""} onChange={set("siteName")} />
+        <Field label={t("admin.settings.supportEmail")} value={form["supportEmail"] ?? ""} onChange={set("supportEmail")} />
+        <Field label={t("admin.settings.tagline")} value={form["tagline"] ?? ""} onChange={set("tagline")} />
         <Field
-          label="Logo URL"
+          label={t("admin.settings.logoUrl")}
           value={form["logoUrl"] ?? ""}
           onChange={set("logoUrl")}
-          placeholder="https://…/logo.png"
+          placeholder={t("admin.settings.logoUrlPlaceholder")}
         />
         <Field
-          label="Base rules note"
+          label={t("admin.settings.houseEdgeNote")}
           value={form["houseEdgeNote"] ?? ""}
           onChange={set("houseEdgeNote")}
         />
@@ -642,11 +665,11 @@ function SettingsSection() {
             checked={maintenance}
             onChange={(e) => setMaintenance(e.target.checked)}
           />
-          Maintenance mode
+          {t("admin.settings.maintenanceMode")}
         </label>
         <div className="sm:col-span-2">
           <Button disabled={mutation.isPending} onClick={() => mutation.mutate()}>
-            {mutation.isPending ? "Saving…" : "Save settings"}
+            {mutation.isPending ? t("admin.settings.saving") : t("admin.settings.save")}
           </Button>
         </div>
       </div>

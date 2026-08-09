@@ -411,7 +411,21 @@ const dictionary = {
   },
 } satisfies Record<Lang, Record<string, string>>;
 
-export type TranslationKey = keyof (typeof dictionary)["en"];
+import { packs } from "./i18n/packs";
+
+/** Base dictionary merged with every registered page pack. */
+const merged: Record<Lang, Record<string, string>> = {
+  en: { ...dictionary.en },
+  ar: { ...dictionary.ar },
+  de: { ...dictionary.de },
+};
+for (const pack of packs) {
+  Object.assign(merged.en, pack.en);
+  Object.assign(merged.ar, pack.ar);
+  Object.assign(merged.de, pack.de);
+}
+
+export type TranslationKey = keyof (typeof dictionary)["en"] | (string & {});
 
 const LOCALES: Record<Lang, string> = { en: "en-US", ar: "ar-EG", de: "de-DE" };
 
@@ -507,7 +521,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>) => {
-      const raw: string = dictionary[lang][key] ?? dictionary.en[key] ?? key;
+      const raw: string = merged[lang][key] ?? merged.en[key] ?? key;
       if (!params) return raw;
       return raw.replace(/\{(\w+)\}/g, (m, p: string) =>
         p in params ? String(params[p]) : m,

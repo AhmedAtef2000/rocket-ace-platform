@@ -50,10 +50,11 @@ import {
   fiatEquivalent,
   formatAmount,
   isValidAddress,
-  networkLabel,
+  networkLabelKey,
   shortHash,
   statusTone,
 } from "@/lib/wallet-ui";
+import { useI18n } from "@/lib/i18n";
 
 const title = "Wallet — deposits & withdrawals | AstroBet";
 const description =
@@ -92,6 +93,7 @@ type DetailRow = {
 };
 
 function WalletPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchOverview = useServerFn(getPaymentsOverview);
   const newDeposit = useServerFn(createDeposit);
@@ -148,6 +150,8 @@ function WalletPage() {
   const playthrough = overview.data?.playthrough;
   const noticeHours = overview.data?.withdrawalNoticeHours ?? 24;
 
+  const networkLabel = (network: string) => t(networkLabelKey(network));
+
   const balanceOf = (code: string) => {
     const w = wallets.find((x) => x.currency === code);
     return {
@@ -198,11 +202,11 @@ function WalletPage() {
 
   const depositMutation = useMutation({
     mutationFn: async () => {
-      if (!selected) throw new Error("Choose a network.");
+      if (!selected) throw new Error(t("wallet.error.chooseNetwork"));
       return newDeposit({ data: { currency: selected.currency, network: selected.network } });
     },
     onSuccess: () => {
-      toast.success("Deposit address issued.");
+      toast.success(t("wallet.deposit.issued"));
       invalidate();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -210,7 +214,7 @@ function WalletPage() {
 
   const withdrawMutation = useMutation({
     mutationFn: async () => {
-      if (!selected) throw new Error("Choose a network.");
+      if (!selected) throw new Error(t("wallet.error.chooseNetwork"));
       return withdraw({
         data: {
           currency: selected.currency,
@@ -239,7 +243,7 @@ function WalletPage() {
   const cancelMutation = useMutation({
     mutationFn: async (id: string) => cancel({ data: { id } }),
     onSuccess: () => {
-      toast.success("Withdrawal cancelled and funds released.");
+      toast.success(t("wallet.withdraw.cancelled"));
       invalidate();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -263,9 +267,9 @@ function WalletPage() {
   const copy = async (value: string, label: string) => {
     try {
       await navigator.clipboard.writeText(value);
-      toast.success(`${label} copied.`);
+      toast.success(t("wallet.copy.copied", { label }));
     } catch {
-      toast.error("Copy is blocked by your browser.");
+      toast.error(t("wallet.copy.blocked"));
     }
   };
 
@@ -273,34 +277,34 @@ function WalletPage() {
     <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:justify-between">
         <div className="min-w-0">
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Wallet</h1>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("wallet.heading")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Deposit, withdraw and track every on-chain movement.
+            {t("wallet.subheading")}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <StatBox label="Total balance" value={`$${formatAmount(totals.available + totals.pending, 2)}`} tone="text-foreground" />
-          <StatBox label="Available" value={`$${formatAmount(totals.available, 2)}`} tone="text-primary" />
-          <StatBox label="Pending" value={`$${formatAmount(totals.pending, 2)}`} tone="text-amber-400" />
+          <StatBox label={t("wallet.stat.total")} value={`$${formatAmount(totals.available + totals.pending, 2)}`} tone="text-foreground" />
+          <StatBox label={t("wallet.stat.available")} value={`$${formatAmount(totals.available, 2)}`} tone="text-primary" />
+          <StatBox label={t("wallet.stat.pending")} value={`$${formatAmount(totals.pending, 2)}`} tone="text-amber-400" />
         </div>
       </header>
 
       {overview.isPending ? (
         <p className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading your wallet…
+          <Loader2 className="h-4 w-4 animate-spin" /> {t("wallet.loading")}
         </p>
       ) : (
         <div className="mt-6 space-y-6">
           {!eligible && (
             <section className="rounded-2xl border border-destructive/40 bg-destructive/5 p-4">
-              <h2 className="text-sm font-medium text-foreground">Verification required</h2>
+              <h2 className="text-sm font-medium text-foreground">{t("wallet.verification.title")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {blockedGate
                   ? `${blockedGate.label}: ${blockedGate.detail}`
-                  : "Complete verification to unlock deposits and withdrawals."}
+                  : t("wallet.verification.default")}
               </p>
               <Button asChild size="sm" variant="outline" className="mt-3">
-                <Link to="/compliance">Complete verification</Link>
+                <Link to="/compliance">{t("wallet.verification.cta")}</Link>
               </Button>
             </section>
           )}
@@ -309,7 +313,7 @@ function WalletPage() {
             {/* ---------- Wallet list ---------- */}
             <aside className="space-y-3">
               <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <Layers className="h-3.5 w-3.5" /> Your wallets
+                <Layers className="h-3.5 w-3.5" /> {t("wallet.yourWallets")}
               </h2>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
                 {currencies.map((code) => {
@@ -349,7 +353,7 @@ function WalletPage() {
                         {formatAmount(bal.available, 8)} {code}
                       </p>
                       <p className="text-[11px] text-muted-foreground" dir="ltr">
-                        {fiat === null ? `${formatAmount(bal.locked, 8)} pending` : `≈ $${formatAmount(fiat, 2)}`}
+                        {fiat === null ? `${formatAmount(bal.locked, 8)} ${t("wallet.pending")}` : `≈ $${formatAmount(fiat, 2)}`}
                       </p>
                     </button>
                   );
@@ -376,7 +380,7 @@ function WalletPage() {
                     ) : (
                       <ArrowUpFromLine className="h-4 w-4" />
                     )}
-                    {value === "DEPOSIT" ? "Deposit" : "Withdraw"}
+                    {value === "DEPOSIT" ? t("wallet.tab.deposit") : t("wallet.tab.withdraw")}
                   </button>
                 ))}
               </div>
@@ -384,7 +388,7 @@ function WalletPage() {
               <div className="p-5">
                 <div className="grid gap-2">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    1 · Select currency
+                    {t("wallet.step.selectCurrency")}
                   </Label>
                   <div className="flex flex-wrap gap-2">
                     {currencies.map((code) => (
@@ -397,7 +401,7 @@ function WalletPage() {
 
                 <div className="mt-4 grid gap-2">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    2 · Select network
+                    {t("wallet.step.selectNetwork")}
                   </Label>
                   <div className="flex flex-wrap gap-2">
                     {currencyNetworks.map((n) => (
@@ -416,7 +420,7 @@ function WalletPage() {
                   <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                     <div className="grid min-w-0 content-start gap-3">
                       <div className="grid gap-2">
-                        <Label htmlFor="dep-amount">Deposit amount (optional)</Label>
+                        <Label htmlFor="dep-amount">{t("wallet.deposit.amountLabel")}</Label>
                         <div className="relative">
                           <Input
                             id="dep-amount"
@@ -442,11 +446,11 @@ function WalletPage() {
                       </div>
 
                       <dl className="grid gap-1.5 rounded-xl border border-border/60 bg-background/40 p-3 text-xs">
-                        <Row label="Minimum deposit" value={`${formatAmount(selected?.minDeposit ?? 0, 8)} ${currency}`} />
-                        <Row label="Network fee" value="Paid by the sending network" />
-                        <Row label="Confirmations required" value={String(selected?.requiredConfirmations ?? "—")} />
+                        <Row label={t("wallet.deposit.minAmount")} value={`${formatAmount(selected?.minDeposit ?? 0, 8)} ${currency}`} />
+                        <Row label={t("wallet.deposit.networkFee")} value={t("wallet.deposit.networkFeeValue")} />
+                        <Row label={t("wallet.deposit.confirmationsRequired")} value={String(selected?.requiredConfirmations ?? "—")} />
                         <Row
-                          label="Estimated received"
+                          label={t("wallet.deposit.estimatedReceived")}
                           value={`${formatAmount(Number(depAmount || 0), decimals)} ${currency}`}
                           strong
                         />
@@ -456,55 +460,53 @@ function WalletPage() {
                         disabled={!eligible || depositMutation.isPending}
                         onClick={() => depositMutation.mutate()}
                       >
-                        {depositMutation.isPending ? "Issuing…" : "Get deposit address"}
+                        {depositMutation.isPending ? t("wallet.deposit.issuing") : t("wallet.deposit.getAddress")}
                       </Button>
                     </div>
 
                     <div className="min-w-0 rounded-2xl border border-border/60 bg-background/40 p-4">
                       <h3 className="text-sm font-semibold text-foreground">
-                        {currency} deposit address
+                        {t("wallet.deposit.addressTitle", { currency })}
                       </h3>
                       <div className="mt-3 grid place-items-center">
                         {qr ? (
                           <img
                             src={qr}
-                            alt={`QR code for your ${currency} deposit address`}
+                            alt={t("wallet.deposit.qrAlt", { currency })}
                             className="h-40 w-40 rounded-xl border border-border/60 bg-card p-2"
                           />
                         ) : (
                           <div className="grid h-40 w-40 place-items-center rounded-xl border border-dashed border-border/60 text-center text-[11px] text-muted-foreground">
-                            Generate an address to reveal your QR code
+                            {t("wallet.deposit.qrPlaceholder")}
                           </div>
                         )}
                       </div>
                       <div className="mt-3 flex items-center gap-2">
                         <p className="min-w-0 flex-1 break-all rounded-lg border border-border/60 bg-card/60 p-2 font-mono text-xs text-foreground">
-                          {address ?? "No active address yet."}
+                          {address ?? t("wallet.deposit.noAddress")}
                         </p>
                         <Button
                           size="icon"
                           variant="outline"
-                          aria-label="Copy deposit address"
+                          aria-label={t("wallet.deposit.copyAddress")}
                           disabled={!address}
-                          onClick={() => address && void copy(address, "Address")}
+                          onClick={() => address && void copy(address, t("wallet.deposit.copiedLabel"))}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
                       </div>
                       <dl className="mt-3 grid gap-1.5 text-xs">
-                        <Row label="Network" value={networkLabel(network)} />
+                        <Row label={t("wallet.deposit.network")} value={networkLabel(network)} />
                         <Row
-                          label="Confirmations"
+                          label={t("wallet.deposit.confirmations")}
                           value={`${pendingDeposit?.confirmations ?? 0} / ${
                             pendingDeposit?.required_confirmations ?? selected?.requiredConfirmations ?? 0
                           }`}
                         />
-                        <Row label="Status" value={(pendingDeposit?.status ?? "AWAITING").toLowerCase()} />
+                        <Row label={t("wallet.deposit.status")} value={(pendingDeposit?.status ?? "AWAITING").toLowerCase()} />
                       </dl>
                       <p className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-300/90">
-                        Send only {currency} using the {networkLabel(network)} network to this
-                        address. Sending assets through the wrong network may result in permanent
-                        loss.
+                        {t("wallet.deposit.warning", { currency, network: networkLabel(network) })}
                       </p>
                     </div>
                   </div>
@@ -513,7 +515,7 @@ function WalletPage() {
                     <div className="grid min-w-0 content-start gap-3">
                       <div className="grid gap-2">
                         <div className="flex items-center justify-between gap-2">
-                          <Label htmlFor="wd-address">3 · Destination address</Label>
+                          <Label htmlFor="wd-address">{t("wallet.step.destinationAddress")}</Label>
                           <button
                             type="button"
                             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
@@ -521,36 +523,36 @@ function WalletPage() {
                               try {
                                 setWdAddress((await navigator.clipboard.readText()).trim());
                               } catch {
-                                toast.error("Clipboard access is blocked by your browser.");
+                                toast.error(t("wallet.clipboard.blocked"));
                               }
                             }}
                           >
-                            <ClipboardPaste className="h-3.5 w-3.5" /> Paste
+                            <ClipboardPaste className="h-3.5 w-3.5" /> {t("wallet.withdraw.paste")}
                           </button>
                         </div>
                         <Input
                           id="wd-address"
                           value={wdAddress}
-                          placeholder={`Your ${currency} ${networkLabel(network)} address`}
+                          placeholder={t("wallet.withdraw.addressPlaceholder", { currency, network: networkLabel(network) })}
                           onChange={(event) => setWdAddress(event.target.value)}
                           aria-invalid={wdAddress !== "" && !addressValid}
                           className={wdAddress !== "" && !addressValid ? "border-destructive" : ""}
                         />
                         {wdAddress !== "" && !addressValid && (
                           <p className="text-xs text-destructive">
-                            That address is not valid for the {networkLabel(network)} network.
+                            {t("wallet.withdraw.invalidAddress", { network: networkLabel(network) })}
                           </p>
                         )}
                       </div>
 
                       <div className="grid gap-2">
-                        <Label htmlFor="wd-amount">4 · Amount</Label>
+                        <Label htmlFor="wd-amount">{t("wallet.step.amount")}</Label>
                         <div className="relative">
                           <Input
                             id="wd-amount"
                             inputMode="decimal"
                             value={wdAmount}
-                            placeholder="0.00"
+                            placeholder={t("wallet.withdraw.amountPlaceholder")}
                             onChange={(event) => setWdAmount(event.target.value)}
                           />
                           <button
@@ -558,27 +560,27 @@ function WalletPage() {
                             onClick={() => setWdAmount(String(activeBalance.available))}
                             className="absolute inset-y-0 end-2 my-auto h-6 rounded-md border border-primary/40 px-2 text-[11px] font-semibold text-primary"
                           >
-                            MAX
+                            {t("wallet.withdraw.max")}
                           </button>
                         </div>
                       </div>
 
                       <dl className="grid gap-1.5 rounded-xl border border-border/60 bg-background/40 p-3 text-xs">
                         <Row
-                          label="Available balance"
+                          label={t("wallet.withdraw.available")}
                           value={`${formatAmount(activeBalance.available, 8)} ${currency}`}
                         />
                         <Row
-                          label="Minimum withdrawal"
+                          label={t("wallet.withdraw.min")}
                           value={`${formatAmount(selected?.minWithdrawal ?? 0, 8)} ${currency}`}
                         />
                         <Row
-                          label="Maximum withdrawal"
+                          label={t("wallet.withdraw.max2")}
                           value={`${formatAmount(activeBalance.available, 8)} ${currency}`}
                         />
-                        <Row label="Network fee (1%)" value={`${formatAmount(wdFee, decimals)} ${currency}`} />
+                        <Row label={t("wallet.withdraw.fee")} value={`${formatAmount(wdFee, decimals)} ${currency}`} />
                         <Row
-                          label="You will receive"
+                          label={t("wallet.withdraw.youReceive")}
                           value={`${formatAmount(wdNet, decimals)} ${currency}`}
                           strong
                         />
@@ -586,8 +588,7 @@ function WalletPage() {
 
                       {playthrough && !playthrough.cleared && (
                         <p className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-300/90">
-                          Anti-money-laundering rules require each deposit to be played through
-                          once. {formatAmount(playthrough.remaining, 2)} of play remains.
+                          {t("wallet.withdraw.playthrough", { amount: formatAmount(playthrough.remaining, 2) })}
                         </p>
                       )}
 
@@ -595,25 +596,22 @@ function WalletPage() {
                         disabled={!eligible || !addressValid || !amountValid || withdrawMutation.isPending}
                         onClick={() => setReviewOpen(true)}
                       >
-                        Continue
+                        {t("wallet.withdraw.continue")}
                       </Button>
                     </div>
 
                     <div className="grid min-w-0 content-start gap-3 rounded-2xl border border-border/60 bg-background/40 p-4 text-xs text-muted-foreground">
                       <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                        <ShieldCheck className="h-4 w-4 text-primary" /> Withdrawal safety
+                        <ShieldCheck className="h-4 w-4 text-primary" /> {t("wallet.withdraw.safety.title")}
                       </p>
                       <p>
-                        Balances, fees and limits are calculated on the server — the values above
-                        are re-verified before anything is released.
+                        {t("wallet.withdraw.safety.p1")}
                       </p>
                       <p>
-                        Funds are reserved the moment you confirm, and payouts are reviewed and
-                        processed within {noticeHours} hours. Large payouts require two approvers.
+                        {t("wallet.withdraw.safety.p2", { hours: noticeHours })}
                       </p>
                       <p>
-                        We never ask for your private keys or seed phrase. Double-check the address
-                        — blockchain transfers cannot be reversed.
+                        {t("wallet.withdraw.safety.p3")}
                       </p>
                     </div>
                   </div>
@@ -625,14 +623,14 @@ function WalletPage() {
             <aside className="grid gap-4 md:grid-cols-2 lg:col-span-2 2xl:col-span-1 2xl:grid-cols-1 2xl:col-start-3 2xl:row-start-1 2xl:row-span-2">
               <section className="rounded-2xl border border-border bg-card/60 p-4">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <HelpCircle className="h-4 w-4 text-primary" /> FAQ
+                  <HelpCircle className="h-4 w-4 text-primary" /> {t("wallet.faq.title")}
                 </h2>
                 <Accordion type="single" collapsible className="mt-2">
                   {FAQ.map((item, index) => (
                     <AccordionItem key={item.q} value={`faq-${index}`}>
-                      <AccordionTrigger className="text-start text-xs">{item.q}</AccordionTrigger>
+                      <AccordionTrigger className="text-start text-xs">{t(item.q)}</AccordionTrigger>
                       <AccordionContent className="text-xs text-muted-foreground">
-                        {item.a}
+                        {t(item.a)}
                       </AccordionContent>
                     </AccordionItem>
                   ))}
@@ -641,13 +639,13 @@ function WalletPage() {
 
               <section className="rounded-2xl border border-border bg-card/60 p-4">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <LifeBuoy className="h-4 w-4 text-primary" /> Need help?
+                  <LifeBuoy className="h-4 w-4 text-primary" /> {t("wallet.support.title")}
                 </h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Our support team is here to help with any deposit or payout.
+                  {t("wallet.support.body")}
                 </p>
                 <Button asChild size="sm" className="mt-3 w-full">
-                  <Link to="/support">Contact support</Link>
+                  <Link to="/support">{t("wallet.support.cta")}</Link>
                 </Button>
               </section>
             </aside>
@@ -655,18 +653,18 @@ function WalletPage() {
 
           {/* ---------- History ---------- */}
           <div className="grid gap-6 lg:grid-cols-2">
-            <HistoryCard title="Deposit history" empty="No deposits yet.">
+            <HistoryCard title={t("wallet.history.deposits.title")} empty={t("wallet.history.deposits.empty")}>
               {deposits.length > 0 && (
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-xs uppercase text-muted-foreground">
-                      <th className="py-2 text-start font-medium">ID</th>
-                      <th className="py-2 text-start font-medium">Currency</th>
-                      <th className="py-2 text-start font-medium">Amount</th>
-                      <th className="py-2 text-start font-medium">Network</th>
-                      <th className="py-2 text-start font-medium">Status</th>
-                      <th className="py-2 text-start font-medium">Date</th>
-                      <th className="py-2 text-end font-medium">Details</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.id")}</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.currency")}</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.amount")}</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.network")}</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.status")}</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.date")}</th>
+                      <th className="py-2 text-end font-medium">{t("wallet.table.details")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -716,17 +714,17 @@ function WalletPage() {
               )}
             </HistoryCard>
 
-            <HistoryCard title="Withdrawal history" empty="No withdrawals yet.">
+            <HistoryCard title={t("wallet.history.withdrawals.title")} empty={t("wallet.history.withdrawals.empty")}>
               {withdrawals.length > 0 && (
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-xs uppercase text-muted-foreground">
-                      <th className="py-2 text-start font-medium">ID</th>
-                      <th className="py-2 text-start font-medium">Amount</th>
-                      <th className="py-2 text-start font-medium">Fee</th>
-                      <th className="py-2 text-start font-medium">Received</th>
-                      <th className="py-2 text-start font-medium">Status</th>
-                      <th className="py-2 text-end font-medium">Details</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.id")}</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.amount")}</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.fee")}</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.received")}</th>
+                      <th className="py-2 text-start font-medium">{t("wallet.table.status")}</th>
+                      <th className="py-2 text-end font-medium">{t("wallet.table.details")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -755,7 +753,7 @@ function WalletPage() {
                               disabled={cancelMutation.isPending}
                               onClick={() => cancelMutation.mutate(w.id)}
                             >
-                              Cancel
+                              {t("wallet.table.cancel")}
                             </Button>
                           )}
                           <Button
@@ -777,7 +775,7 @@ function WalletPage() {
                               })
                             }
                           >
-                            View
+                            {t("wallet.table.view")}
                           </Button>
                         </td>
                       </tr>
@@ -790,11 +788,11 @@ function WalletPage() {
 
           <section className="grid gap-4 rounded-2xl border border-border bg-card/60 p-5 sm:grid-cols-2 lg:grid-cols-5">
             {[
-              { icon: WalletIcon, title: "Secure wallet", detail: "Server-authoritative balances" },
-              { icon: BadgeCheck, title: "Blockchain verified", detail: "Every movement is auditable" },
-              { icon: Layers, title: "Multiple networks", detail: "TRC20, ERC20 and native chains" },
-              { icon: LifeBuoy, title: "24/7 support", detail: "Real humans, any time zone" },
-              { icon: ShieldCheck, title: "Transparent fees", detail: "1% payout fee, shown upfront" },
+              { icon: WalletIcon, title: t("wallet.perks.secureWallet.title"), detail: t("wallet.perks.secureWallet.detail") },
+              { icon: BadgeCheck, title: t("wallet.perks.verified.title"), detail: t("wallet.perks.verified.detail") },
+              { icon: Layers, title: t("wallet.perks.networks.title"), detail: t("wallet.perks.networks.detail") },
+              { icon: LifeBuoy, title: t("wallet.perks.support.title"), detail: t("wallet.perks.support.detail") },
+              { icon: ShieldCheck, title: t("wallet.perks.fees.title"), detail: t("wallet.perks.fees.detail") },
             ].map((item) => (
               <div key={item.title} className="flex items-start gap-2">
                 <item.icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -819,7 +817,7 @@ function WalletPage() {
           </DialogHeader>
           <dl className="grid gap-1.5 text-sm">
             <Row label="Currency" value={currency} />
-            <Row label="Network" value={networkLabel(network)} />
+            <Row label={t("wallet.deposit.network")} value={networkLabel(network)} />
             <Row label="Destination" value={shortHash(wdAddress.trim(), 10, 8)} />
             <Row label="Requested amount" value={`${formatAmount(wdValue, decimals)} ${currency}`} />
             <Row label="Network fee" value={`${formatAmount(wdFee, decimals)} ${currency}`} />

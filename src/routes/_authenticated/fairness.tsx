@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AccountNav } from "@/components/account/AccountNav";
 import { listVerifiableRounds } from "@/lib/fairness.functions";
 import { verifyRevealedRound } from "@/lib/fairness-verify";
+import { useI18n } from "@/lib/i18n";
 
 const title = "Provably fair verification — AstroBet";
 const description =
@@ -29,6 +30,7 @@ type Row = Awaited<ReturnType<typeof listVerifiableRounds>>[number];
 type Check = { hashMatches: boolean; crashMatches: boolean; recomputed: number };
 
 function FairnessPage() {
+  const { t } = useI18n();
   const fetchRounds = useServerFn(listVerifiableRounds);
   const rounds = useQuery({
     queryKey: ["fairness", "rounds"],
@@ -55,32 +57,30 @@ function FairnessPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
-      <h1 className="font-display text-3xl font-extrabold tracking-tight">Provably fair verification</h1>
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("fair.heading")}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        The server seed is hashed and committed before betting opens, then revealed after the
-        round settles. Everything below is recomputed in your browser — nothing here trusts our
-        answer.
+        {t("fair.subtitle")}
       </p>
       <AccountNav />
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Revealed rounds</h2>
+        <h2 className="text-lg font-medium">{t("fair.revealed.heading")}</h2>
         {rounds.isLoading ? (
-          <p className="mt-3 text-sm text-muted-foreground">Loading…</p>
+          <p className="mt-3 text-sm text-muted-foreground">{t("fair.loading")}</p>
         ) : (rounds.data ?? []).length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
-            No settled rounds yet — play a round and it will appear here once the seed is revealed.
+            {t("fair.empty")}
           </p>
         ) : (
           <div className="mt-4 overflow-x-auto rounded-xl border border-border">
             <table className="w-full min-w-[520px] text-sm">
               <thead className="bg-card/60 text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium">Round ID</th>
-                  <th className="px-4 py-3 text-right font-medium">Crash</th>
-                  <th className="px-4 py-3 text-right font-medium">Total bets</th>
-                  <th className="px-4 py-3 text-right font-medium">Player win / loss</th>
-                  <th className="px-4 py-3 text-right font-medium">Check</th>
+                  <th className="px-4 py-3 text-left font-medium">{t("fair.table.roundId")}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t("fair.table.crash")}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t("fair.table.totalBets")}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t("fair.table.netResult")}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t("fair.table.check")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -115,7 +115,7 @@ function FairnessPage() {
                                 : "bg-destructive/15 text-destructive"
                           }`}
                         >
-                          {check === undefined ? "Checking…" : ok ? "Verified" : "Mismatch"}
+                          {check === undefined ? t("fair.status.checking") : ok ? t("fair.status.verified") : t("fair.status.mismatch")}
                         </span>
                       </td>
                     </tr>
@@ -126,8 +126,7 @@ function FairnessPage() {
           </div>
         )}
         <p className="mt-3 text-xs text-muted-foreground">
-          Each row is recomputed from the revealed seed inside your browser. Raw seeds and
-          algorithm internals stay out of public view.
+          {t("fair.footnote")}
         </p>
       </section>
     </main>
