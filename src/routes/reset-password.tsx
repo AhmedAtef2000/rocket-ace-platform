@@ -6,9 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AuthShell } from "@/components/layout/AppShell";
 
-const title = "Reset password — Rocket Flight";
-const description = "Set a new password for your Rocket Flight account.";
+const title = "Reset password — AstroBet";
+const description = "Set a new password for your AstroBet account.";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -53,9 +54,10 @@ function ResetPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-semibold text-foreground">Set a new password</h1>
+    <AuthShell>
+        <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">
+          Set a new password
+        </h1>
         {ready ? (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div className="space-y-2">
@@ -78,7 +80,6 @@ function ResetPasswordPage() {
             Open this page from the password reset link in your email.
           </p>
         )}
-      </div>
-    </main>
+    </AuthShell>
   );
 }

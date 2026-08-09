@@ -22,10 +22,10 @@ export function AccountNav() {
         <Link
           key={item.to}
           to={item.to}
-          className="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="rounded-full border border-border bg-card/50 px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
           activeProps={{
             className:
-              "rounded-full border border-primary/50 bg-primary/10 px-3 py-1.5 text-sm text-foreground",
+              "rounded-full border border-primary/60 bg-primary/15 px-3.5 py-1.5 text-xs font-semibold text-foreground",
           }}
         >
           {item.label}

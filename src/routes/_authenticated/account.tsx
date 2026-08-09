@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { AccountNav } from "@/components/account/AccountNav";
 import { SessionRegistrar } from "@/components/account/SessionRegistrar";
 
-const title = "Your account — Rocket Flight";
+const title = "Your account — AstroBet";
 const description =
-  "Your Rocket Flight account overview: wallets, account status and responsible gambling state.";
+  "Your AstroBet account overview: wallets, account status and responsible gambling state.";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
@@ -62,11 +62,11 @@ function AccountPage() {
   const wallets = account.data?.wallets ?? [];
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10">
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
       <SessionRegistrar />
-      <div className="mx-auto w-full max-w-2xl">
+      <div className="w-full">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-semibold text-foreground">Your account</h1>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">Your account</h1>
           <Button variant="outline" onClick={handleSignOut}>
             Sign out
           </Button>
@@ -78,7 +78,7 @@ function AccountPage() {
           <p className="mt-6 text-sm text-muted-foreground">Loading your account…</p>
         ) : (
           <div className="mt-6 space-y-6">
-            <section className="rounded-lg border border-border p-4">
+            <section className="rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Identity</h2>
               <dl className="mt-3 space-y-2 text-sm">
                 <Row label="Email" value={user?.email ?? "—"} />
@@ -88,7 +88,7 @@ function AccountPage() {
               </dl>
             </section>
 
-            <section className="rounded-lg border border-border p-4">
+            <section className="rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Wallets</h2>
               {wallets.length === 0 ? (
                 <p className="mt-2 text-sm text-muted-foreground">No wallets yet.</p>

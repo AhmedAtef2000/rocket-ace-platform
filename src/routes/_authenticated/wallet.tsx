@@ -7,9 +7,9 @@ import { getWallets, topUpDemoWallet } from "@/lib/wallet.functions";
 import { Button } from "@/components/ui/button";
 import { AccountNav } from "@/components/account/AccountNav";
 
-const title = "Wallet — Rocket Flight";
+const title = "Wallet — AstroBet";
 const description =
-  "Your Rocket Flight wallet balances and the immutable ledger history behind every movement.";
+  "Your AstroBet wallet balances and the immutable ledger history behind every movement.";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({
@@ -58,16 +58,16 @@ function WalletPage() {
   const entries = wallets.data?.entries ?? [];
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10">
-      <div className="mx-auto w-full max-w-2xl">
-        <h1 className="text-2xl font-semibold text-foreground">Wallet</h1>
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
+      <div className="w-full">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">Wallet</h1>
         <AccountNav />
 
         {wallets.isPending ? (
           <p className="mt-6 text-sm text-muted-foreground">Loading your balances…</p>
         ) : (
           <div className="mt-6 space-y-6">
-            <section className="rounded-lg border border-border p-4">
+            <section className="rounded-2xl border border-border bg-card/60 p-5">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-sm font-medium text-foreground">Balances</h2>
                 <Button
@@ -85,7 +85,7 @@ function WalletPage() {
               ) : (
                 <ul className="mt-4 space-y-3">
                   {rows.map((wallet) => (
-                    <li key={wallet.id} className="rounded-md border border-border/60 p-3">
+                    <li key={wallet.id} className="rounded-xl border border-border/60 bg-card/40 p-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-medium text-foreground">
                           {wallet.currency}
@@ -112,7 +112,7 @@ function WalletPage() {
               </p>
             </section>
 
-            <section className="rounded-lg border border-border p-4">
+            <section className="rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Ledger history</h2>
               {entries.length === 0 ? (
                 <p className="mt-2 text-sm text-muted-foreground">

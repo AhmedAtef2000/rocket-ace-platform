@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AuthShell } from "@/components/layout/AppShell";
 
-const title = "Sign in — Rocket Flight";
+const title = "Sign in — AstroBet";
 const description =
-  "Access your Rocket Flight account: provably fair crash rounds, wallet, responsible gambling controls and account security.";
+  "Access your AstroBet account: provably fair crash rounds, wallet, responsible gambling controls and account security.";
 
 type AuthSearch = { redirect?: string | undefined };
 
@@ -107,12 +108,8 @@ function AuthPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-md">
-        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Rocket Flight
-        </Link>
-        <h1 className="mt-4 text-2xl font-semibold text-foreground">Account access</h1>
+    <AuthShell>
+        <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">Account access</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Demo mode only. No real-money play is enabled on this build.
         </p>
@@ -176,8 +173,7 @@ function AuthPage() {
         <Button variant="outline" className="w-full" onClick={handleGoogle} disabled={busy}>
           Continue with Google
         </Button>
-      </div>
-    </main>
+    </AuthShell>
   );
 }
 

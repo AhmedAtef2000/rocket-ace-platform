@@ -18,9 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const title = "Security — Rocket Flight";
+const title = "Security — AstroBet";
 const description =
-  "Protect your Rocket Flight account with two-factor authentication and review or sign out active devices.";
+  "Protect your AstroBet account with two-factor authentication and review or sign out active devices.";
 
 export const Route = createFileRoute("/_authenticated/security")({
   head: () => ({
@@ -150,13 +150,13 @@ function SecurityPage() {
   const sessions = (account.data?.sessions ?? []).filter((s) => !s.revoked_at);
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10">
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
       <SessionRegistrar />
-      <div className="mx-auto w-full max-w-2xl">
-        <h1 className="text-2xl font-semibold text-foreground">Security</h1>
+      <div className="w-full">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">Security</h1>
         <AccountNav />
 
-        <section className="mt-6 space-y-4 rounded-lg border border-border p-4">
+        <section className="mt-6 space-y-4 rounded-2xl border border-border bg-card/60 p-5">
           <div>
             <h2 className="text-sm font-medium text-foreground">Two-factor authentication</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -178,7 +178,7 @@ function SecurityPage() {
             <div className="space-y-4">
               <img
                 src={enrolling.qr}
-                alt="QR code to add Rocket Flight to your authenticator app"
+                alt="QR code to add AstroBet to your authenticator app"
                 className="size-44 rounded-md bg-card p-2"
               />
               <div className="space-y-2">
@@ -208,7 +208,7 @@ function SecurityPage() {
           )}
         </section>
 
-        <section className="mt-6 space-y-4 rounded-lg border border-border p-4">
+        <section className="mt-6 space-y-4 rounded-2xl border border-border bg-card/60 p-5">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-sm font-medium text-foreground">Active devices</h2>
             <Button

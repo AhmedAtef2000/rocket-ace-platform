@@ -8,7 +8,7 @@ import { AccountNav } from "@/components/account/AccountNav";
 import { Button } from "@/components/ui/button";
 import { createTicket, listMyTickets, replyToTicket } from "@/lib/support.functions";
 
-const title = "Support — Rocket Flight";
+const title = "Support — AstroBet";
 const description =
   "Open a support ticket, track its status and reply to our agents about deposits, withdrawals, verification or responsible gambling.";
 
@@ -77,8 +77,8 @@ function SupportPage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 pb-16 pt-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Support</h1>
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">Support</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Money and responsible-gambling tickets are prioritised automatically.
       </p>

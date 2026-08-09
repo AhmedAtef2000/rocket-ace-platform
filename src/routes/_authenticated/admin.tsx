@@ -23,7 +23,7 @@ import {
   runRiskScan,
 } from "@/lib/admin.functions";
 
-const title = "Back office — Rocket Flight";
+const title = "Back office — AstroBet";
 const description =
   "Operator console for withdrawal approvals, KYC decisions, risk events, support tickets and the audit trail.";
 
@@ -79,7 +79,7 @@ function AdminPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Back office</h1>
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">Back office</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {identity
           ? `Signed in as ${identity.roleKey.replace(/_/g, " ").toLowerCase()} · ${identity.permissions.length} permissions`
@@ -461,7 +461,7 @@ function AuditSection() {
       <h2 className="text-lg font-medium">Audit trail</h2>
       <ul className="mt-4 space-y-2 text-sm">
         {(logs.data ?? []).map((log) => (
-          <li key={log.id} className="rounded-lg border border-border px-3 py-2">
+          <li key={log.id} className="rounded-xl border border-border bg-card/50 px-3 py-2">
             <span className="font-medium">{log.action}</span>{" "}
             <span className="text-xs text-muted-foreground">
               {log.actor_role ?? "SYSTEM"} · {log.resource_type ?? "—"} ·{" "}

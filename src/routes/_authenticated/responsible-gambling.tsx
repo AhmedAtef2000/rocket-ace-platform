@@ -27,9 +27,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const title = "Responsible gambling — Rocket Flight";
+const title = "Responsible gambling — AstroBet";
 const description =
-  "Set deposit and loss limits, start a cooling-off period or self-exclude from Rocket Flight at any time.";
+  "Set deposit and loss limits, start a cooling-off period or self-exclude from AstroBet at any time.";
 
 export const Route = createFileRoute("/_authenticated/responsible-gambling")({
   head: () => ({
@@ -133,9 +133,9 @@ function ResponsibleGamblingPage() {
   const locked = account.data?.locked;
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10">
-      <div className="mx-auto w-full max-w-2xl">
-        <h1 className="text-2xl font-semibold text-foreground">Responsible gambling</h1>
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
+      <div className="w-full">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">Responsible gambling</h1>
         <AccountNav />
 
         {locked?.coolingOff ? (
@@ -145,7 +145,7 @@ function ResponsibleGamblingPage() {
           </p>
         ) : null}
 
-        <section className="mt-6 space-y-4 rounded-lg border border-border p-4">
+        <section className="mt-6 space-y-4 rounded-2xl border border-border bg-card/60 p-5">
           <div>
             <h2 className="text-sm font-medium text-foreground">Your limits</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -183,7 +183,7 @@ function ResponsibleGamblingPage() {
           </form>
         </section>
 
-        <section className="mt-6 space-y-4 rounded-lg border border-border p-4">
+        <section className="mt-6 space-y-4 rounded-2xl border border-border bg-card/60 p-5">
           <h2 className="text-sm font-medium text-foreground">Take a break</h2>
           <p className="text-sm text-muted-foreground">
             A cooling-off period blocks play immediately and cannot be shortened once started.

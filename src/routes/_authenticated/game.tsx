@@ -105,7 +105,7 @@ function GamePage() {
   const potential = myBet ? Number(myBet.amount) * shown : 0;
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-10">
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
       <h1 className="font-display text-3xl font-extrabold tracking-tight">
         Rocket <span className="text-thrust">launch</span>
       </h1>
