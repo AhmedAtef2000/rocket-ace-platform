@@ -13,6 +13,7 @@ import {
   decideWithdrawal,
   getAdminOverview,
   getAdminSession,
+  getAdminAnalytics,
   listAdminTickets,
   listAuditLogs,
   listKycQueue,
@@ -112,6 +113,7 @@ function AdminPage() {
       {identity ? (
         <div className="mt-8 space-y-10">
           {can("analytics.view") ? <OverviewSection /> : null}
+          {can("analytics.view") ? <AnalyticsSection /> : null}
           {can("withdrawal.review") ? <WithdrawalsSection canApprove={can("withdrawal.approve")} /> : null}
           {can("kyc.view") ? <KycSection canDecide={can("kyc.decide")} /> : null}
           {can("risk.view") ? <RiskSection canResolve={can("risk.resolve")} /> : null}
