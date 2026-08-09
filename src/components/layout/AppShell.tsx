@@ -67,7 +67,16 @@ export function BrandMark() {
 }
 
 /** Sections hidden from signed-out visitors until they log in. */
-const gatedLabels = ["Crash", "Wallet", "Transactions", "Profile", "VIP & Fairness"];
+const gatedLabels = [
+  "Crash",
+  "Wallet",
+  "Transactions",
+  "Profile",
+  "Verification",
+  "Messages",
+  "Settings",
+  "VIP & Fairness",
+];
 
 function SideNav({
   isAdmin,
