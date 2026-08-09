@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -92,6 +92,10 @@ function ProfilePage() {
 
   const countryLocked = !!account.data?.user?.country_code;
   const dobLocked = !!account.data?.user?.date_of_birth;
+  const firstNameLocked = !!account.data?.profile?.first_name;
+  const lastNameLocked = !!account.data?.profile?.last_name;
+  const phoneLocked = !!account.data?.profile?.phone;
+  const anyLocked = firstNameLocked || lastNameLocked || phoneLocked || dobLocked;
 
   function field(key: keyof FormState) {
     return {
@@ -119,18 +123,38 @@ function ProfilePage() {
           >
             <section className="space-y-4 rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Personal details</h2>
+              {anyLocked ? (
+                <p className="rounded-xl border border-border bg-background/50 p-3 text-xs text-muted-foreground">
+                  Your name, phone number and date of birth are locked to your verified identity.
+                  To correct them,{" "}
+                  <Link to="/support" className="font-medium text-foreground underline">
+                    open a support ticket
+                  </Link>{" "}
+                  and attach proof of identity — our team will update them for you.
+                </p>
+              ) : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="first_name">First name</Label>
-                  <Input id="first_name" autoComplete="given-name" {...field("first_name")} />
+                  <Input
+                    id="first_name"
+                    autoComplete="given-name"
+                    disabled={firstNameLocked}
+                    {...field("first_name")}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="last_name">Last name</Label>
-                  <Input id="last_name" autoComplete="family-name" {...field("last_name")} />
+                  <Input
+                    id="last_name"
+                    autoComplete="family-name"
+                    disabled={lastNameLocked}
+                    {...field("last_name")}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" autoComplete="tel" {...field("phone")} />
+                  <Input id="phone" autoComplete="tel" disabled={phoneLocked} {...field("phone")} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="date_of_birth">Date of birth</Label>
@@ -142,7 +166,7 @@ function ProfilePage() {
                   />
                   <p className="text-xs text-muted-foreground">
                     {dobLocked
-                      ? "Locked for KYC. Contact support to correct it."
+                      ? "Locked for verification. Contact support to correct it."
                       : "Must be 18 or over. Cannot be changed once saved."}
                   </p>
                 </div>
