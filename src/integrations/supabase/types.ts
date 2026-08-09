@@ -1680,6 +1680,14 @@ export type Database = {
         Returns: string
       }
       game_settle_round: { Args: { _round_id: string }; Returns: Json }
+      get_public_game_config: {
+        Args: never
+        Returns: {
+          max_bet: number
+          max_crash_multiplier: number
+          min_bet: number
+        }[]
+      }
       has_admin_role: {
         Args: { _role: string; _user_id: string }
         Returns: boolean
