@@ -665,13 +665,6 @@ export type Database = {
             foreignKeyName: "game_rounds_config_version_fkey"
             columns: ["config_version"]
             isOneToOne: false
-            referencedRelation: "game_config_public"
-            referencedColumns: ["version"]
-          },
-          {
-            foreignKeyName: "game_rounds_config_version_fkey"
-            columns: ["config_version"]
-            isOneToOne: false
             referencedRelation: "game_configurations"
             referencedColumns: ["version"]
           },
@@ -1655,30 +1648,7 @@ export type Database = {
       }
     }
     Views: {
-      game_config_public: {
-        Row: {
-          id: string | null
-          max_bet: number | null
-          max_crash_multiplier: number | null
-          min_bet: number | null
-          version: number | null
-        }
-        Insert: {
-          id?: string | null
-          max_bet?: number | null
-          max_crash_multiplier?: number | null
-          min_bet?: number | null
-          version?: number | null
-        }
-        Update: {
-          id?: string | null
-          max_bet?: number | null
-          max_crash_multiplier?: number | null
-          min_bet?: number | null
-          version?: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_bootstrap_super_admin: {
@@ -1710,6 +1680,14 @@ export type Database = {
         Returns: string
       }
       game_settle_round: { Args: { _round_id: string }; Returns: Json }
+      get_public_game_config: {
+        Args: never
+        Returns: {
+          max_bet: number
+          max_crash_multiplier: number
+          min_bet: number
+        }[]
+      }
       has_admin_role: {
         Args: { _role: string; _user_id: string }
         Returns: boolean
