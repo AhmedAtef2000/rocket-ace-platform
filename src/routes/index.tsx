@@ -98,199 +98,237 @@ function HeroStage() {
   );
 }
 
-function Index() {
-  const { t } = useI18n();
+const trust = [
+  { icon: ShieldCheck, title: "Provably Fair", body: "100% verifiable" },
+  { icon: Zap, title: "Fast Withdrawals", body: "Within 24 hours" },
+  { icon: Lock, title: "Secure & Trusted", body: "Encrypted end to end" },
+  { icon: Headphones, title: "24/7 Support", body: "Here for you" },
+];
+
+const presets = [5, 10, 25, 50];
+
+function BetPanelPreview() {
+  const { formatMoney } = useI18n();
+  const [amount, setAmount] = useState("10.00");
+  const [auto, setAuto] = useState("2.00");
+
   return (
-    <div
-      className="min-h-screen bg-background bg-fixed text-foreground"
-      style={{ backgroundImage: "var(--surface-glow)" }}
-    >
-      <div className="mx-auto flex w-full max-w-[1500px] gap-4 p-3 sm:p-4">
-        {/* Left rail */}
-        <aside className="sticky top-4 hidden h-[calc(100vh-2rem)] w-60 shrink-0 flex-col justify-between panel p-3 lg:flex">
-          <div>
-            <Link to="/" className="flex items-center gap-2 px-1 py-2">
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-thrust">
-                <Rocket className="size-5 text-primary-foreground" aria-hidden />
-              </span>
-              <span className="font-display text-lg font-extrabold tracking-tight">AstroBet</span>
-            </Link>
-            <div className="mt-2 flex items-center gap-2 rounded-xl border border-border bg-background/60 px-3 py-2 text-xs text-muted-foreground">
-              <Search className="size-4 shrink-0" aria-hidden />
-              <span>Search</span>
-            </div>
-            <nav className="mt-4 space-y-1">
-              <RailLink to="/" icon={<LayoutGrid className="size-4" />} label="Lobby" active />
-              <RailLink to="/game" icon={<Rocket className="size-4" />} label="Rocket crash" />
-              <RailLink to="/wallet" icon={<Wallet className="size-4" />} label="Wallet" />
-              <RailLink to="/fairness" icon={<ShieldCheck className="size-4" />} label="Fairness" />
-              <RailLink to="/payments" icon={<Gift className="size-4" />} label="Cashier" />
-              <RailLink to="/support" icon={<LifeBuoy className="size-4" />} label="Support" />
-            </nav>
-          </div>
-          <LanguageSwitcher />
-        </aside>
-
-        <main className="min-w-0 flex-1">
-          {/* Top bar */}
-          <header className="sticky top-3 z-30 mb-4 panel">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-thrust lg:hidden">
-                  <Rocket className="size-5 text-primary-foreground" aria-hidden />
-                </span>
-                <span className="chip shrink-0">Rocket crash · live</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:block">
-                  <LanguageSwitcher />
-                </span>
-                <Link
-                  to="/auth"
-                  search={{ mode: "signin" }}
-                  className="rounded-xl border border-border px-3 py-2 text-xs font-semibold transition-colors hover:bg-secondary"
-                >
-                  {t("nav.signIn")}
-                </Link>
-                <Link
-                  to="/auth"
-                  search={{ mode: "signup" }}
-                  className="rounded-xl bg-thrust px-3 py-2 text-xs font-bold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.03]"
-                >
-                  {t("nav.register")}
-                </Link>
-                <span className="hidden size-9 place-items-center rounded-xl border border-border sm:grid">
-                  <Bell className="size-4 text-muted-foreground" aria-hidden />
-                </span>
-              </div>
-            </div>
-          </header>
-
-          {/* Promo banners */}
-          <section className="grid gap-3 lg:grid-cols-[1.6fr_1fr_1.3fr]">
-            <article className="relative overflow-hidden rounded-3xl bg-thrust p-6 text-primary-foreground">
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-80">
-                {t("home.badge")}
-              </p>
-              <h1 className="mt-3 font-display text-3xl font-black leading-[1.05] sm:text-4xl">
-                {t("home.heroLine1")}
-                <span className="block">{t("home.heroLine2")}</span>
-              </h1>
-              <p className="mt-3 max-w-sm text-sm font-medium opacity-90">{t("home.heroBody")}</p>
-              <Link
-                to="/auth"
-                search={{ mode: "signup" }}
-                className="mt-5 inline-flex rounded-2xl bg-background px-5 py-3 text-sm font-bold text-foreground transition-transform hover:scale-[1.03]"
-              >
-                {t("home.ctaPrimary")}
-              </Link>
-            </article>
-
-            <article className="rounded-3xl bg-ember p-6 text-primary-foreground">
-              <h2 className="font-display text-2xl font-black leading-tight">
-                Deposit With Crypto
-              </h2>
-              <p className="mt-3 text-sm font-semibold opacity-90">
-                Instant BTC, ETH and USDT top-ups — zero network markup.
-              </p>
-              <div className="mt-5 flex gap-2 text-[11px] font-bold uppercase tracking-wider opacity-90">
-                <span className="chip">BTC</span>
-                <span className="chip">ETH</span>
-                <span className="chip">USDT</span>
-              </div>
-            </article>
-
-            <article className="rounded-3xl bg-gold p-6 text-primary-foreground">
-              <h2 className="font-display text-2xl font-black leading-tight">
-                Provably Fair. Every Round.
-              </h2>
-              <ul className="mt-4 space-y-2 text-sm font-semibold opacity-95">
-                <li>Server + client seed verification</li>
-                <li>Instant cash-out, no delays</li>
-              </ul>
-              <Link
-                to="/fairness"
-                className="mt-5 inline-flex rounded-2xl border-2 border-primary-foreground/70 px-5 py-2.5 text-sm font-bold transition-colors hover:bg-primary-foreground/10"
-              >
-                {t("home.ctaSecondary")}
-              </Link>
-            </article>
-          </section>
-
-          {/* Stat chips row */}
-          <section className="mt-3 grid grid-cols-3 gap-3">
-            {([
-              { k: "home.statRound", v: "~15s" },
-              { k: "home.statMax", v: "1000x" },
-              { k: "home.statEdge", v: "1%" },
-            ] as { k: TranslationKey; v: string }[]).map((s) => (
-              <div key={s.k} className="panel px-4 py-3">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                  {t(s.k)}
-                </p>
-                <p className="mt-1 font-display text-lg font-black text-primary">{s.v}</p>
-              </div>
-            ))}
-          </section>
-
-          {/* Game stage */}
-          <section className="mt-4 grid gap-4 xl:grid-cols-[1.5fr_1fr]">
-            <div className="panel p-3">
-              <div className="mb-3 flex items-center justify-between px-1">
-                <h2 className="font-display text-lg font-black">Rocket Crash</h2>
-                <span className="chip text-primary">Popular</span>
-              </div>
-              <HeroStage />
-            </div>
-            <div className="panel p-3">
-              <h2 className="mb-3 px-1 font-display text-lg font-black">
-                {t("home.liveResults")}
-              </h2>
-              <LiveActivityFeed />
-            </div>
-          </section>
-
-          {/* Pillars */}
-          <section className="mt-4 grid gap-3 md:grid-cols-3">
-            {pillars.map((p) => (
-              <article key={p.title} className="panel p-5 transition-colors hover:border-primary/60">
-                <h2 className="font-display text-lg font-black">{t(p.title)}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t(p.body)}</p>
-              </article>
-            ))}
-          </section>
-
-          <footer className="mt-4 panel px-5 py-6 text-xs leading-relaxed text-muted-foreground">
-            {t("home.disclaimer")}
-          </footer>
-        </main>
+    <div className="mt-3 grid gap-3 panel-inset p-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto]">
+      <div>
+        <label htmlFor="home-amount" className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          Bet amount
+        </label>
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          <input
+            id="home-amount"
+            inputMode="decimal"
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
+            className="w-28 rounded-xl border border-border bg-background/70 px-3 py-2 text-sm font-bold tabular-nums outline-none focus:border-primary"
+          />
+          {presets.map((preset) => (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => setAmount(preset.toFixed(2))}
+              className="chip transition-colors hover:border-primary hover:text-primary"
+            >
+              {preset}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setAmount("100.00")}
+            className="chip border-primary/60 text-primary"
+          >
+            MAX
+          </button>
+        </div>
+        <p className="mt-1.5 text-[11px] text-muted-foreground">
+          Stake shown as {formatMoney(Number(amount) || 0)}
+        </p>
       </div>
+      <div>
+        <label htmlFor="home-auto" className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          Auto cashout
+        </label>
+        <input
+          id="home-auto"
+          inputMode="decimal"
+          value={auto}
+          onChange={(event) => setAuto(event.target.value)}
+          className="mt-1.5 w-full rounded-xl border border-border bg-background/70 px-3 py-2 text-sm font-bold tabular-nums outline-none focus:border-primary"
+        />
+      </div>
+      <Link
+        to="/game"
+        className="inline-flex items-center justify-center gap-2 self-end rounded-xl bg-thrust px-6 py-3 text-sm font-black text-primary-foreground shadow-orbit transition-transform hover:scale-[1.02]"
+      >
+        Place Bet <Rocket className="size-4" aria-hidden />
+      </Link>
     </div>
   );
 }
 
-function RailLink({
-  to,
-  icon,
-  label,
-  active,
-}: {
-  to: string;
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-}) {
+function RecentRoundsPanel() {
+  const fetchRounds = useServerFn(listVerifiableRounds);
+  const rounds = useQuery({
+    queryKey: ["public", "rounds"],
+    queryFn: async () => fetchRounds({ data: undefined }),
+    retry: false,
+    refetchInterval: 15000,
+  });
+
   return (
-    <Link
-      to={to}
-      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
-        active
-          ? "bg-primary/15 text-primary"
-          : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-      }`}
-    >
-      <span className="shrink-0">{icon}</span>
-      {label}
-    </Link>
+    <aside className="panel p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="font-display text-base font-black">Recent rounds</h2>
+        <span className="chip text-primary">Live</span>
+      </div>
+      {rounds.isLoading ? (
+        <div className="space-y-2" aria-hidden>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="skeleton-line h-8 w-full" />
+          ))}
+        </div>
+      ) : (rounds.data ?? []).length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No settled rounds yet. Every completed round appears here with its verifiable crash point.
+        </p>
+      ) : (
+        <table className="w-full text-sm">
+          <thead className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            <tr>
+              <th scope="col" className="py-2 text-start font-semibold">Round</th>
+              <th scope="col" className="py-2 text-end font-semibold">Players</th>
+              <th scope="col" className="py-2 text-end font-semibold">Crash</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(rounds.data ?? []).slice(0, 9).map((round) => (
+              <tr key={round.roundId} className="border-t border-border/60">
+                <td className="py-2 font-semibold tabular-nums">#{round.roundNumber}</td>
+                <td className="py-2 text-end tabular-nums text-muted-foreground">{round.players}</td>
+                <td
+                  className={`py-2 text-end font-bold tabular-nums ${
+                    round.crashMultiplier >= 2 ? "text-primary" : "text-destructive"
+                  }`}
+                >
+                  {round.crashMultiplier.toFixed(2)}x
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <Link
+        to="/fairness"
+        className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-secondary"
+      >
+        Verify a round
+      </Link>
+    </aside>
+  );
+}
+
+function Index() {
+  const { t } = useI18n();
+  const { user } = useAuth();
+
+  return (
+    <AppShell publicView={!user}>
+      <main className="space-y-4 pb-10">
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="panel p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <h1 className="page-title truncate">Rocket Crash</h1>
+                <p className="text-xs font-semibold text-muted-foreground">
+                  {t("home.badge")}
+                </p>
+              </div>
+              <span className="chip text-primary">Server-authoritative</span>
+            </div>
+            <HeroStage />
+            <BetPanelPreview />
+          </div>
+          <RecentRoundsPanel />
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-3">
+          {[
+            { icon: Gift, title: "Welcome boost", body: t("home.pillar1Body"), cta: t("home.ctaPrimary"), to: "/auth" as const, tone: "bg-thrust text-primary-foreground" },
+            { icon: Percent, title: "Low house edge", body: t("home.pillar2Body"), cta: t("home.ctaSecondary"), to: "/fairness" as const, tone: "bg-ember text-primary-foreground" },
+            { icon: Users, title: "Refer & earn", body: t("home.pillar3Body"), cta: t("home.ctaSecondary"), to: "/fairness" as const, tone: "bg-gold text-primary-foreground" },
+          ].map((card) => (
+            <article key={card.title} className={`rounded-3xl p-5 ${card.tone}`}>
+              <card.icon className="size-6" aria-hidden />
+              <h2 className="mt-3 font-display text-xl font-black">{card.title}</h2>
+              <p className="mt-2 text-sm font-medium opacity-90">{card.body}</p>
+              <Link
+                to={card.to}
+                className="mt-4 inline-flex rounded-xl bg-background/90 px-4 py-2 text-xs font-black text-foreground transition-transform hover:scale-[1.03]"
+              >
+                {card.cta}
+              </Link>
+            </article>
+          ))}
+        </section>
+
+        <section className="panel p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-display text-base font-black">Games</h2>
+            <span className="chip text-muted-foreground">Crash is our only game</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Link
+              to="/game"
+              className="group relative overflow-hidden rounded-2xl border border-primary/40 bg-thrust p-5 text-primary-foreground shadow-orbit"
+            >
+              <Rocket className="size-7" aria-hidden />
+              <p className="mt-6 font-display text-lg font-black">Rocket Crash</p>
+              <p className="text-xs font-semibold opacity-90">Play now</p>
+            </Link>
+            {["Auto-bet mode", "Tournaments", "High-roller table"].map((soon) => (
+              <div key={soon} className="panel-inset flex flex-col justify-between p-5 opacity-70">
+                <span className="chip w-fit text-muted-foreground">Coming soon</span>
+                <p className="mt-6 font-display text-lg font-black">{soon}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {trust.map((item) => (
+            <div key={item.title} className="panel flex items-center gap-3 p-4">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+                <item.icon className="size-5" aria-hidden />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-bold">{item.title}</span>
+                <span className="block truncate text-xs text-muted-foreground">{item.body}</span>
+              </span>
+            </div>
+          ))}
+        </section>
+
+        <section className="grid gap-3 sm:grid-cols-3">
+          {([
+            { k: "home.statRound", v: "~15s" },
+            { k: "home.statMax", v: "1000x" },
+            { k: "home.statEdge", v: "1%" },
+          ] as { k: TranslationKey; v: string }[]).map((s) => (
+            <div key={s.k} className="panel px-4 py-3">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t(s.k)}</p>
+              <p className="mt-1 font-display text-lg font-black text-primary">{s.v}</p>
+            </div>
+          ))}
+        </section>
+
+        <footer className="panel px-5 py-6 text-xs leading-relaxed text-muted-foreground">
+          {t("home.disclaimer")}
+        </footer>
+      </main>
+    </AppShell>
   );
 }
