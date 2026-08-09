@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-const title = "Rocket Flight — Provably Fair Crash Platform";
+const title = "AstroBet — Launch. Climb. Cash Out.";
 const description =
-  "Rocket Flight is a server-authoritative crash game platform with a double-entry ledger, provably fair rounds, KYC/AML controls and responsible gambling tools. Currently in build: demo mode only.";
+  "AstroBet is a cinematic provably-fair crash game. Ride the rocket, watch the multiplier climb and cash out before ignition fails. Demo credits only.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
