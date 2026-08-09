@@ -38,9 +38,10 @@ function GamePage() {
   const bet = useServerFn(placeBet);
   const cash = useServerFn(cashOut);
 
-  const [stake, setStake] = useState("10");
+  const [stake, setStake] = useState("5");
   const [auto, setAuto] = useState("");
   const [display, setDisplay] = useState(1);
+  const [now, setNow] = useState(() => Date.now());
   const frame = useRef<number | null>(null);
 
   const state = useQuery({
@@ -76,10 +77,23 @@ function GamePage() {
 
   const myBet = state.data?.bet ?? null;
   const wallet = state.data?.wallet ?? null;
-  const minBet = Number(state.data?.config?.minBet ?? 0.1);
+  const minBet = Number(state.data?.config?.minBet ?? 5);
   const maxBet = Number(state.data?.config?.maxBet ?? 1000);
+  const bettingMs = Number(state.data?.config?.bettingDurationMs ?? 10000);
   const stakeValue = Number(stake);
   const stakeValid = Number.isFinite(stakeValue) && stakeValue >= minBet && stakeValue <= maxBet;
+
+  // Ticking clock for the betting countdown.
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 200);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const openedAt = round?.bettingOpenAt ? new Date(round.bettingOpenAt).getTime() : null;
+  const secondsLeft =
+    status === "BETTING" && openedAt
+      ? Math.max(0, Math.ceil((openedAt + bettingMs - now) / 1000))
+      : null;
 
   const betMutation = useMutation({
     mutationFn: async () => {
@@ -116,6 +130,7 @@ function GamePage() {
   const phase = crashed ? "crashed" : status === "RUNNING" ? "running" : status === "BETTING" ? "betting" : "idle";
   const shown = crashed ? (round?.crash ?? display) : display;
   const potential = myBet ? Number(myBet.amount) * shown : 0;
+  const liveBets = state.data?.liveBets ?? [];
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
@@ -123,7 +138,7 @@ function GamePage() {
         Rocket <span className="text-thrust">launch</span>
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Demo credits only. Every round is server-authoritative and provably fair.
+        Every round is server-authoritative and provably fair.
       </p>
       <AccountNav />
 
@@ -131,7 +146,13 @@ function GamePage() {
         <RocketStage
           phase={phase}
           multiplier={shown}
-          countdownLabel={canBet ? "Betting open" : "Boarding"}
+          countdownLabel={
+            secondsLeft !== null
+              ? `Launching in ${secondsLeft}s`
+              : status === "RUNNING"
+                ? "In flight"
+                : "Boarding"
+          }
         />
         <p className="mt-3 text-center text-xs uppercase tracking-[0.3em] text-muted-foreground">
           Round {round?.number ?? "—"}
@@ -153,6 +174,39 @@ function GamePage() {
           <p className="mt-1 text-[11px] text-muted-foreground">
             Min {minBet} · Max {maxBet} credits
           </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[5, 10, 25, 50, 100].map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setStake(String(preset))}
+                className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
+              >
+                {preset}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                setStake(String(Math.min(maxBet, Math.max(minBet, (Number(stake) || minBet) * 2))))
+              }
+              className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
+            >
+              2×
+            </button>
+            <button
+              type="button"
+              onClick={() => setStake(String(Math.max(minBet, (Number(stake) || minBet) / 2)))}
+              className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
+            >
+              ½
+            </button>
+          </div>
+          {stake !== "" && !stakeValid ? (
+            <p className="mt-2 text-xs text-destructive">
+              Stake must be between {minBet} and {maxBet} credits.
+            </p>
+          ) : null}
           <label
             className="mt-4 block text-xs uppercase tracking-widest text-muted-foreground"
             htmlFor="auto"
@@ -173,7 +227,11 @@ function GamePage() {
               disabled={!canBet || !stakeValid || betMutation.isPending}
               onClick={() => betMutation.mutate()}
             >
-              {myBet ? "Bet placed" : "Place bet"}
+              {myBet
+                ? "Bet placed"
+                : secondsLeft !== null
+                  ? `Place bet · ${secondsLeft}s`
+                  : "Place bet"}
             </Button>
             <Button
               className="h-11 flex-1 rounded-full font-semibold"
@@ -187,7 +245,7 @@ function GamePage() {
         </div>
 
         <div className="rounded-3xl border border-border bg-card/60 p-5">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Demo wallet</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Wallet balance</p>
           <p className="mt-2 font-mono text-2xl tabular-nums">
             {(wallet?.available ?? 0).toFixed(2)}
           </p>
@@ -213,6 +271,54 @@ function GamePage() {
           <p className="mt-1 break-all font-mono text-[11px] text-muted-foreground">
             {state.data?.fairness?.server_seed_hash ?? "—"}
           </p>
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">
+          Live bets this round
+        </p>
+        <div className="mt-2 overflow-hidden rounded-3xl border border-border bg-card/60">
+          {liveBets.length === 0 ? (
+            <p className="p-5 text-sm text-muted-foreground">No bets placed yet this round.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="text-xs uppercase tracking-widest text-muted-foreground">
+                <tr className="border-b border-border">
+                  <th className="px-4 py-3 text-left font-medium">Player</th>
+                  <th className="px-4 py-3 text-right font-medium">Stake</th>
+                  <th className="px-4 py-3 text-right font-medium">Cash-out</th>
+                  <th className="px-4 py-3 text-right font-medium">Payout</th>
+                </tr>
+              </thead>
+              <tbody>
+                {liveBets.map((item) => (
+                  <tr key={item.id} className="border-b border-border/50 last:border-0">
+                    <td className="px-4 py-2.5 font-mono text-xs">
+                      {item.mine ? "You" : item.handle}
+                    </td>
+                    <td className="px-4 py-2.5 text-right font-mono tabular-nums">
+                      {item.amount.toFixed(2)}
+                    </td>
+                    <td
+                      className={`px-4 py-2.5 text-right font-mono tabular-nums ${
+                        item.status === "CASHED_OUT"
+                          ? "text-primary"
+                          : item.status === "LOST"
+                            ? "text-destructive"
+                            : "text-muted-foreground"
+                      }`}
+                    >
+                      {item.multiplier ? `${item.multiplier.toFixed(2)}x` : "—"}
+                    </td>
+                    <td className="px-4 py-2.5 text-right font-mono tabular-nums">
+                      {item.payout ? item.payout.toFixed(2) : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </section>
 

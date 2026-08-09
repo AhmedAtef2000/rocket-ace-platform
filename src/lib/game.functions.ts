@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertCanPlay, betInput, cashOutInput, roundView } from "@/lib/game.server";
+import { assertCanPlay, betInput, cashOutInput, maskHandle, roundView } from "@/lib/game.server";
 
 export const getGameState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -41,6 +41,15 @@ export const getGameState = createServerFn({ method: "GET" })
           .maybeSingle()
       : { data: null };
 
+    const liveBets = round
+      ? await supabaseAdmin
+          .from("bets")
+          .select("id, user_id, amount, status, cashout_multiplier, payout_amount")
+          .eq("round_id", round.id)
+          .order("placed_at", { ascending: true })
+          .limit(50)
+      : { data: null };
+
     return {
       serverTime,
       config: {
@@ -62,6 +71,15 @@ export const getGameState = createServerFn({ method: "GET" })
       history: (history.data ?? []).map((h) => ({
         roundId: h.round_id,
         crash: Number(h.crash_multiplier),
+      })),
+      liveBets: (liveBets.data ?? []).map((b) => ({
+        id: b.id,
+        mine: b.user_id === userId,
+        handle: maskHandle(b.user_id),
+        amount: Number(b.amount),
+        status: b.status,
+        multiplier: b.cashout_multiplier === null ? null : Number(b.cashout_multiplier),
+        payout: b.payout_amount === null ? null : Number(b.payout_amount),
       })),
     };
   });
