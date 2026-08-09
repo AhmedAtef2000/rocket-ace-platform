@@ -34,6 +34,8 @@ const phases: { label: string; state: "done" | "next" | "planned" }[] = [
   { label: "Phase 13 — Risk & fraud engine", state: "done" },
   { label: "Phase 14 — Support desk & notifications", state: "done" },
   { label: "Phase 15 — Admin RBAC back office", state: "done" },
+  { label: "Phase 16 — Analytics & reporting", state: "done" },
+  { label: "Phase 17 — Player fairness verifier", state: "done" },
 ];
 
 const guarantees = [
@@ -107,7 +109,7 @@ function Index() {
               </li>
             ))}
             <li className="pl-5 text-sm text-muted-foreground">
-              Phases 13–22 — risk, admin, support, hardening, deployment
+              Phases 18–22 — security hardening, testing, deployment
             </li>
           </ul>
         </section>
