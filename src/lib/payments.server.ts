@@ -7,9 +7,24 @@ import type { Database } from "@/integrations/supabase/types";
 type Admin = SupabaseClient<Database>;
 
 export const PROVIDER_ID = "MOCK_CHAIN";
+export const MANUAL_PROVIDER_ID = "MANUAL_LOCAL";
 /** Above this fiat-equivalent size a withdrawal needs two approvers. */
 export const DUAL_APPROVAL_THRESHOLD = 1000;
 export const WITHDRAWAL_FEE_RATE = 0.01;
+/** AML: every deposited unit must be wagered once before it can be withdrawn. */
+export const PLAYTHROUGH_RATE = 1;
+/** Minimum funding amount across every deposit rail. */
+export const MIN_DEPOSIT_AMOUNT = 5;
+/** Payouts are reviewed and paid within this window. */
+export const WITHDRAWAL_NOTICE_HOURS = 24;
+
+export const MANUAL_METHODS = [
+  { id: "VODAFONE_CASH", label: "Vodafone Cash", payTo: "+20 100 000 0000" },
+  { id: "ETISALAT_CASH", label: "Etisalat Cash", payTo: "+20 111 000 0000" },
+  { id: "ORANGE_CASH", label: "Orange Cash", payTo: "+20 120 000 0000" },
+] as const;
+
+export type ManualMethodId = (typeof MANUAL_METHODS)[number]["id"];
 
 export type NetworkOption = {
   currency: string;
