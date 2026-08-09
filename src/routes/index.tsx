@@ -5,7 +5,7 @@ import { Rocket } from "lucide-react";
 import { RocketStage } from "@/components/game/RocketStage";
 import { LiveActivityFeed } from "@/components/home/LiveActivityFeed";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type TranslationKey } from "@/lib/i18n";
 
 const title = "AstroBet — Launch. Climb. Cash Out.";
 const description =
@@ -25,22 +25,14 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const pillars = [
-  {
-    title: "One tap to launch",
-    body: "Place your stake, feel the countdown, then watch the rocket tear off the pad. No forms, no friction.",
-  },
-  {
-    title: "Cash out on instinct",
-    body: "Every tenth of a second the multiplier climbs. Greed or discipline — the choice is yours, and it is instant.",
-  },
-  {
-    title: "Provably fair, always",
-    body: "The crash point is committed before you bet and revealed after. Verify any round yourself in one click.",
-  },
+const pillars: { title: TranslationKey; body: TranslationKey }[] = [
+  { title: "home.pillar1Title", body: "home.pillar1Body" },
+  { title: "home.pillar2Title", body: "home.pillar2Body" },
+  { title: "home.pillar3Title", body: "home.pillar3Body" },
 ];
 
 function HeroStage() {
+  const { t } = useI18n();
   const [multiplier, setMultiplier] = useState(1);
   const [phase, setPhase] = useState<"betting" | "running" | "crashed">("betting");
   const [secondsLeft, setSecondsLeft] = useState(10);
@@ -87,7 +79,9 @@ function HeroStage() {
     <RocketStage
       phase={phase}
       multiplier={multiplier}
-      countdownLabel={phase === "betting" ? `Launching in ${secondsLeft}s` : "Boarding"}
+      countdownLabel={
+        phase === "betting" ? t("game.launchingIn", { s: secondsLeft }) : t("game.boarding")
+      }
     />
   );
 }
@@ -129,16 +123,14 @@ function Index() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-20 pt-8 lg:grid-cols-2">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-primary">
-              Provably fair · 18+
+              {t("home.badge")}
             </p>
             <h1 className="mt-6 font-display text-5xl font-extrabold leading-[1.05] sm:text-6xl">
-              Your heart beats
-              <span className="block text-thrust">with the multiplier.</span>
+              {t("home.heroLine1")}
+              <span className="block text-thrust">{t("home.heroLine2")}</span>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              AstroBet turns a single number into pure adrenaline. The rocket climbs, the crowd
-              holds its breath, and one tap decides everything. Provably fair. Server-authoritative.
-              Unforgettable.
+              {t("home.heroBody")}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -146,24 +138,24 @@ function Index() {
                 search={{ mode: "signup" }}
                 className="inline-flex items-center justify-center rounded-full bg-thrust px-7 py-3 text-sm font-semibold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.03]"
               >
-                Launch your first round
+                {t("home.ctaPrimary")}
               </Link>
               <Link
                 to="/fairness"
                 className="inline-flex items-center justify-center rounded-full border border-border px-7 py-3 text-sm font-medium transition-colors hover:bg-secondary"
               >
-                Verify a round
+                {t("home.ctaSecondary")}
               </Link>
             </div>
             <dl className="mt-10 grid grid-cols-3 gap-4 text-center">
-              {[
-                { k: "Round length", v: "~15s" },
-                { k: "Max multiplier", v: "1000x" },
-                { k: "House edge", v: "1%" },
-              ].map((s) => (
+              {([
+                { k: "home.statRound", v: "~15s" },
+                { k: "home.statMax", v: "1000x" },
+                { k: "home.statEdge", v: "1%" },
+              ] as { k: TranslationKey; v: string }[]).map((s) => (
                 <div key={s.k} className="rounded-2xl border border-border bg-card/60 p-3">
                   <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                    {s.k}
+                    {t(s.k)}
                   </dt>
                   <dd className="mt-1 font-display text-lg font-bold">{s.v}</dd>
                 </div>
@@ -184,8 +176,8 @@ function Index() {
               key={p.title}
               className="rounded-3xl border border-border bg-card/70 p-6 transition-colors hover:border-primary/50"
             >
-              <h2 className="font-display text-xl font-bold">{p.title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
+              <h2 className="font-display text-xl font-bold">{t(p.title)}</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t(p.body)}</p>
             </article>
           ))}
         </div>
@@ -193,7 +185,7 @@ function Index() {
 
       <section className="mx-auto max-w-6xl px-5 pb-20">
         <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-          Live player results
+          {t("home.liveResults")}
         </h2>
         <div className="mt-6">
           <LiveActivityFeed />
@@ -202,9 +194,7 @@ function Index() {
 
       <footer className="border-t border-border">
         <div className="mx-auto max-w-6xl px-5 py-8 text-xs leading-relaxed text-muted-foreground">
-          Gambling involves risk. AstroBet is intended solely for lawful, licensed operation in
-          permitted jurisdictions, with age verification, KYC/AML checks and responsible gambling
-          controls enforced before any real-money play.
+          {t("home.disclaimer")}
         </div>
       </footer>
     </main>
