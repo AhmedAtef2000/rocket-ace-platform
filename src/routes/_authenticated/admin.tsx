@@ -565,6 +565,10 @@ function TicketsSection({ canReply }: { canReply: boolean }) {
         {(list.data ?? []).map((ticket) => (
           <article key={ticket.id} className="rounded-xl border border-border p-4 text-sm">
             <p className="font-medium">{ticket.subject}</p>
+            <p className="font-mono text-[11px] text-muted-foreground">
+              ID: {ticket.accountNumber ?? "—"} · {ticket.user_id}
+              {ticket.userEmail ? ` · ${ticket.userEmail}` : ""}
+            </p>
             <p className="text-xs text-muted-foreground">
               {t("admin.tickets.metaLine", {
                 reference: ticket.reference,
@@ -892,7 +896,9 @@ function UsersSection({ canManage }: { canManage: boolean }) {
                   status: u.status,
                 })}
               </span>
-              <span className="block font-mono text-[11px] text-muted-foreground">{u.id}</span>
+              <span className="block font-mono text-[11px] text-muted-foreground">
+                ID: {u.accountNumber ?? "—"} · {u.id}
+              </span>
             </button>
           </li>
         ))}
@@ -905,6 +911,9 @@ function UsersSection({ canManage }: { canManage: boolean }) {
         <div className="mt-5 space-y-4 rounded-xl border border-border p-5 text-sm">
           <div>
             <p className="font-medium">{d.user.email}</p>
+            <p className="font-mono text-[11px] text-muted-foreground">
+              ID: {d.user.account_number ?? "—"} · {d.user.id}
+            </p>
             <p className="text-xs text-muted-foreground">
               {d.user.status} ·{" "}
               {t("admin.users.joined", {
