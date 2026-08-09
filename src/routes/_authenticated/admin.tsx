@@ -896,36 +896,36 @@ function UsersSection({ canManage }: { canManage: boolean }) {
             <>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field
-                  label="First name"
+                  label={t("admin.users.firstName")}
                   value={edit["firstName"] ?? d.profile?.first_name ?? ""}
                   onChange={(v) => setEdit((p) => ({ ...p, firstName: v }))}
                 />
                 <Field
-                  label="Last name"
+                  label={t("admin.users.lastName")}
                   value={edit["lastName"] ?? d.profile?.last_name ?? ""}
                   onChange={(v) => setEdit((p) => ({ ...p, lastName: v }))}
                 />
                 <Field
-                  label="Phone"
+                  label={t("admin.users.phone")}
                   value={edit["phone"] ?? d.profile?.phone ?? ""}
                   onChange={(v) => setEdit((p) => ({ ...p, phone: v }))}
                 />
                 <Field
-                  label="Date of birth"
+                  label={t("admin.users.dateOfBirth")}
                   value={edit["dateOfBirth"] ?? d.user.date_of_birth ?? ""}
                   onChange={(v) => setEdit((p) => ({ ...p, dateOfBirth: v }))}
-                  placeholder="YYYY-MM-DD"
+                  placeholder={t("admin.users.dateOfBirthPlaceholder")}
                 />
               </div>
               <Button disabled={profileMutation.isPending} onClick={() => profileMutation.mutate()}>
-                Save profile
+                {t("admin.users.saveProfile")}
               </Button>
 
               <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row">
                 <input
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Reason shown to the player"
+                  placeholder={t("admin.users.reasonPlaceholder")}
                   className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
                 />
                 {STATUSES.map((s) => (
@@ -936,7 +936,7 @@ function UsersSection({ canManage }: { canManage: boolean }) {
                     disabled={statusMutation.isPending}
                     onClick={() => statusMutation.mutate(s)}
                   >
-                    {s === "ACTIVE" ? "Unban" : s === "SUSPENDED" ? "Ban" : s.toLowerCase()}
+                    {s === "ACTIVE" ? t("admin.users.statusUnban") : s === "SUSPENDED" ? t("admin.users.statusBan") : s.toLowerCase()}
                   </Button>
                 ))}
               </div>
@@ -949,6 +949,7 @@ function UsersSection({ canManage }: { canManage: boolean }) {
 }
 
 function ManualDepositsSection({ canApprove }: { canApprove: boolean }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchList = useServerFn(listManualDeposits);
   const decide = useServerFn(decideManualDeposit);
@@ -964,7 +965,7 @@ function ManualDepositsSection({ canApprove }: { canApprove: boolean }) {
     mutationFn: async (input: { id: string; decision: "APPROVED" | "REJECTED" }) =>
       decide({ data: { ...input, note: notes[input.id] ?? "" } }),
     onSuccess: () => {
-      toast.success("Request processed");
+      toast.success(t("admin.manualDeposits.processed"));
       void queryClient.invalidateQueries({ queryKey: ["admin"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -972,18 +973,26 @@ function ManualDepositsSection({ canApprove }: { canApprove: boolean }) {
 
   return (
     <section>
-      <h2 className="text-lg font-medium">Local wallet deposits</h2>
+      <h2 className="text-lg font-medium">{t("admin.manualDeposits.title")}</h2>
       <div className="mt-4 space-y-3">
         {list.data?.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No pending transfers.</p>
+          <p className="text-sm text-muted-foreground">{t("admin.manualDeposits.empty")}</p>
         ) : null}
         {(list.data ?? []).map((r) => (
           <article key={r.id} className="rounded-xl border border-border p-4 text-sm">
             <p className="font-medium">
-              {fmt(Number(r.amount))} {r.currency} · {r.method.replace(/_/g, " ")}
+              {t("admin.manualDeposits.methodLine", {
+                amount: fmt(Number(r.amount)),
+                currency: r.currency,
+                method: r.method.replace(/_/g, " "),
+              })}
             </p>
             <p className="text-xs text-muted-foreground break-all">
-              From {r.sender_number} · ref {r.reference ?? "—"} · user {r.user_id}
+              {t("admin.manualDeposits.fromLine", {
+                sender: r.sender_number,
+                reference: r.reference ?? "—",
+                user: r.user_id,
+              })}
             </p>
             {r.proofUrl ? (
               <a
@@ -992,31 +1001,31 @@ function ManualDepositsSection({ canApprove }: { canApprove: boolean }) {
                 rel="noreferrer"
                 className="mt-2 inline-block text-primary underline"
               >
-                View payment proof
+                {t("admin.manualDeposits.viewProof")}
               </a>
             ) : (
-              <p className="mt-2 text-xs text-muted-foreground">No proof attached.</p>
+              <p className="mt-2 text-xs text-muted-foreground">{t("admin.manualDeposits.noProof")}</p>
             )}
             {canApprove ? (
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                 <input
                   value={notes[r.id] ?? ""}
                   onChange={(e) => setNotes((p) => ({ ...p, [r.id]: e.target.value }))}
-                  placeholder="Review note"
+                  placeholder={t("admin.manualDeposits.reviewNotePlaceholder")}
                   className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
                 />
                 <Button
                   disabled={mutation.isPending}
                   onClick={() => mutation.mutate({ id: r.id, decision: "APPROVED" })}
                 >
-                  Approve & credit
+                  {t("admin.manualDeposits.approveCredit")}
                 </Button>
                 <Button
                   variant="destructive"
                   disabled={mutation.isPending}
                   onClick={() => mutation.mutate({ id: r.id, decision: "REJECTED" })}
                 >
-                  Reject
+                  {t("admin.manualDeposits.reject")}
                 </Button>
               </div>
             ) : null}
