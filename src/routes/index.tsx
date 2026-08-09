@@ -101,19 +101,20 @@ function Index() {
           <span className="font-display text-lg font-extrabold tracking-tight">AstroBet</span>
         </div>
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           <Link
             to="/auth"
             search={{ mode: "signin" }}
             className="rounded-full border border-border px-4 py-2 text-sm font-medium transition-all duration-150 hover:bg-secondary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            Sign in
+            {t("nav.signIn")}
           </Link>
           <Link
             to="/auth"
             search={{ mode: "signup" }}
             className="rounded-full bg-thrust px-4 py-2 text-sm font-semibold text-primary-foreground shadow-orbit transition-all duration-150 hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            Register
+            {t("nav.register")}
           </Link>
         </div>
       </header>
