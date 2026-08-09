@@ -59,6 +59,7 @@ function AuthPage() {
     dateOfBirth: "",
     email: "",
     phone: "",
+    currency: "USD",
     password: "",
     confirm: "",
   });
@@ -110,6 +111,7 @@ function AuthPage() {
           dateOfBirth: form.dateOfBirth,
           email: form.email,
           phone: form.phone,
+          currency: form.currency,
         },
       });
       if (!check.ok) throw new Error(check.message);
@@ -124,6 +126,7 @@ function AuthPage() {
             last_name: form.lastName,
             date_of_birth: form.dateOfBirth,
             phone: check.phone,
+            primary_currency: check.currency,
           },
         },
       });
@@ -264,6 +267,27 @@ function AuthPage() {
                 value={form.phone}
                 onChange={setField("phone")}
               />
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="signup-currency"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  Account currency
+                </label>
+                <select
+                  id="signup-currency"
+                  value={form.currency}
+                  onChange={(event) => setField("currency")(event.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <option value="USD">USD — US Dollar ($)</option>
+                  <option value="EUR">EUR — Euro (€)</option>
+                  <option value="EGP">EGP — Egyptian Pound</option>
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Your balances, bets and payouts are held in this currency.
+                </p>
+              </div>
               <PasswordField
                 id="signup-password"
                 label="Password"
