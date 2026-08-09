@@ -9,6 +9,8 @@ import { msToReach } from "@/lib/game-math";
 type Admin = SupabaseClient<Database>;
 
 export const POST_ROUND_PAUSE_MS = 5_000;
+/** Hard cap on flight time: a round never runs longer than 10 seconds. */
+export const MAX_FLIGHT_MS = 10_000;
 
 export type GameConfig = {
   version: number;
@@ -136,13 +138,17 @@ async function committedCrash(admin: Admin, roundId: string, cfg: GameConfig): P
       .maybeSingle(),
   ]);
   if (!secret || !seed) throw new Error("Round fairness data missing.");
-  return crashPointFrom(
+  const raw = crashPointFrom(
     secret.server_seed_encrypted,
     seed.client_seed,
     Number(seed.nonce),
     cfg.house_edge_bps,
     cfg.max_crash_multiplier,
   );
+  // Deterministic, published cap: the crash point can never exceed the
+  // multiplier reachable within MAX_FLIGHT_MS, so every flight ends by 10s.
+  const timeCap = Math.floor(Math.exp(cfg.crash_growth_rate * MAX_FLIGHT_MS) * 100) / 100;
+  return Math.min(raw, timeCap);
 }
 
 /**
