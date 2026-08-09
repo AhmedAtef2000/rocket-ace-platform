@@ -78,6 +78,15 @@ const gatedLabels = [
   "VIP & Fairness",
 ];
 
+/** Top-bar links hidden from signed-out visitors until they log in. */
+const gatedTopNavKeys = new Set([
+  "nav.crash",
+  "nav.wallet",
+  "nav.transactions",
+  "nav.fairness",
+  "nav.support",
+]);
+
 function SideNav({
   isAdmin,
   publicView = false,
