@@ -55,7 +55,14 @@ function SupportPage() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["support"] });
 
   const createMutation = useMutation({
-    mutationFn: async () => create({ data: { category, subject, body } }),
+    mutationFn: async () => {
+      const trimmedSubject = subject.trim();
+      const trimmedBody = body.trim();
+      if (trimmedSubject.length < 4) throw new Error("Add a short subject (at least 4 characters).");
+      if (trimmedBody.length < 10)
+        throw new Error("Describe the issue in a little more detail (at least 10 characters).");
+      return create({ data: { category, subject: trimmedSubject, body: trimmedBody } });
+    },
     onSuccess: (result) => {
       toast.success(`Ticket ${result.reference} created`);
       setSubject("");
@@ -66,8 +73,11 @@ function SupportPage() {
   });
 
   const replyMutation = useMutation({
-    mutationFn: async (ticketId: string) =>
-      reply({ data: { ticketId, body: replies[ticketId] ?? "" } }),
+    mutationFn: async (ticketId: string) => {
+      const text = (replies[ticketId] ?? "").trim();
+      if (text.length < 2) throw new Error("Write a message before sending.");
+      return reply({ data: { ticketId, body: text } });
+    },
     onSuccess: (_r, ticketId) => {
       toast.success("Reply sent");
       setReplies((prev) => ({ ...prev, [ticketId]: "" }));
@@ -123,7 +133,7 @@ function SupportPage() {
         </label>
         <Button
           className="mt-4"
-          disabled={createMutation.isPending}
+          disabled={createMutation.isPending || subject.trim().length < 4 || body.trim().length < 10}
           onClick={() => createMutation.mutate()}
         >
           {createMutation.isPending ? "Sending…" : "Open ticket"}
@@ -179,7 +189,7 @@ function SupportPage() {
                 />
                 <Button
                   variant="secondary"
-                  disabled={replyMutation.isPending}
+                  disabled={replyMutation.isPending || (replies[ticket.id] ?? "").trim().length < 2}
                   onClick={() => replyMutation.mutate(ticket.id)}
                 >
                   Send
