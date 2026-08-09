@@ -13,8 +13,6 @@ const items = [
   { to: "/profile", label: "Profile" },
   { to: "/compliance", label: "Verification" },
   { to: "/security", label: "Security" },
-  { to: "/notifications", label: "Notifications" },
-  { to: "/support", label: "Support" },
 ] as const;
 
 export function AccountNav() {
