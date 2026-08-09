@@ -46,8 +46,8 @@ const dictionary = {
     "home.heroLine2": "with the multiplier.",
     "home.heroBody":
       "AstroBet turns a single number into pure adrenaline. The rocket climbs, the crowd holds its breath, and one tap decides everything. Provably fair. Server-authoritative. Unforgettable.",
-    "home.ctaPrimary": "Launch your first round",
-    "home.ctaSecondary": "Verify a round",
+    "home.ctaPrimary": "Invite",
+    "home.ctaSecondary": "Bet Now",
     "home.statRound": "Round length",
     "home.statMax": "Max multiplier",
     "home.statEdge": "House edge",

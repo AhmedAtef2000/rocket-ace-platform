@@ -101,7 +101,7 @@ function HeroStage() {
 
 const trust = [
   { icon: ShieldCheck, title: "Provably Fair", body: "100% verifiable" },
-  { icon: Zap, title: "Fast Withdrawals", body: "Within 24 hours" },
+  { icon: Zap, title: "Fast Withdrawals", body: "Within 1 hours" },
   { icon: Lock, title: "Secure & Trusted", body: "Encrypted end to end" },
   { icon: Headphones, title: "24/7 Support", body: "Here for you" },
 ];
@@ -226,7 +226,7 @@ function RecentRoundsPanel() {
         to="/fairness"
         className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-secondary"
       >
-        Verify a round
+        Check Round
       </Link>
     </aside>
   );
@@ -243,7 +243,7 @@ function Index() {
           <div className="panel p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div className="min-w-0">
-                <h1 className="page-title truncate">Rocket Crash</h1>
+                <h1 className="page-title truncate">Astro Crash</h1>
                 <p className="text-xs font-semibold text-muted-foreground">
                   {t("home.badge")}
                 </p>
@@ -287,7 +287,7 @@ function Index() {
               className="group relative overflow-hidden rounded-2xl border border-primary/40 bg-thrust p-5 text-primary-foreground shadow-orbit"
             >
               <Rocket className="size-7" aria-hidden />
-              <p className="mt-6 font-display text-lg font-black">Rocket Crash</p>
+              <p className="mt-6 font-display text-lg font-black">Astro Crash</p>
               <p className="text-xs font-semibold opacity-90">Play now</p>
             </Link>
             {["Auto-bet mode", "Tournaments", "High-roller table"].map((soon) => (
@@ -315,7 +315,7 @@ function Index() {
 
         <section className="grid gap-3 sm:grid-cols-3">
           {([
-            { k: "home.statRound", v: "~15s" },
+            { k: "home.statRound", v: "~10s" },
             { k: "home.statMax", v: "1000x" },
             { k: "home.statEdge", v: "1%" },
           ] as { k: TranslationKey; v: string }[]).map((s) => (
