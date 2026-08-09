@@ -519,3 +519,62 @@ export const listAuditLogs = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data ?? [];
   });
+/** Phase 16 — reporting: daily GGR series, payments volume and top players. */
+export const getAdminAnalytics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { requirePermission, num } = await import("@/lib/admin.server");
+    const { buildSeries, topPlayers } = await import("@/lib/analytics.server");
+    await requirePermission(supabaseAdmin, context.userId, "analytics.view");
+
+    const days = 14;
+    const since = new Date(Date.now() - days * 86_400_000).toISOString();
+
+    const [results, bets, deposits, withdrawals, newUsers] = await Promise.all([
+      supabaseAdmin
+        .from("game_results")
+        .select("created_at, total_wagered, total_payout")
+        .gte("created_at", since),
+      supabaseAdmin
+        .from("bets")
+        .select("user_id, amount, payout_amount")
+        .gte("placed_at", since)
+        .limit(1000),
+      supabaseAdmin
+        .from("deposits")
+        .select("confirmed_amount, currency, status")
+        .eq("status", "CONFIRMED")
+        .gte("created_at", since),
+      supabaseAdmin
+        .from("withdrawals")
+        .select("amount, fee_amount, status")
+        .in("status", ["CONFIRMED", "PROCESSING", "BROADCAST"])
+        .gte("requested_at", since),
+      supabaseAdmin
+        .from("users")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since),
+    ]);
+
+    const series = buildSeries(days, results.data ?? []);
+    const wagered = series.reduce((s, b) => s + b.wagered, 0);
+    const payout = series.reduce((s, b) => s + b.payout, 0);
+
+    return {
+      days,
+      series,
+      totals: {
+        wagered,
+        payout,
+        ggr: wagered - payout,
+        holdPercent: wagered > 0 ? ((wagered - payout) / wagered) * 100 : 0,
+        rounds: series.reduce((s, b) => s + b.rounds, 0),
+        newUsers: newUsers.count ?? 0,
+        depositVolume: (deposits.data ?? []).reduce((s, d) => s + num(d.confirmed_amount), 0),
+        withdrawalVolume: (withdrawals.data ?? []).reduce((s, w) => s + num(w.amount), 0),
+        withdrawalFees: (withdrawals.data ?? []).reduce((s, w) => s + num(w.fee_amount), 0),
+      },
+      topPlayers: topPlayers(bets.data ?? []),
+    };
+  });
