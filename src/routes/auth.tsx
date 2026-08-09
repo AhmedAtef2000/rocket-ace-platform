@@ -86,6 +86,11 @@ function AuthPage() {
     c: countryByIso(signUpCountry)?.name ?? signUpCountry,
     n: phoneLengthHint(signUpCountry),
   });
+  // Every registration field is mandatory — the account cannot be created otherwise.
+  const missingFields = (
+    ["firstName", "lastName", "dateOfBirth", "email", "phone", "currency", "password", "confirm"] as const
+  ).filter((key) => form[key].trim() === "");
+  const signUpReady = missingFields.length === 0 && phoneValid;
   // Only a purely numeric identifier is treated as a phone number.
   const identifierIsPhone = /^[+\d][\d\s()-]*$/.test(identifier.trim()) && identifier.trim() !== "";
 
@@ -126,6 +131,10 @@ function AuthPage() {
 
   async function handleSignUp(event: React.FormEvent) {
     event.preventDefault();
+    if (missingFields.length > 0) {
+      toast.error(t("auth.fillAll"));
+      return;
+    }
     if (!phoneValid) {
       toast.error(phoneError);
       return;
@@ -375,9 +384,12 @@ function AuthPage() {
               {form.confirm && form.confirm !== form.password ? (
                 <p className="text-xs text-destructive">{t("auth.passwordsMismatch")}</p>
               ) : null}
-              <Button type="submit" className="w-full" disabled={busy || !phoneValid}>
+              <Button type="submit" className="w-full" disabled={busy || !signUpReady}>
                 {t("auth.createAccount")}
               </Button>
+              {missingFields.length > 0 ? (
+                <p className="text-xs text-muted-foreground">{t("auth.fillAll")}</p>
+              ) : null}
               <p className="text-xs text-muted-foreground">{t("auth.ageNotice")}</p>
             </form>
           </TabsContent>
