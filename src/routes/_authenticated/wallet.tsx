@@ -1010,9 +1010,9 @@ function Chip({
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <dt className="text-muted-foreground">{label}</dt>
+      <dt className="shrink-0 text-muted-foreground">{label}</dt>
       <dd
-        className={`truncate font-mono ${strong ? "text-primary" : "text-foreground"}`}
+        className={`min-w-0 truncate font-mono ${strong ? "text-primary" : "text-foreground"}`}
         dir="ltr"
         title={value}
       >
