@@ -21,15 +21,6 @@ type Overview = {
   kyc: { status: string; reviewedAt: string | null };
 };
 
-const GAMES = [
-  { key: "crash", label: "Crash", icon: Rocket, to: "/game", badge: "HOT", tint: "from-primary/30" },
-  { key: "slots", label: "Slots", icon: Sparkles, badge: null, tint: "from-amber-500/25" },
-  { key: "mines", label: "Mines", icon: Bomb, badge: "NEW", tint: "from-emerald-500/25" },
-  { key: "dice", label: "Dice", icon: Dice5, badge: null, tint: "from-sky-500/25" },
-  { key: "plinko", label: "Plinko", icon: Circle, badge: null, tint: "from-fuchsia-500/25" },
-  { key: "tower", label: "Tower", icon: Layers, badge: null, tint: "from-orange-500/25" },
-] as const;
-
 function money(currency: string, amount: number) {
   const formatted = new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
