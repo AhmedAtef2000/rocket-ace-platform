@@ -67,3 +67,8 @@ export function roundView(round: EngineRound | null) {
     totalWagered: Number(round.total_wagered ?? 0),
   };
 }
+
+/** Anonymised player handle for the public live-bet table. */
+export function maskHandle(userId: string): string {
+  return `****${userId.replace(/-/g, "").slice(-4)}`;
+}
