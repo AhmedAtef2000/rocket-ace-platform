@@ -6,7 +6,20 @@ export type RegistrationInput = {
   dateOfBirth: string;
   email: string;
   phone: string;
+  currency: AccountCurrency;
 };
+
+/** Fiat currencies a player may hold as their primary account currency. */
+export const ACCOUNT_CURRENCIES = ["USD", "EUR", "EGP"] as const;
+export type AccountCurrency = (typeof ACCOUNT_CURRENCIES)[number];
+
+export function parseAccountCurrency(raw: unknown): AccountCurrency {
+  const code = String(raw ?? "").trim().toUpperCase();
+  if (!(ACCOUNT_CURRENCIES as readonly string[]).includes(code)) {
+    throw new Error("Select a supported account currency.");
+  }
+  return code as AccountCurrency;
+}
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -54,5 +67,6 @@ export function parseRegistration(data: unknown): RegistrationInput {
     dateOfBirth: assertAdult(String(d["dateOfBirth"] ?? "")),
     email: normalizeEmail(String(d["email"] ?? "")),
     phone: normalizePhone(String(d["phone"] ?? "")),
+    currency: parseAccountCurrency(d["currency"]),
   };
 }
