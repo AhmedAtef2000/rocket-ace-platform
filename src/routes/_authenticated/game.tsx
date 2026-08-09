@@ -269,7 +269,7 @@ function GamePage() {
             ) : (
               history.slice(0, 12).map((item, index) => (
                 <span
-                  key={`${item.id ?? index}`}
+                  key={`${item.roundId}-${index}`}
                   className={`chip shrink-0 ${
                     Number(item.crash) >= 2 ? "text-accent" : "text-muted-foreground"
                   }`}
