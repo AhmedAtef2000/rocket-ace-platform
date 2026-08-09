@@ -104,7 +104,7 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       user: userRow.data,
       profile: profile.data ?? null,
       balance: {
-        currency: real[0]?.currency ?? "USD",
+        currency: real[0]?.currency && real[0].currency !== "DEMO" ? real[0].currency : "USD",
         available: real.reduce((s, w) => s + Number(w.available_amount ?? 0), 0),
         locked: real.reduce((s, w) => s + Number(w.locked_amount ?? 0), 0),
       },
