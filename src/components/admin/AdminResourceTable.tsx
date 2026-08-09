@@ -33,7 +33,7 @@ export function AdminResourceTable({
 }) {
   const { t } = useI18n();
   const fetchResource = useServerFn(listOpsResource);
-  const query = useQuery({
+  const query = useQuery<{ columns: string[]; rows: (string | number | boolean | null)[][] }>({
     queryKey: ["admin", "ops", resource, limit],
     queryFn: async () => fetchResource({ data: { resource, limit } }),
   });
@@ -76,9 +76,9 @@ export function AdminResourceTable({
             <tbody>
               {(query.data?.rows ?? []).map((row, index) => (
                 <tr key={index} className="border-b border-border/40 last:border-0 hover:bg-secondary/30">
-                  {(query.data?.columns ?? []).map((column) => (
-                    <td key={column} className="whitespace-nowrap px-3 py-2 tabular-nums">
-                      {render((row as Record<string, unknown>)[column])}
+                  {row.map((cell, cellIndex) => (
+                    <td key={cellIndex} className="whitespace-nowrap px-3 py-2 tabular-nums">
+                      {render(cell)}
                     </td>
                   ))}
                 </tr>

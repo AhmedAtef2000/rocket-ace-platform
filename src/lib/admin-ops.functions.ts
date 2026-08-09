@@ -33,6 +33,14 @@ export const listOpsResource = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const list = rows ?? [];
-    const columns = def.columns.length > 0 ? [...def.columns] : Object.keys(list[0] ?? {});
-    return { columns, rows: list };
+    const columns: string[] = def.columns.length > 0 ? [...def.columns] : Object.keys(list[0] ?? {});
+    const cells: (string | number | boolean | null)[][] = list.map((row) =>
+      columns.map((column) => {
+        const value = row[column];
+        if (value === null || value === undefined) return null;
+        if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") return value;
+        return JSON.stringify(value);
+      }),
+    );
+    return { columns, rows: cells };
   });

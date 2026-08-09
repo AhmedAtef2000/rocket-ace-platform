@@ -189,7 +189,7 @@ function AdminPage() {
     );
   }
 
-  const resource = RESOURCE_SECTIONS[section];
+  const resource = RESOURCE_SECTIONS[section as AdminSection];
 
   const body = (() => {
     if (resource) {
