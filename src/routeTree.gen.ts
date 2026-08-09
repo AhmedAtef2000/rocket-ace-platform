@@ -16,6 +16,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedComplianceRouteImport } from './routes/_authenticated/compliance'
+import { Route as AuthenticatedFairnessRouteImport } from './routes/_authenticated/fairness'
 import { Route as AuthenticatedGameRouteImport } from './routes/_authenticated/game'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
@@ -58,6 +59,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 const AuthenticatedComplianceRoute = AuthenticatedComplianceRouteImport.update({
   id: '/compliance',
   path: '/compliance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFairnessRoute = AuthenticatedFairnessRouteImport.update({
+  id: '/fairness',
+  path: '/fairness',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGameRoute = AuthenticatedGameRouteImport.update({
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/compliance': typeof AuthenticatedComplianceRoute
+  '/fairness': typeof AuthenticatedFairnessRoute
   '/game': typeof AuthenticatedGameRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/compliance': typeof AuthenticatedComplianceRoute
+  '/fairness': typeof AuthenticatedFairnessRoute
   '/game': typeof AuthenticatedGameRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/payments': typeof AuthenticatedPaymentsRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/compliance': typeof AuthenticatedComplianceRoute
+  '/_authenticated/fairness': typeof AuthenticatedFairnessRoute
   '/_authenticated/game': typeof AuthenticatedGameRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/compliance'
+    | '/fairness'
     | '/game'
     | '/notifications'
     | '/payments'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/compliance'
+    | '/fairness'
     | '/game'
     | '/notifications'
     | '/payments'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/compliance'
+    | '/_authenticated/fairness'
     | '/_authenticated/game'
     | '/_authenticated/notifications'
     | '/_authenticated/payments'
@@ -274,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/compliance'
       fullPath: '/compliance'
       preLoaderRoute: typeof AuthenticatedComplianceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/fairness': {
+      id: '/_authenticated/fairness'
+      path: '/fairness'
+      fullPath: '/fairness'
+      preLoaderRoute: typeof AuthenticatedFairnessRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/game': {
@@ -346,6 +365,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedComplianceRoute: typeof AuthenticatedComplianceRoute
+  AuthenticatedFairnessRoute: typeof AuthenticatedFairnessRoute
   AuthenticatedGameRoute: typeof AuthenticatedGameRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
@@ -360,6 +380,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedComplianceRoute: AuthenticatedComplianceRoute,
+  AuthenticatedFairnessRoute: AuthenticatedFairnessRoute,
   AuthenticatedGameRoute: AuthenticatedGameRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
