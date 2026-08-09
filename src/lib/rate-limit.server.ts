@@ -13,6 +13,8 @@ export const RATE_LIMITS = {
   "support.ticket": { limit: 5, windowSeconds: 3600 },
   "support.reply": { limit: 30, windowSeconds: 3600 },
   "bet.place": { limit: 120, windowSeconds: 60 },
+  "auth.register-check": { limit: 20, windowSeconds: 3600 },
+  "auth.resolve-phone": { limit: 20, windowSeconds: 600 },
 } satisfies Record<string, RateLimitRule>;
 
 export type RateLimitAction = keyof typeof RATE_LIMITS;

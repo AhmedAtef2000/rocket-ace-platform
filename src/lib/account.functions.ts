@@ -10,6 +10,13 @@ export const provisionAccount = createServerFn({ method: "POST" })
     const userId = context.userId;
     const email = typeof context.claims["email"] === "string" ? context.claims["email"] : "";
     const now = new Date().toISOString();
+    const meta = (context.claims["user_metadata"] ?? {}) as Record<string, unknown>;
+    const str = (key: string): string | null => {
+      const value = meta[key];
+      return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+    };
+    const dateOfBirth = str("date_of_birth");
+    const phone = str("phone");
 
     const { error: userError } = await supabaseAdmin.from("users").upsert(
       {
@@ -19,6 +26,7 @@ export const provisionAccount = createServerFn({ method: "POST" })
         demo_mode: true,
         last_login_at: now,
         email_verified_at: now,
+        ...(dateOfBirth ? { date_of_birth: dateOfBirth } : {}),
       },
       { onConflict: "id" },
     );
@@ -26,12 +34,22 @@ export const provisionAccount = createServerFn({ method: "POST" })
 
     const { data: profile } = await supabaseAdmin
       .from("user_profiles")
-      .select("id")
+      .select("id, first_name, last_name, phone")
       .eq("user_id", userId)
       .maybeSingle();
     if (!profile) {
-      const { error } = await supabaseAdmin.from("user_profiles").insert({ user_id: userId });
+      const { error } = await supabaseAdmin.from("user_profiles").insert({
+        user_id: userId,
+        first_name: str("first_name"),
+        last_name: str("last_name"),
+        phone,
+      });
       if (error) throw new Error(error.message);
+    } else if (!profile.first_name && (str("first_name") || phone)) {
+      await supabaseAdmin
+        .from("user_profiles")
+        .update({ first_name: str("first_name"), last_name: str("last_name"), phone })
+        .eq("id", profile.id);
     }
 
     const { data: limits } = await supabaseAdmin

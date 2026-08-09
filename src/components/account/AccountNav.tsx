@@ -1,4 +1,8 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+
+import { getAdminSession } from "@/lib/admin.functions";
 
 const items = [
   { to: "/account", label: "Overview" },
@@ -12,13 +16,21 @@ const items = [
   { to: "/responsible-gambling", label: "Responsible gambling" },
   { to: "/notifications", label: "Notifications" },
   { to: "/support", label: "Support" },
-  { to: "/admin", label: "Back office" },
 ] as const;
 
 export function AccountNav() {
+  const fetchAdminSession = useServerFn(getAdminSession);
+  const admin = useQuery({
+    queryKey: ["admin", "session"],
+    queryFn: async () => fetchAdminSession({ data: undefined }),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+  const isAdmin = Boolean(admin.data?.identity);
+
   return (
     <nav className="mt-6 flex flex-wrap gap-2" aria-label="Account sections">
-      {items.map((item) => (
+      {[...items, ...(isAdmin ? ([{ to: "/admin", label: "Back office" }] as const) : [])].map((item) => (
         <Link
           key={item.to}
           to={item.to}
