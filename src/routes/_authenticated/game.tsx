@@ -165,7 +165,7 @@ function GamePage() {
       <section className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="rounded-3xl border border-border bg-card/60 p-5">
           <label className="text-xs uppercase tracking-widest text-muted-foreground" htmlFor="stake">
-            Stake
+            Bet amount
           </label>
           <Input
             id="stake"
@@ -175,39 +175,44 @@ function GamePage() {
             className="mt-2"
           />
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Min {minBet} · Max {maxBet} credits
+            Minimum {minBet.toFixed(2)} · no maximum · decimals allowed
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {[5, 10, 25, 50, 100].map((preset) => (
+            {presets.map((preset) => (
               <button
                 key={preset}
                 type="button"
-                onClick={() => setStake(String(preset))}
+                onClick={() => setStake(preset.toFixed(2))}
                 className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
               >
-                {preset}
+                {preset.toFixed(2)}
               </button>
             ))}
             <button
               type="button"
-              onClick={() =>
-                setStake(String(Math.min(maxBet, Math.max(minBet, (Number(stake) || minBet) * 2))))
-              }
+              onClick={() => setStake(Math.max(minBet, (Number(stake) || minBet) * 2).toFixed(2))}
               className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
             >
               2×
             </button>
             <button
               type="button"
-              onClick={() => setStake(String(Math.max(minBet, (Number(stake) || minBet) / 2)))}
+              onClick={() => setStake(Math.max(minBet, (Number(stake) || minBet) / 2).toFixed(2))}
               className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
             >
               ½
             </button>
+            <button
+              type="button"
+              onClick={() => setStake(Math.max(minBet, walletAvailable).toFixed(2))}
+              className="rounded-full border border-primary/50 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+            >
+              MAX
+            </button>
           </div>
           {stake !== "" && !stakeValid ? (
             <p className="mt-2 text-xs text-destructive">
-              Stake must be between {minBet} and {maxBet} credits.
+              Bet amount must be at least {minBet.toFixed(2)}.
             </p>
           ) : null}
           <label
