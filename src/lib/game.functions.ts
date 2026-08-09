@@ -1,6 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertCanPlay, betInput, cashOutInput, maskHandle, roundView } from "@/lib/game.server";
+import {
+  assertCanPlay,
+  betInput,
+  cashOutInput,
+  maskHandle,
+  roundView,
+  simulatedLiveBets,
+} from "@/lib/game.server";
 
 export const getGameState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -41,6 +48,15 @@ export const getGameState = createServerFn({ method: "GET" })
           .maybeSingle()
       : { data: null };
 
+    const lastSettled = await supabaseAdmin
+      .from("bets")
+      .select("amount, payout_amount, status, cashout_multiplier, round_id")
+      .eq("user_id", userId)
+      .in("status", ["CASHED_OUT", "LOST", "REFUNDED"])
+      .order("placed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     const liveBets = round
       ? await supabaseAdmin
           .from("bets")
@@ -50,6 +66,25 @@ export const getGameState = createServerFn({ method: "GET" })
           .limit(50)
       : { data: null };
 
+    const realBets = (liveBets.data ?? []).map((b) => ({
+      id: b.id,
+      mine: b.user_id === userId,
+      handle: maskHandle(b.user_id),
+      amount: Number(b.amount),
+      status: b.status as string,
+      multiplier: b.cashout_multiplier === null ? null : Number(b.cashout_multiplier),
+      payout: b.payout_amount === null ? null : Number(b.payout_amount),
+    }));
+    const roundViewData = roundView(round);
+    const padded = round
+      ? simulatedLiveBets(
+          round.id,
+          round.status,
+          roundViewData?.crash ?? null,
+          Math.max(0, 8 - realBets.length),
+        )
+      : [];
+
     return {
       serverTime,
       config: {
@@ -58,9 +93,21 @@ export const getGameState = createServerFn({ method: "GET" })
         bettingDurationMs: config.betting_duration_ms,
         growthRate: config.crash_growth_rate,
       },
-      round: roundView(round),
+      round: roundViewData,
       fairness: seed.data ?? null,
       bet: bet.data ?? null,
+      lastResult: lastSettled.data
+        ? {
+            stake: Number(lastSettled.data.amount),
+            payout: Number(lastSettled.data.payout_amount ?? 0),
+            net: Number(lastSettled.data.payout_amount ?? 0) - Number(lastSettled.data.amount),
+            status: lastSettled.data.status as string,
+            multiplier:
+              lastSettled.data.cashout_multiplier === null
+                ? null
+                : Number(lastSettled.data.cashout_multiplier),
+          }
+        : null,
       wallet: wallet.data
         ? {
             available: Number(wallet.data.available_amount),
@@ -72,15 +119,7 @@ export const getGameState = createServerFn({ method: "GET" })
         roundId: h.round_id,
         crash: Number(h.crash_multiplier),
       })),
-      liveBets: (liveBets.data ?? []).map((b) => ({
-        id: b.id,
-        mine: b.user_id === userId,
-        handle: maskHandle(b.user_id),
-        amount: Number(b.amount),
-        status: b.status,
-        multiplier: b.cashout_multiplier === null ? null : Number(b.cashout_multiplier),
-        payout: b.payout_amount === null ? null : Number(b.payout_amount),
-      })),
+      liveBets: [...realBets, ...padded],
     };
   });
 

@@ -78,10 +78,12 @@ function GamePage() {
   const myBet = state.data?.bet ?? null;
   const wallet = state.data?.wallet ?? null;
   const minBet = Number(state.data?.config?.minBet ?? 5);
-  const maxBet = Number(state.data?.config?.maxBet ?? 1000);
   const bettingMs = Number(state.data?.config?.bettingDurationMs ?? 10000);
   const stakeValue = Number(stake);
-  const stakeValid = Number.isFinite(stakeValue) && stakeValue >= minBet && stakeValue <= maxBet;
+  const stakeValid = Number.isFinite(stakeValue) && stakeValue >= minBet;
+  const lastResult = state.data?.lastResult ?? null;
+  const walletAvailable = state.data?.wallet?.available ?? 0;
+  const presets = [minBet, minBet * 2, minBet * 10, minBet * 20];
 
   // Ticking clock for the betting countdown.
   useEffect(() => {
@@ -98,7 +100,7 @@ function GamePage() {
   const betMutation = useMutation({
     mutationFn: async () => {
       if (!stakeValid) {
-        throw new Error(`Stake must be between ${minBet} and ${maxBet} credits.`);
+        throw new Error(`Bet amount must be at least ${minBet.toFixed(2)}.`);
       }
       const autoValue = auto.trim() === "" ? null : Number(auto);
       if (autoValue !== null && (!Number.isFinite(autoValue) || autoValue <= 1)) {
@@ -162,7 +164,7 @@ function GamePage() {
       <section className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="rounded-3xl border border-border bg-card/60 p-5">
           <label className="text-xs uppercase tracking-widest text-muted-foreground" htmlFor="stake">
-            Stake
+            Bet amount
           </label>
           <Input
             id="stake"
@@ -172,39 +174,44 @@ function GamePage() {
             className="mt-2"
           />
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Min {minBet} · Max {maxBet} credits
+            Minimum {minBet.toFixed(2)} · no maximum · decimals allowed
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {[5, 10, 25, 50, 100].map((preset) => (
+            {presets.map((preset) => (
               <button
                 key={preset}
                 type="button"
-                onClick={() => setStake(String(preset))}
+                onClick={() => setStake(preset.toFixed(2))}
                 className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
               >
-                {preset}
+                {preset.toFixed(2)}
               </button>
             ))}
             <button
               type="button"
-              onClick={() =>
-                setStake(String(Math.min(maxBet, Math.max(minBet, (Number(stake) || minBet) * 2))))
-              }
+              onClick={() => setStake(Math.max(minBet, (Number(stake) || minBet) * 2).toFixed(2))}
               className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
             >
               2×
             </button>
             <button
               type="button"
-              onClick={() => setStake(String(Math.max(minBet, (Number(stake) || minBet) / 2)))}
+              onClick={() => setStake(Math.max(minBet, (Number(stake) || minBet) / 2).toFixed(2))}
               className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
             >
               ½
             </button>
+            <button
+              type="button"
+              onClick={() => setStake(Math.max(minBet, walletAvailable).toFixed(2))}
+              className="rounded-full border border-primary/50 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+            >
+              MAX
+            </button>
           </div>
           {stake !== "" && !stakeValid ? (
             <p className="mt-2 text-xs text-destructive">
-              Stake must be between {minBet} and {maxBet} credits.
+              Bet amount must be at least {minBet.toFixed(2)}.
             </p>
           ) : null}
           <label
@@ -252,6 +259,19 @@ function GamePage() {
           <p className="text-xs text-muted-foreground">
             Locked in play: {(wallet?.locked ?? 0).toFixed(2)}
           </p>
+          {lastResult ? (
+            <p
+              className={`mt-2 text-sm font-semibold ${
+                lastResult.net >= 0 ? "text-primary" : "text-destructive"
+              }`}
+            >
+              Last round: {lastResult.net >= 0 ? "+" : "−"}
+              {Math.abs(lastResult.net).toFixed(2)}
+              {lastResult.multiplier ? ` at ${lastResult.multiplier.toFixed(2)}x` : ""}
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">Last round: no bet settled yet.</p>
+          )}
 
           <p className="mt-4 text-xs uppercase tracking-widest text-muted-foreground">Your bet</p>
           {myBet ? (
@@ -265,12 +285,6 @@ function GamePage() {
             <p className="mt-1 text-sm text-muted-foreground">No bet in this round.</p>
           )}
 
-          <p className="mt-4 text-xs uppercase tracking-widest text-muted-foreground">
-            Fairness commitment
-          </p>
-          <p className="mt-1 break-all font-mono text-[11px] text-muted-foreground">
-            {state.data?.fairness?.server_seed_hash ?? "—"}
-          </p>
         </div>
       </section>
 
@@ -319,24 +333,6 @@ function GamePage() {
               </tbody>
             </table>
           )}
-        </div>
-      </section>
-
-      <section className="mt-6">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Recent crashes</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {(state.data?.history ?? []).map((item) => (
-            <span
-              key={item.roundId}
-              className={`rounded-full border px-2.5 py-1 font-mono text-xs ${
-                item.crash >= 2
-                  ? "border-primary/40 text-primary"
-                  : "border-border text-muted-foreground"
-              }`}
-            >
-              {item.crash.toFixed(2)}x
-            </span>
-          ))}
         </div>
       </section>
     </main>

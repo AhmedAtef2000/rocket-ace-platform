@@ -25,6 +25,7 @@ import { Route as AuthenticatedResponsibleGamblingRouteImport } from './routes/_
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
+import { Route as ApiPublicGameConfigRouteImport } from './routes/api/public/game-config'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
 
@@ -109,6 +110,11 @@ const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicGameConfigRoute = ApiPublicGameConfigRouteImport.update({
+  id: '/api/public/game-config',
+  path: '/api/public/game-config',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   id: '/api/public/health',
   path: '/api/public/health',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/security': typeof AuthenticatedSecurityRoute
   '/support': typeof AuthenticatedSupportRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/api/public/game-config': typeof ApiPublicGameConfigRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/security': typeof AuthenticatedSecurityRoute
   '/support': typeof AuthenticatedSupportRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/api/public/game-config': typeof ApiPublicGameConfigRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
+  '/api/public/game-config': typeof ApiPublicGameConfigRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/support'
     | '/wallet'
+    | '/api/public/game-config'
     | '/api/public/health'
     | '/api/public/payments-webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/support'
     | '/wallet'
+    | '/api/public/game-config'
     | '/api/public/health'
     | '/api/public/payments-webhook'
   id:
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/_authenticated/security'
     | '/_authenticated/support'
     | '/_authenticated/wallet'
+    | '/api/public/game-config'
     | '/api/public/health'
     | '/api/public/payments-webhook'
   fileRoutesById: FileRoutesById
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicGameConfigRoute: typeof ApiPublicGameConfigRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -364,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWalletRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/game-config': {
+      id: '/api/public/game-config'
+      path: '/api/public/game-config'
+      fullPath: '/api/public/game-config'
+      preLoaderRoute: typeof ApiPublicGameConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health': {
       id: '/api/public/health'
       path: '/api/public/health'
@@ -419,6 +439,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicGameConfigRoute: ApiPublicGameConfigRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }

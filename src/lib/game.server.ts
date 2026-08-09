@@ -72,3 +72,77 @@ export function roundView(round: EngineRound | null) {
 export function maskHandle(userId: string): string {
   return `****${userId.replace(/-/g, "").slice(-4)}`;
 }
+
+export type LiveBetRow = {
+  id: string;
+  mine: boolean;
+  handle: string;
+  amount: number;
+  status: string;
+  multiplier: number | null;
+  payout: number | null;
+};
+
+function hashInt(seed: string): () => number {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i += 1) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return () => {
+    h ^= h << 13;
+    h ^= h >>> 17;
+    h ^= h << 5;
+    return ((h >>> 0) % 100000) / 100000;
+  };
+}
+
+/**
+ * Pads the live table with deterministic simulated players so a new platform
+ * still shows an active round. Derived from the round id, so every client sees
+ * the same rows for the same round.
+ */
+export function simulatedLiveBets(
+  roundId: string,
+  status: string,
+  crash: number | null,
+  count: number,
+): LiveBetRow[] {
+  if (count <= 0) return [];
+  const rnd = hashInt(roundId);
+  const rows: LiveBetRow[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const amount = Math.round((5 + rnd() * 195) * 100) / 100;
+    const target = Math.round((1.1 + rnd() * 6) * 100) / 100;
+    let rowStatus = "ACTIVE";
+    let multiplier: number | null = null;
+    let payout: number | null = null;
+    if (status === "RUNNING" && rnd() > 0.6) {
+      rowStatus = "CASHED_OUT";
+      multiplier = target;
+      payout = Math.round(amount * target * 100) / 100;
+    } else if (crash !== null) {
+      if (target <= crash) {
+        rowStatus = "CASHED_OUT";
+        multiplier = target;
+        payout = Math.round(amount * target * 100) / 100;
+      } else {
+        rowStatus = "LOST";
+        payout = 0;
+      }
+    }
+    rows.push({
+      id: `sim-${roundId}-${i}`,
+      mine: false,
+      handle: `****${Math.floor(rnd() * 100000)
+        .toString(36)
+        .padStart(4, "0")
+        .slice(-4)}`,
+      amount,
+      status: rowStatus,
+      multiplier,
+      payout,
+    });
+  }
+  return rows;
+}
