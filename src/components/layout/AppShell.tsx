@@ -252,14 +252,16 @@ export function AppShell({
             <BalanceCard balance={balance} publicView={publicView} />
             <SideNav isAdmin={isAdmin} />
           </div>
-          <button
-            type="button"
-            onClick={() => void supabase.auth.signOut()}
-            className="mt-3 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
-          >
-            <LogOut className="size-4" aria-hidden />
-            {t("nav.signOut")}
-          </button>
+          {publicView && !username ? null : (
+            <button
+              type="button"
+              onClick={() => void supabase.auth.signOut()}
+              className="mt-3 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+            >
+              <LogOut className="size-4" aria-hidden />
+              {t("nav.signOut")}
+            </button>
+          )}
         </aside>
 
         <div className="min-w-0 flex-1 animate-page-in">{children}</div>
@@ -288,14 +290,16 @@ export function AppShell({
               <LanguageSwitcher />
               <CurrencySwitcher />
             </div>
-            <button
-              type="button"
-              onClick={() => void supabase.auth.signOut()}
-              className="mt-3 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
-            >
-              <LogOut className="size-4" aria-hidden />
-              {t("nav.signOut")}
-            </button>
+            {publicView && !username ? null : (
+              <button
+                type="button"
+                onClick={() => void supabase.auth.signOut()}
+                className="mt-3 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="size-4" aria-hidden />
+                {t("nav.signOut")}
+              </button>
+            )}
           </div>
         </div>
       ) : null}
