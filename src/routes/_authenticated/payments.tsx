@@ -54,6 +54,8 @@ function PaymentsPage() {
   const manualSubmit = useServerFn(submitManualDeposit);
 
   const [pair, setPair] = useState("");
+  const [channel, setChannel] = useState<"CRYPTO" | "LOCAL">("CRYPTO");
+  const [depAmount, setDepAmount] = useState("100");
   const [wdAmount, setWdAmount] = useState("");
   const [wdAddress, setWdAddress] = useState("");
   const [settleAmount, setSettleAmount] = useState<Record<string, string>>({});
@@ -169,11 +171,41 @@ function PaymentsPage() {
   const manualMethods = overview.data?.manualMethods ?? [];
   const selectedManual = manualMethods.find((m) => m.id === manualMethod);
 
+  const deposits = overview.data?.deposits ?? [];
+  const withdrawals = overview.data?.withdrawals ?? [];
+  const manualDeposits = overview.data?.manualDeposits ?? [];
+  const latestPending = deposits.find((d) => d.status !== "CONFIRMED");
+  const totalDeposited = deposits.reduce((sum, d) => sum + Number(d.confirmed_amount ?? 0), 0);
+  const totalWithdrawn = withdrawals
+    .filter((w) => !["CANCELLED", "FAILED", "REJECTED"].includes(w.status))
+    .reduce((sum, w) => sum + Number(w.amount ?? 0), 0);
+  const wdNet = Math.max(Number(wdAmount || 0) - Number(wdAmount || 0) * 0.01, 0);
+  const availableBalance = Number(overview.data?.wallets?.[0]?.available_amount ?? 0);
+  const walletCurrency = overview.data?.wallets?.[0]?.currency ?? selected?.currency ?? "USD";
+
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
+    <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8">
       <div className="w-full">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">Deposits &amp; withdrawals</h1>
-        <AccountNav />
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl font-extrabold tracking-tight">Wallet</h1>
+            <AccountNav />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-border bg-card/60 px-5 py-3">
+              <p className="text-xs text-muted-foreground">Total deposited</p>
+              <p className="mt-1 font-mono text-xl font-semibold text-primary" dir="ltr">
+                {num(totalDeposited, 8)}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-card/60 px-5 py-3">
+              <p className="text-xs text-muted-foreground">Total withdrawn</p>
+              <p className="mt-1 font-mono text-xl font-semibold text-foreground" dir="ltr">
+                {num(totalWithdrawn, 8)}
+              </p>
+            </div>
+          </div>
+        </div>
 
         {overview.isPending ? (
           <p className="mt-6 text-sm text-muted-foreground">Loading payment options…</p>
@@ -200,196 +232,158 @@ function PaymentsPage() {
               </section>
             )}
 
-            <section className="rounded-2xl border border-border bg-card/60 p-5">
-              <h2 className="text-sm font-medium text-foreground">Real-money balances</h2>
-              {(overview.data?.wallets ?? []).length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  No real-money wallet yet — one is created with your first deposit.
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* ---------------- Deposit ---------------- */}
+              <section className="rounded-2xl border border-border bg-card/60 p-5">
+                <h2 className="font-display text-xl font-bold text-foreground">Deposit</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Choose a payment method to fund your account.
                 </p>
-              ) : (
-                <ul className="mt-3 space-y-2 text-sm">
-                  {(overview.data?.wallets ?? []).map((w) => (
-                    <li key={w.id} className="flex items-center justify-between">
-                      <span className="text-foreground">{w.currency}</span>
-                      <span className="font-mono text-foreground">
-                        {num(w.available_amount, 8)}
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          reserved {num(w.locked_amount, 8)}
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
 
-            <section className="rounded-2xl border border-border bg-card/60 p-5">
-              <h2 className="text-sm font-medium text-foreground">Choose asset &amp; network</h2>
-              <div className="mt-3 grid gap-2">
-                <Label htmlFor="network">Asset / network</Label>
-                <select
-                  id="network"
-                  className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                  value={selected ? `${selected.currency}:${selected.network}` : ""}
-                  onChange={(event) => setPair(event.target.value)}
-                >
-                  {networks.map((n) => (
-                    <option key={`${n.currency}:${n.network}`} value={`${n.currency}:${n.network}`}>
-                      {n.currency} · {n.network}
-                    </option>
-                  ))}
-                </select>
-                {selected && (
-                  <p className="text-xs text-muted-foreground">
-                    Min deposit {num(selected.minDeposit, 8)} {selected.currency} ·{" "}
-                    {selected.requiredConfirmations} confirmations · min withdrawal{" "}
-                    {num(selected.minWithdrawal, 8)} {selected.currency}
-                  </p>
-                )}
-              </div>
-              <Button
-                className="mt-4"
-                size="sm"
-                disabled={!eligible || depositMutation.isPending}
-                onClick={() => depositMutation.mutate()}
-              >
-                {depositMutation.isPending ? "Issuing…" : "Get deposit address"}
-              </Button>
-            </section>
-
-            <section className="rounded-2xl border border-border bg-card/60 p-5">
-              <h2 className="text-sm font-medium text-foreground">
-                Deposit with Vodafone / Etisalat / Orange Cash
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Send the amount from your own wallet number, then upload the transfer receipt.
-                Minimum deposit {num(minDeposit)}. Our team reviews and credits it manually.
-              </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="manual-method">Payment method</Label>
-                  <select
-                    id="manual-method"
-                    className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                    value={manualMethod}
-                    onChange={(event) => setManualMethod(event.target.value)}
-                  >
-                    {manualMethods.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.label}
-                      </option>
-                    ))}
-                  </select>
-                  {selectedManual && (
-                    <p className="text-xs text-muted-foreground">
-                      Send to <span className="font-mono text-foreground">{selectedManual.payTo}</span>
-                    </p>
-                  )}
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="manual-amount">Amount sent</Label>
-                  <Input
-                    id="manual-amount"
-                    inputMode="decimal"
-                    placeholder={`${minDeposit}.00`}
-                    value={manualAmount}
-                    onChange={(event) => setManualAmount(event.target.value)}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <MethodChip
+                    active={channel === "CRYPTO"}
+                    onClick={() => setChannel("CRYPTO")}
+                    label="Crypto"
                   />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="manual-sender">Your wallet number</Label>
-                  <Input
-                    id="manual-sender"
-                    inputMode="tel"
-                    placeholder="01xxxxxxxxx"
-                    value={manualSender}
-                    onChange={(event) => setManualSender(event.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="manual-reference">Transaction reference (optional)</Label>
-                  <Input
-                    id="manual-reference"
-                    value={manualReference}
-                    onChange={(event) => setManualReference(event.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2 sm:col-span-2">
-                  <Label htmlFor="manual-proof">Payment proof (JPG, PNG, WEBP or PDF · max 5 MB)</Label>
-                  <input
-                    id="manual-proof"
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,application/pdf"
-                    className="text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-xs file:text-foreground"
-                    onChange={(event) => setManualFile(event.target.files?.[0] ?? null)}
-                  />
-                </div>
-              </div>
-              <Button
-                className="mt-4"
-                size="sm"
-                disabled={!eligible || manualMutation.isPending}
-                onClick={() => manualMutation.mutate()}
-              >
-                {manualMutation.isPending ? "Submitting…" : "Submit deposit for review"}
-              </Button>
-              {(overview.data?.manualDeposits ?? []).length > 0 && (
-                <ul className="mt-4 space-y-2 text-sm">
-                  {(overview.data?.manualDeposits ?? []).map((m) => (
-                    <li
+                  {manualMethods.map((m) => (
+                    <MethodChip
                       key={m.id}
-                      className="flex items-center justify-between rounded-xl border border-border/60 bg-card/40 px-3 py-2"
-                    >
-                      <span className="text-foreground">
-                        {num(m.amount)} {m.currency} · {m.method.replace(/_/g, " ").toLowerCase()}
-                      </span>
-                      <span className="text-xs uppercase text-muted-foreground">{m.status}</span>
-                    </li>
+                      active={channel === "LOCAL" && manualMethod === m.id}
+                      onClick={() => {
+                        setChannel("LOCAL");
+                        setManualMethod(m.id);
+                      }}
+                      label={m.label}
+                    />
                   ))}
-                </ul>
-              )}
-            </section>
+                </div>
 
-            <section className="rounded-2xl border border-border bg-card/60 p-5">
-              <h2 className="text-sm font-medium text-foreground">Deposits</h2>
-              {(overview.data?.deposits ?? []).length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">No deposits yet.</p>
-              ) : (
-                <ul className="mt-3 space-y-3 text-sm">
-                  {(overview.data?.deposits ?? []).map((d) => (
-                    <li key={d.id} className="rounded-xl border border-border/60 bg-card/40 p-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-foreground">
-                          {d.currency} · {d.network}
-                        </span>
-                        <span className="text-xs uppercase text-muted-foreground">{d.status}</span>
+                {channel === "CRYPTO" ? (
+                  <div className="mt-5 grid gap-5 xl:grid-cols-2">
+                    <div className="grid gap-3">
+                      <div className="grid gap-2">
+                        <Label htmlFor="network">Network</Label>
+                        <select
+                          id="network"
+                          className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                          value={selected ? `${selected.currency}:${selected.network}` : ""}
+                          onChange={(event) => setPair(event.target.value)}
+                        >
+                          {networks.map((n) => (
+                            <option
+                              key={`${n.currency}:${n.network}`}
+                              value={`${n.currency}:${n.network}`}
+                            >
+                              {n.currency} · {n.network}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                      <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
-                        {d.deposit_address}
-                      </p>
-                      {d.status === "CONFIRMED" ? (
-                        <p className="mt-2 text-xs text-primary">
-                          Credited {num(d.confirmed_amount, 8)} {d.currency}
-                        </p>
-                      ) : (
-                        <div className="mt-2 flex gap-2">
+
+                      <div className="grid gap-2">
+                        <Label htmlFor="dep-amount">Deposit amount</Label>
+                        <div className="relative">
                           <Input
-                            aria-label={`Simulated amount for ${d.currency}`}
+                            id="dep-amount"
+                            inputMode="decimal"
+                            value={depAmount}
+                            onChange={(event) => setDepAmount(event.target.value)}
+                          />
+                          <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs text-muted-foreground">
+                            {selected?.currency ?? ""}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {[50, 100, 250, 500, 1000].map((v) => (
+                            <button
+                              key={v}
+                              type="button"
+                              onClick={() => setDepAmount(String(v))}
+                              className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
+                                depAmount === String(v)
+                                  ? "border-primary/60 bg-primary/10 text-primary"
+                                  : "border-border text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              {v}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-muted-foreground">You will receive</p>
+                        <p className="font-mono text-2xl font-semibold text-primary" dir="ltr">
+                          {num(Number(depAmount || 0), 8)} {selected?.currency ?? ""}
+                        </p>
+                      </div>
+
+                      <Button
+                        disabled={!eligible || depositMutation.isPending}
+                        onClick={() => depositMutation.mutate()}
+                      >
+                        {depositMutation.isPending ? "Issuing…" : "Create deposit"}
+                      </Button>
+                    </div>
+
+                    <div className="rounded-xl border border-border/60 bg-background/40 p-4">
+                      <h3 className="text-sm font-medium text-foreground">
+                        Send {selected?.currency ?? "funds"} to the address below
+                      </h3>
+                      <p className="mt-2 break-all rounded-lg border border-border/60 bg-card/60 p-2 font-mono text-xs text-foreground">
+                        {latestPending?.deposit_address ??
+                          "Create a deposit to generate your address."}
+                      </p>
+                      <dl className="mt-3 space-y-1.5 text-xs">
+                        <div className="flex justify-between gap-2">
+                          <dt className="text-muted-foreground">Minimum deposit</dt>
+                          <dd className="font-mono text-foreground" dir="ltr">
+                            {num(selected?.minDeposit ?? minDeposit, 8)} {selected?.currency ?? ""}
+                          </dd>
+                        </div>
+                        <div className="flex justify-between gap-2">
+                          <dt className="text-muted-foreground">Confirmations required</dt>
+                          <dd className="font-mono text-foreground" dir="ltr">
+                            {selected?.requiredConfirmations ?? "—"}
+                          </dd>
+                        </div>
+                        <div className="flex justify-between gap-2">
+                          <dt className="text-muted-foreground">Current confirmations</dt>
+                          <dd className="font-mono text-primary" dir="ltr">
+                            {latestPending?.confirmations ?? 0} /{" "}
+                            {latestPending?.required_confirmations ??
+                              selected?.requiredConfirmations ??
+                              0}
+                          </dd>
+                        </div>
+                      </dl>
+                      <p className="mt-3 rounded-lg border border-border/60 bg-card/40 p-3 text-xs text-muted-foreground">
+                        Send only {selected?.currency ?? "the selected asset"} on{" "}
+                        {selected?.network ?? "the selected network"}. Any other coin may be lost
+                        permanently.
+                      </p>
+                      {latestPending && (
+                        <div className="mt-3 flex gap-2">
+                          <Input
+                            aria-label="Amount received"
                             inputMode="decimal"
                             placeholder="Amount received"
-                            value={settleAmount[d.id] ?? ""}
+                            value={settleAmount[latestPending.id] ?? ""}
                             onChange={(event) =>
-                              setSettleAmount((prev) => ({ ...prev, [d.id]: event.target.value }))
+                              setSettleAmount((prev) => ({
+                                ...prev,
+                                [latestPending.id]: event.target.value,
+                              }))
                             }
                           />
                           <Button
-                            size="sm"
                             variant="outline"
                             disabled={settleMutation.isPending}
                             onClick={() =>
                               settleMutation.mutate({
-                                depositId: d.id,
-                                amount: Number(settleAmount[d.id]),
+                                depositId: latestPending.id,
+                                amount: Number(settleAmount[latestPending.id]),
                               })
                             }
                           >
@@ -397,102 +391,341 @@ function PaymentsPage() {
                           </Button>
                         </div>
                       )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <p className="mt-3 text-xs text-muted-foreground">
-                No chain is connected yet: “Simulate” runs the same signed-webhook credit path a
-                real provider would trigger.
-              </p>
-            </section>
-
-            <section className="rounded-2xl border border-border bg-card/60 p-5">
-              <h2 className="text-sm font-medium text-foreground">Request a withdrawal</h2>
-              {playthrough && !playthrough.cleared && (
-                <p className="mt-2 rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs text-muted-foreground">
-                  Anti-money-laundering rules require every deposit to be played through once
-                  before it can be withdrawn. You have wagered {num(playthrough.wagered)} of{" "}
-                  {num(playthrough.required)} — {num(playthrough.remaining)} of play remaining.
-                </p>
-              )}
-              <div className="mt-3 grid gap-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="wd-amount">Amount</Label>
-                  <Input
-                    id="wd-amount"
-                    inputMode="decimal"
-                    value={wdAmount}
-                    onChange={(event) => setWdAmount(event.target.value)}
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="wd-address">Destination address</Label>
-                  <Input
-                    id="wd-address"
-                    value={wdAddress}
-                    onChange={(event) => setWdAddress(event.target.value)}
-                    placeholder="Your wallet address"
-                  />
-                </div>
-                <Button
-                  size="sm"
-                  disabled={
-                    !eligible || withdrawMutation.isPending || playthrough?.cleared === false
-                  }
-                  onClick={() => withdrawMutation.mutate()}
-                >
-                  {withdrawMutation.isPending ? "Submitting…" : "Request withdrawal"}
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  A 1% network fee applies. Funds are reserved as soon as you request the payout,
-                  and withdrawals are reviewed and processed within {noticeHours} hours. Large
-                  payouts need two approvers before they are released.
-                </p>
-              </div>
-            </section>
-
-            <section className="rounded-2xl border border-border bg-card/60 p-5">
-              <h2 className="text-sm font-medium text-foreground">Withdrawal history</h2>
-              {(overview.data?.withdrawals ?? []).length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">No withdrawals yet.</p>
-              ) : (
-                <ul className="mt-3 space-y-3 text-sm">
-                  {(overview.data?.withdrawals ?? []).map((w) => (
-                    <li key={w.id} className="rounded-xl border border-border/60 bg-card/40 p-3">
-                      <div className="flex items-center justify-between">
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-2 sm:col-span-2">
+                      <p className="rounded-lg border border-border/60 bg-background/40 p-3 text-xs text-muted-foreground">
+                        Send the amount from your own wallet number to{" "}
                         <span className="font-mono text-foreground">
-                          {num(w.amount, 8)} {w.currency}
+                          {selectedManual?.payTo ?? "—"}
                         </span>
-                        <span className="text-xs uppercase text-muted-foreground">{w.status}</span>
-                      </div>
-                      <p className="mt-1 break-all text-xs text-muted-foreground">
-                        {w.network} · fee {num(w.fee_amount, 8)} · approvals {w.approvals_count}/
-                        {w.approvals_required}
+                        , then upload the transfer receipt. Minimum deposit {num(minDeposit)}. Our
+                        team reviews and credits it manually.
                       </p>
-                      <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
-                        {w.destination_address}
-                      </p>
-                      {["REQUESTED", "RISK_REVIEW"].includes(w.status) && (
-                        <Button
-                          className="mt-2"
-                          size="sm"
-                          variant="outline"
-                          disabled={cancelMutation.isPending}
-                          onClick={() => cancelMutation.mutate(w.id)}
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="manual-amount">Amount sent</Label>
+                      <Input
+                        id="manual-amount"
+                        inputMode="decimal"
+                        placeholder={`${minDeposit}.00`}
+                        value={manualAmount}
+                        onChange={(event) => setManualAmount(event.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="manual-sender">Your wallet number</Label>
+                      <Input
+                        id="manual-sender"
+                        inputMode="tel"
+                        placeholder="01xxxxxxxxx"
+                        value={manualSender}
+                        onChange={(event) => setManualSender(event.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-2 sm:col-span-2">
+                      <Label htmlFor="manual-reference">Transaction reference (optional)</Label>
+                      <Input
+                        id="manual-reference"
+                        value={manualReference}
+                        onChange={(event) => setManualReference(event.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-2 sm:col-span-2">
+                      <Label htmlFor="manual-proof">
+                        Payment proof (JPG, PNG, WEBP or PDF · max 5 MB)
+                      </Label>
+                      <input
+                        id="manual-proof"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,application/pdf"
+                        className="text-sm text-muted-foreground file:me-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-xs file:text-foreground"
+                        onChange={(event) => setManualFile(event.target.files?.[0] ?? null)}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Button
+                        className="w-full"
+                        disabled={!eligible || manualMutation.isPending}
+                        onClick={() => manualMutation.mutate()}
+                      >
+                        {manualMutation.isPending ? "Submitting…" : "Submit deposit for review"}
+                      </Button>
+                    </div>
+                    {manualDeposits.length > 0 && (
+                      <ul className="mt-1 space-y-2 text-sm sm:col-span-2">
+                        {manualDeposits.map((m) => (
+                          <li
+                            key={m.id}
+                            className="flex items-center justify-between rounded-xl border border-border/60 bg-card/40 px-3 py-2"
+                          >
+                            <span className="text-foreground">
+                              {num(m.amount)} {m.currency} ·{" "}
+                              {m.method.replace(/_/g, " ").toLowerCase()}
+                            </span>
+                            <StatusBadge status={m.status} />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </section>
+
+              {/* ---------------- Withdraw ---------------- */}
+              <section className="rounded-2xl border border-border bg-card/60 p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-display text-xl font-bold text-foreground">Withdraw</h2>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Withdraw funds from your account.
+                    </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Available:{" "}
+                    <span className="font-mono text-primary" dir="ltr">
+                      {num(availableBalance, 8)} {walletCurrency}
+                    </span>
+                  </p>
+                </div>
+
+                {playthrough && !playthrough.cleared && (
+                  <p className="mt-4 rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs text-muted-foreground">
+                    Anti-money-laundering rules require every deposit to be played through once
+                    before it can be withdrawn. You have wagered {num(playthrough.wagered)} of{" "}
+                    {num(playthrough.required)} — {num(playthrough.remaining)} of play remaining.
+                  </p>
+                )}
+
+                <div className="mt-4 grid gap-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="wd-amount">Withdraw amount</Label>
+                    <Input
+                      id="wd-amount"
+                      inputMode="decimal"
+                      value={wdAmount}
+                      onChange={(event) => setWdAmount(event.target.value)}
+                      placeholder="0.00"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      {[50, 100, 250].map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setWdAmount(String(v))}
+                          className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
                         >
-                          Cancel
-                        </Button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
+                          {v}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setWdAmount(String(availableBalance))}
+                        className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        MAX
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="wd-address">Wallet address</Label>
+                    <Input
+                      id="wd-address"
+                      value={wdAddress}
+                      onChange={(event) => setWdAddress(event.target.value)}
+                      placeholder="Your wallet address"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 rounded-xl border border-border/60 bg-background/40 p-3 text-center">
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">You send</p>
+                      <p className="font-mono text-sm text-foreground" dir="ltr">
+                        {num(Number(wdAmount || 0), 8)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">Network fee (1%)</p>
+                      <p className="font-mono text-sm text-foreground" dir="ltr">
+                        {num(Number(wdAmount || 0) * 0.01, 8)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">You will get</p>
+                      <p className="font-mono text-sm text-primary" dir="ltr">
+                        {num(wdNet, 8)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    disabled={
+                      !eligible || withdrawMutation.isPending || playthrough?.cleared === false
+                    }
+                    onClick={() => withdrawMutation.mutate()}
+                  >
+                    {withdrawMutation.isPending ? "Submitting…" : "Continue"}
+                  </Button>
+
+                  <p className="rounded-xl border border-border/60 bg-background/40 p-3 text-xs text-muted-foreground">
+                    Funds are reserved as soon as you request the payout, and withdrawals are
+                    reviewed and processed within {noticeHours} hours. Large payouts need two
+                    approvers before they are released.
+                  </p>
+                </div>
+              </section>
+            </div>
+
+            {/* ---------------- History ---------------- */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              <section className="rounded-2xl border border-border bg-card/60 p-5">
+                <h2 className="text-sm font-medium text-foreground">Recent deposits</h2>
+                {deposits.length === 0 ? (
+                  <p className="mt-2 text-sm text-muted-foreground">No deposits yet.</p>
+                ) : (
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-start text-xs uppercase text-muted-foreground">
+                          <th className="py-2 text-start font-medium">Coin</th>
+                          <th className="py-2 text-start font-medium">Network</th>
+                          <th className="py-2 text-start font-medium">Amount</th>
+                          <th className="py-2 text-start font-medium">Conf.</th>
+                          <th className="py-2 text-start font-medium">Status</th>
+                          <th className="py-2 text-start font-medium">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/60">
+                        {deposits.map((d) => (
+                          <tr key={d.id}>
+                            <td className="py-2 text-foreground">{d.currency}</td>
+                            <td className="py-2 text-muted-foreground">{d.network}</td>
+                            <td className="py-2 font-mono text-foreground" dir="ltr">
+                              {num(d.confirmed_amount ?? d.requested_amount, 8)}
+                            </td>
+                            <td className="py-2 font-mono text-muted-foreground" dir="ltr">
+                              {d.confirmations ?? 0}/{d.required_confirmations}
+                            </td>
+                            <td className="py-2">
+                              <StatusBadge status={d.status} />
+                            </td>
+                            <td className="py-2 text-xs text-muted-foreground">
+                              {new Date(d.created_at).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+
+              <section className="rounded-2xl border border-border bg-card/60 p-5">
+                <h2 className="text-sm font-medium text-foreground">Recent withdrawals</h2>
+                {withdrawals.length === 0 ? (
+                  <p className="mt-2 text-sm text-muted-foreground">No withdrawals yet.</p>
+                ) : (
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-xs uppercase text-muted-foreground">
+                          <th className="py-2 text-start font-medium">Amount</th>
+                          <th className="py-2 text-start font-medium">Network</th>
+                          <th className="py-2 text-start font-medium">Status</th>
+                          <th className="py-2 text-start font-medium">Date</th>
+                          <th className="py-2 text-end font-medium" />
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/60">
+                        {withdrawals.map((w) => (
+                          <tr key={w.id}>
+                            <td className="py-2 font-mono text-foreground" dir="ltr">
+                              {num(w.amount, 8)} {w.currency}
+                            </td>
+                            <td className="py-2 text-muted-foreground">{w.network}</td>
+                            <td className="py-2">
+                              <StatusBadge status={w.status} />
+                            </td>
+                            <td className="py-2 text-xs text-muted-foreground">
+                              {new Date(w.requested_at).toLocaleDateString()}
+                            </td>
+                            <td className="py-2 text-end">
+                              {["REQUESTED", "RISK_REVIEW"].includes(w.status) && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={cancelMutation.isPending}
+                                  onClick={() => cancelMutation.mutate(w.id)}
+                                >
+                                  Cancel
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+            </div>
+
+            <section className="grid gap-4 rounded-2xl border border-border bg-card/60 p-5 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { title: "Minimum deposit", detail: `${num(minDeposit)} ${walletCurrency}` },
+                { title: "Instant credit", detail: "After required confirmations" },
+                { title: "Secure & trusted", detail: "Ledger-backed, audited movements" },
+                { title: "Need help?", detail: "Contact support any time" },
+              ].map((item) => (
+                <div key={item.title}>
+                  <p className="text-sm font-medium text-foreground">{item.title}</p>
+                  <p className="text-xs text-muted-foreground">{item.detail}</p>
+                </div>
+              ))}
             </section>
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+function MethodChip({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+        active
+          ? "border-primary/60 bg-primary/10 text-primary"
+          : "border-border text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const s = status.toUpperCase();
+  const tone = ["CONFIRMED", "APPROVED", "PAID", "COMPLETED"].includes(s)
+    ? "border-primary/50 bg-primary/10 text-primary"
+    : ["FAILED", "REJECTED", "CANCELLED"].includes(s)
+      ? "border-destructive/50 bg-destructive/10 text-destructive"
+      : "border-border bg-muted/30 text-muted-foreground";
+  return (
+    <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${tone}`}>
+      {s.replace(/_/g, " ").toLowerCase()}
+    </span>
   );
 }
