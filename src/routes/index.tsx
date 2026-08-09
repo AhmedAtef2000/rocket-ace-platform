@@ -255,6 +255,7 @@ function RecentRoundsPanel() {
 function Index() {
   const { t } = useI18n();
   const { user } = useAuth();
+  const depositors = useDepositorCount();
 
   return (
     <AppShell publicView={!user}>
