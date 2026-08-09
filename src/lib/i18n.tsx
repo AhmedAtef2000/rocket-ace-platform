@@ -37,6 +37,30 @@ const dictionary = {
     "common.save": "Save",
     "common.cancel": "Cancel",
     "common.balance": "Balance",
+    "home.badge": "Provably fair · 18+",
+    "home.heroLine1": "Your heart beats",
+    "home.heroLine2": "with the multiplier.",
+    "home.heroBody":
+      "AstroBet turns a single number into pure adrenaline. The rocket climbs, the crowd holds its breath, and one tap decides everything. Provably fair. Server-authoritative. Unforgettable.",
+    "home.ctaPrimary": "Launch your first round",
+    "home.ctaSecondary": "Verify a round",
+    "home.statRound": "Round length",
+    "home.statMax": "Max multiplier",
+    "home.statEdge": "House edge",
+    "home.pillar1Title": "One tap to launch",
+    "home.pillar1Body":
+      "Place your stake, feel the countdown, then watch the rocket tear off the pad. No forms, no friction.",
+    "home.pillar2Title": "Cash out on instinct",
+    "home.pillar2Body":
+      "Every tenth of a second the multiplier climbs. Greed or discipline — the choice is yours, and it is instant.",
+    "home.pillar3Title": "Provably fair, always",
+    "home.pillar3Body":
+      "The crash point is committed before you bet and revealed after. Verify any round yourself in one click.",
+    "home.liveResults": "Live player results",
+    "home.disclaimer":
+      "Gambling involves risk. AstroBet is intended solely for lawful, licensed operation in permitted jurisdictions, with age verification, KYC/AML checks and responsible gambling controls enforced before any real-money play.",
+    "game.launchingIn": "Launching in {s}s",
+    "game.boarding": "Boarding",
   },
   ar: {
     "nav.play": "العب",
@@ -55,6 +79,30 @@ const dictionary = {
     "common.save": "حفظ",
     "common.cancel": "إلغاء",
     "common.balance": "الرصيد",
+    "home.badge": "عدالة مثبتة · +18",
+    "home.heroLine1": "قلبك ينبض",
+    "home.heroLine2": "مع المضاعف.",
+    "home.heroBody":
+      "أسترو بيت يحوّل رقمًا واحدًا إلى أدرينالين خالص. الصاروخ يصعد، والجميع يحبس أنفاسه، ونقرة واحدة تحسم كل شيء. عدالة مثبتة وتحكم كامل من الخادم.",
+    "home.ctaPrimary": "ابدأ جولتك الأولى",
+    "home.ctaSecondary": "تحقق من جولة",
+    "home.statRound": "مدة الجولة",
+    "home.statMax": "أقصى مضاعف",
+    "home.statEdge": "نسبة الصالة",
+    "home.pillar1Title": "نقرة واحدة للانطلاق",
+    "home.pillar1Body":
+      "ضع رهانك، عِش العد التنازلي، ثم شاهد الصاروخ ينطلق. بلا نماذج ولا تعقيد.",
+    "home.pillar2Title": "اسحب أرباحك بحدسك",
+    "home.pillar2Body":
+      "كل جزء من الثانية يرتفع المضاعف. الطمع أو الانضباط — القرار لك، وفوري.",
+    "home.pillar3Title": "عدالة مثبتة دائمًا",
+    "home.pillar3Body":
+      "نقطة الانفجار تُحدَّد قبل رهانك وتُكشف بعده. تحقق من أي جولة بنفسك بنقرة واحدة.",
+    "home.liveResults": "نتائج اللاعبين المباشرة",
+    "home.disclaimer":
+      "المقامرة تنطوي على مخاطر. أسترو بيت مخصص للتشغيل المرخّص والقانوني في الولايات المسموح بها فقط، مع التحقق من العمر وإجراءات اعرف عميلك ومكافحة غسل الأموال وأدوات اللعب المسؤول.",
+    "game.launchingIn": "الانطلاق خلال {s} ث",
+    "game.boarding": "الاستعداد",
   },
   de: {
     "nav.play": "Spielen",
@@ -73,6 +121,30 @@ const dictionary = {
     "common.save": "Speichern",
     "common.cancel": "Abbrechen",
     "common.balance": "Guthaben",
+    "home.badge": "Nachweislich fair · 18+",
+    "home.heroLine1": "Dein Herz schlägt",
+    "home.heroLine2": "im Takt des Multiplikators.",
+    "home.heroBody":
+      "AstroBet verwandelt eine einzige Zahl in pures Adrenalin. Die Rakete steigt, alle halten den Atem an, und ein Tipp entscheidet alles. Nachweislich fair. Servergesteuert.",
+    "home.ctaPrimary": "Erste Runde starten",
+    "home.ctaSecondary": "Runde verifizieren",
+    "home.statRound": "Rundenlänge",
+    "home.statMax": "Max. Multiplikator",
+    "home.statEdge": "Hausvorteil",
+    "home.pillar1Title": "Ein Tipp zum Start",
+    "home.pillar1Body":
+      "Einsatz setzen, Countdown spüren und zusehen, wie die Rakete abhebt. Keine Formulare, keine Reibung.",
+    "home.pillar2Title": "Auszahlen aus dem Bauch",
+    "home.pillar2Body":
+      "Jede Zehntelsekunde steigt der Multiplikator. Gier oder Disziplin — die Wahl liegt bei dir, sofort.",
+    "home.pillar3Title": "Immer nachweislich fair",
+    "home.pillar3Body":
+      "Der Crash-Punkt wird vor deinem Einsatz festgelegt und danach offengelegt. Jede Runde in einem Klick prüfbar.",
+    "home.liveResults": "Live-Ergebnisse der Spieler",
+    "home.disclaimer":
+      "Glücksspiel birgt Risiken. AstroBet ist ausschließlich für den lizenzierten, rechtmäßigen Betrieb in zugelassenen Jurisdiktionen bestimmt — mit Altersprüfung, KYC/AML-Kontrollen und Verantwortungsspiel-Maßnahmen.",
+    "game.launchingIn": "Start in {s}s",
+    "game.boarding": "Boarding",
   },
 } satisfies Record<Lang, Record<string, string>>;
 
@@ -85,7 +157,7 @@ type I18nValue = {
   dir: "ltr" | "rtl";
   locale: string;
   setLang: (lang: Lang) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   formatMoney: (amount: number | string, currency?: string) => string;
 };
 
@@ -121,7 +193,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: TranslationKey) => dictionary[lang][key] ?? dictionary.en[key] ?? key,
+    (key: TranslationKey, params?: Record<string, string | number>) => {
+      const raw: string = dictionary[lang][key] ?? dictionary.en[key] ?? key;
+      if (!params) return raw;
+      return raw.replace(/\{(\w+)\}/g, (m, p: string) =>
+        p in params ? String(params[p]) : m,
+      );
+    },
     [lang],
   );
 
