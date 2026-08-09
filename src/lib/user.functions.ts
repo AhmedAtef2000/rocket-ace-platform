@@ -58,13 +58,6 @@ export const getUserManagement = createServerFn({ method: "GET" })
     };
   });
 
-export const updateProfile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => parseProfileInput(data))
-  .handler(async ({ context, data }) => {
-    return updateProfileImpl(context, data);
-  });
-
 export const getProfileOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -123,7 +116,7 @@ export const getProfileOverview = createServerFn({ method: "GET" })
     };
   });
 
-const updateProfileLegacy = createServerFn({ method: "POST" })
+export const updateProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => parseProfileInput(data))
   .handler(async ({ context, data }) => {
