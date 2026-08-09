@@ -78,7 +78,6 @@ function GamePage() {
   const myBet = state.data?.bet ?? null;
   const wallet = state.data?.wallet ?? null;
   const minBet = Number(state.data?.config?.minBet ?? 5);
-  const maxBet = Number(state.data?.config?.maxBet ?? 1000);
   const bettingMs = Number(state.data?.config?.bettingDurationMs ?? 10000);
   const stakeValue = Number(stake);
   const stakeValid = Number.isFinite(stakeValue) && stakeValue >= minBet;
@@ -260,6 +259,19 @@ function GamePage() {
           <p className="text-xs text-muted-foreground">
             Locked in play: {(wallet?.locked ?? 0).toFixed(2)}
           </p>
+          {lastResult ? (
+            <p
+              className={`mt-2 text-sm font-semibold ${
+                lastResult.net >= 0 ? "text-primary" : "text-destructive"
+              }`}
+            >
+              Last round: {lastResult.net >= 0 ? "+" : "−"}
+              {Math.abs(lastResult.net).toFixed(2)}
+              {lastResult.multiplier ? ` at ${lastResult.multiplier.toFixed(2)}x` : ""}
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">Last round: no bet settled yet.</p>
+          )}
 
           <p className="mt-4 text-xs uppercase tracking-widest text-muted-foreground">Your bet</p>
           {myBet ? (
@@ -273,12 +285,6 @@ function GamePage() {
             <p className="mt-1 text-sm text-muted-foreground">No bet in this round.</p>
           )}
 
-          <p className="mt-4 text-xs uppercase tracking-widest text-muted-foreground">
-            Fairness commitment
-          </p>
-          <p className="mt-1 break-all font-mono text-[11px] text-muted-foreground">
-            {state.data?.fairness?.server_seed_hash ?? "—"}
-          </p>
         </div>
       </section>
 
