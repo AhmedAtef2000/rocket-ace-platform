@@ -73,8 +73,8 @@ function AuthPage() {
   const problems = passwordProblems(form.password);
   const signUpDial = countryByIso(signUpCountry)?.dial ?? "+1";
   const signInDial = countryByIso(signInCountry)?.dial ?? "+1";
-  // Anything that is not email-like is treated as a phone number.
-  const identifierIsPhone = identifier.trim() !== "" && !identifier.includes("@");
+  // Only a purely numeric identifier is treated as a phone number.
+  const identifierIsPhone = /^[+\d][\d\s()-]*$/.test(identifier.trim()) && identifier.trim() !== "";
 
   // Apply the detected country (dial code + account currency) once geo resolves.
   useEffect(() => {
@@ -242,9 +242,8 @@ function AuthPage() {
                     value={identifier}
                     onChange={(event) => {
                       const next = event.target.value;
-                      setIdentifier(
-                        next.includes("@") ? next : stripDial(next, signInDial),
-                      );
+                      const numeric = /^[+\d][\d\s()-]*$/.test(next.trim()) && next.trim() !== "";
+                      setIdentifier(numeric ? stripDial(next, signInDial) : next);
                     }}
                   />
                 </div>
