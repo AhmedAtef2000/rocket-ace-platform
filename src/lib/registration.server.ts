@@ -30,16 +30,7 @@ export function isEmailLike(value: string): boolean {
   return value.includes("@");
 }
 
-/** Shared with the client so the form and the server agree on the rules. */
-export function passwordProblems(password: string): string[] {
-  const problems: string[] = [];
-  if (password.length < 10) problems.push("at least 10 characters");
-  if (!/[a-z]/.test(password)) problems.push("a lowercase letter");
-  if (!/[A-Z]/.test(password)) problems.push("an uppercase letter");
-  if (!/\d/.test(password)) problems.push("a number");
-  if (!/[^A-Za-z0-9]/.test(password)) problems.push("a symbol");
-  return problems;
-}
+export { passwordProblems } from "@/lib/password";
 
 export function assertAdult(dateOfBirth: string): string {
   const dob = new Date(dateOfBirth);
