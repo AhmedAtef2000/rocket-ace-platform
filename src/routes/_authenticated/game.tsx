@@ -76,9 +76,22 @@ function GamePage() {
 
   const myBet = state.data?.bet ?? null;
   const wallet = state.data?.wallet ?? null;
+  const minBet = Number(state.data?.config?.minBet ?? 0.1);
+  const maxBet = Number(state.data?.config?.maxBet ?? 1000);
+  const stakeValue = Number(stake);
+  const stakeValid = Number.isFinite(stakeValue) && stakeValue >= minBet && stakeValue <= maxBet;
 
   const betMutation = useMutation({
-    mutationFn: async () => bet({ data: { amount: Number(stake), autoCashout: auto || null } }),
+    mutationFn: async () => {
+      if (!stakeValid) {
+        throw new Error(`Stake must be between ${minBet} and ${maxBet} credits.`);
+      }
+      const autoValue = auto.trim() === "" ? null : Number(auto);
+      if (autoValue !== null && (!Number.isFinite(autoValue) || autoValue <= 1)) {
+        throw new Error("Auto cash-out must be above 1.00x.");
+      }
+      return bet({ data: { amount: stakeValue, autoCashout: autoValue } });
+    },
     onSuccess: () => {
       toast.success("Bet placed for this round.");
       void queryClient.invalidateQueries({ queryKey: ["game"] });
@@ -137,6 +150,9 @@ function GamePage() {
             onChange={(event) => setStake(event.target.value)}
             className="mt-2"
           />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Min {minBet} · Max {maxBet} credits
+          </p>
           <label
             className="mt-4 block text-xs uppercase tracking-widest text-muted-foreground"
             htmlFor="auto"
@@ -154,7 +170,7 @@ function GamePage() {
           <div className="mt-4 flex gap-2">
             <Button
               className="h-11 flex-1 rounded-full bg-thrust font-semibold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.02]"
-              disabled={!canBet || betMutation.isPending}
+              disabled={!canBet || !stakeValid || betMutation.isPending}
               onClick={() => betMutation.mutate()}
             >
               {myBet ? "Bet placed" : "Place bet"}
