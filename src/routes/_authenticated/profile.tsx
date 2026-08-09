@@ -9,6 +9,7 @@ import { AccountNav } from "@/components/account/AccountNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n";
 
 const title = "Profile — AstroBet";
 const description =
@@ -54,6 +55,7 @@ const empty: FormState = {
 };
 
 function ProfilePage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchAll = useServerFn(getUserManagement);
   const save = useServerFn(updateProfile);
@@ -84,7 +86,7 @@ function ProfilePage() {
   const mutation = useMutation({
     mutationFn: async (values: FormState) => save({ data: values }),
     onSuccess: async () => {
-      toast.success("Profile saved.");
+      toast.success(t("acct.profile.saved"));
       await queryClient.invalidateQueries({ queryKey: ["user-management"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -108,11 +110,11 @@ function ProfilePage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
       <div className="w-full">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">Profile</h1>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("acct.profile.title")}</h1>
         <AccountNav />
 
         {account.isPending ? (
-          <p className="mt-6 text-sm text-muted-foreground">Loading your profile…</p>
+          <p className="mt-6 text-sm text-muted-foreground">{t("acct.profile.loading")}</p>
         ) : (
           <form
             className="mt-6 space-y-6"
@@ -122,20 +124,19 @@ function ProfilePage() {
             }}
           >
             <section className="space-y-4 rounded-2xl border border-border bg-card/60 p-5">
-              <h2 className="text-sm font-medium text-foreground">Personal details</h2>
+              <h2 className="text-sm font-medium text-foreground">{t("acct.profile.personalDetails")}</h2>
               {anyLocked ? (
                 <p className="rounded-xl border border-border bg-background/50 p-3 text-xs text-muted-foreground">
-                  Your name, phone number and date of birth are locked to your verified identity.
-                  To correct them,{" "}
+                  {t("acct.profile.lockedNotice")}{" "}
                   <Link to="/support" className="font-medium text-foreground underline">
-                    open a support ticket
+                    {t("acct.profile.openTicket")}
                   </Link>{" "}
-                  and attach proof of identity — our team will update them for you.
+                  {t("acct.profile.lockedNoticeSuffix")}
                 </p>
               ) : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="first_name">First name</Label>
+                  <Label htmlFor="first_name">{t("acct.profile.firstName")}</Label>
                   <Input
                     id="first_name"
                     autoComplete="given-name"
@@ -144,7 +145,7 @@ function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="last_name">Last name</Label>
+                  <Label htmlFor="last_name">{t("acct.profile.lastName")}</Label>
                   <Input
                     id="last_name"
                     autoComplete="family-name"
@@ -153,11 +154,11 @@ function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">{t("acct.profile.phone")}</Label>
                   <Input id="phone" autoComplete="tel" disabled={phoneLocked} {...field("phone")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="date_of_birth">Date of birth</Label>
+                  <Label htmlFor="date_of_birth">{t("acct.profile.dateOfBirth")}</Label>
                   <Input
                     id="date_of_birth"
                     type="date"
@@ -166,35 +167,35 @@ function ProfilePage() {
                   />
                   <p className="text-xs text-muted-foreground">
                     {dobLocked
-                      ? "Locked for verification. Contact support to correct it."
-                      : "Must be 18 or over. Cannot be changed once saved."}
+                      ? t("acct.profile.dobLocked")
+                      : t("acct.profile.dobHint")}
                   </p>
                 </div>
               </div>
             </section>
 
             <section className="space-y-4 rounded-2xl border border-border bg-card/60 p-5">
-              <h2 className="text-sm font-medium text-foreground">Address</h2>
+              <h2 className="text-sm font-medium text-foreground">{t("acct.profile.address")}</h2>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="address_line_1">Address line 1</Label>
+                  <Label htmlFor="address_line_1">{t("acct.profile.addressLine1")}</Label>
                   <Input id="address_line_1" autoComplete="address-line1" {...field("address_line_1")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="address_line_2">Address line 2</Label>
+                  <Label htmlFor="address_line_2">{t("acct.profile.addressLine2")}</Label>
                   <Input id="address_line_2" autoComplete="address-line2" {...field("address_line_2")} />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city">{t("acct.profile.city")}</Label>
                     <Input id="city" autoComplete="address-level2" {...field("city")} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="postal_code">Postal code</Label>
+                    <Label htmlFor="postal_code">{t("acct.profile.postalCode")}</Label>
                     <Input id="postal_code" autoComplete="postal-code" {...field("postal_code")} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="country_code">Country (ISO)</Label>
+                    <Label htmlFor="country_code">{t("acct.profile.countryCode")}</Label>
                     <Input
                       id="country_code"
                       maxLength={2}
@@ -208,7 +209,7 @@ function ProfilePage() {
             </section>
 
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Saving…" : "Save profile"}
+              {mutation.isPending ? t("acct.profile.saving") : t("acct.profile.saveProfile")}
             </Button>
           </form>
         )}

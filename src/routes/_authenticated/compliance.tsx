@@ -12,6 +12,7 @@ import {
   submitKyc,
   uploadKycDocument,
 } from "@/lib/compliance.functions";
+import { useI18n } from "@/lib/i18n";
 
 const title = "Verification & Compliance — AstroBet";
 const description =
@@ -33,24 +34,24 @@ export const Route = createFileRoute("/_authenticated/compliance")({
 });
 
 const sources = [
-  { value: "EMPLOYMENT", label: "Employment income" },
-  { value: "BUSINESS", label: "Business income" },
-  { value: "INVESTMENTS", label: "Investments" },
-  { value: "SAVINGS", label: "Savings" },
-  { value: "OTHER", label: "Other" },
-];
+  { value: "EMPLOYMENT", key: "comp.source.employment" },
+  { value: "BUSINESS", key: "comp.source.business" },
+  { value: "INVESTMENTS", key: "comp.source.investments" },
+  { value: "SAVINGS", key: "comp.source.savings" },
+  { value: "OTHER", key: "comp.source.other" },
+] as const;
 
 const docTypes = [
-  { value: "ID_FRONT", label: "Government ID — front" },
-  { value: "ID_BACK", label: "Government ID — back" },
-  { value: "SELFIE", label: "Selfie holding your ID" },
-  { value: "PROOF_OF_ADDRESS", label: "Proof of address" },
-];
+  { value: "ID_FRONT", key: "comp.doc.idFront" },
+  { value: "ID_BACK", key: "comp.doc.idBack" },
+  { value: "SELFIE", key: "comp.doc.selfie" },
+  { value: "PROOF_OF_ADDRESS", key: "comp.doc.proofOfAddress" },
+] as const;
 
-function readAsBase64(file: File) {
+function readAsBase64(file: File, t: (key: string) => string) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error("The file could not be read."));
+    reader.onerror = () => reject(new Error(t("comp.error.fileRead")));
     reader.onload = () => {
       const result = String(reader.result ?? "");
       resolve(result.slice(result.indexOf(",") + 1));
@@ -60,6 +61,7 @@ function readAsBase64(file: File) {
 }
 
 function CompliancePage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchStatus = useServerFn(getComplianceStatus);
   const submit = useServerFn(submitKyc);
@@ -78,7 +80,7 @@ function CompliancePage() {
   const mutation = useMutation({
     mutationFn: async () => submit({ data: { sourceOfFunds, declaredPep } }),
     onSuccess: (result) => {
-      toast.success(`Verification ${result.status.toLowerCase().replace(/_/g, " ")}.`);
+      toast.success(`Verification ${t(`comp.status.${result.status}`)}.`);
       void queryClient.invalidateQueries({ queryKey: ["compliance"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -92,14 +94,14 @@ function CompliancePage() {
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (file.size > 5 * 1024 * 1024) throw new Error("Files must be 5 MB or smaller.");
-      const contentBase64 = await readAsBase64(file);
+      if (file.size > 5 * 1024 * 1024) throw new Error(t("comp.error.fileSize"));
+      const contentBase64 = await readAsBase64(file, t);
       return upload({
         data: { docType, fileName: file.name, mimeType: file.type, contentBase64 },
       });
     },
     onSuccess: () => {
-      toast.success("Document uploaded — our compliance team will review it shortly.");
+      toast.success(t("comp.toast.uploaded"));
       if (fileInput.current) fileInput.current.value = "";
       void queryClient.invalidateQueries({ queryKey: ["compliance"] });
     },
@@ -108,9 +110,9 @@ function CompliancePage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
-      <h1 className="font-display text-3xl font-extrabold tracking-tight">Verification &amp; compliance</h1>
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("comp.heading")}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Deposits and withdrawals stay locked until every check below is green.
+        {t("comp.subtitle")}
       </p>
       <AccountNav />
 
@@ -118,10 +120,10 @@ function CompliancePage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              Real-money eligibility
+              {t("comp.eligibility.title")}
             </p>
             <p className="mt-1 text-lg font-semibold">
-              {data?.realMoneyEligible ? "Eligible" : "Not eligible yet"}
+              {data?.realMoneyEligible ? t("comp.eligibility.yes") : t("comp.eligibility.no")}
             </p>
           </div>
           <span
@@ -133,16 +135,15 @@ function CompliancePage() {
                   : "border-warning/40 text-warning"
             }`}
           >
-            KYC {kycStatus.toLowerCase().replace(/_/g, " ")}
+            {t("comp.kyc.prefix")} {t(`comp.status.${kycStatus}`)}
           </span>
         </div>
 
         {!verified ? (
           <div className="mt-4 rounded-xl border border-warning/40 bg-warning/5 p-3 text-sm">
-            <p className="font-medium text-foreground">Withdrawals are locked</p>
+            <p className="font-medium text-foreground">{t("comp.locked.title")}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Upload a clear photo of your ID and a matching selfie. Your name and date of birth
-              must match the details on your account exactly, or the review will be rejected.
+              {t("comp.locked.body")}
             </p>
           </div>
         ) : null}
@@ -165,7 +166,7 @@ function CompliancePage() {
                   href="#kyc-documents"
                   className="self-center rounded-md border border-primary/50 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
                 >
-                  Upload documents
+                  {t("comp.gate.uploadDocuments")}
                 </a>
               ) : null}
               {gate.key === "identity" && !gate.passed ? (
@@ -173,7 +174,7 @@ function CompliancePage() {
                   to="/profile"
                   className="self-center rounded-md border border-primary/50 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
                 >
-                  Add details
+                  {t("comp.gate.addDetails")}
                 </Link>
               ) : null}
             </li>
@@ -189,12 +190,12 @@ function CompliancePage() {
 
       <section id="kyc-documents" className="mt-6 rounded-xl border border-border p-5">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          Identity documents
+          {t("comp.docs.title")}
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
             <label className="block text-sm" htmlFor="doc-type">
-              Document type
+              {t("comp.docs.type")}
             </label>
             <select
               id="doc-type"
@@ -204,7 +205,7 @@ function CompliancePage() {
             >
               {docTypes.map((d) => (
                 <option key={d.value} value={d.value}>
-                  {d.label}
+                  {t(d.key)}
                 </option>
               ))}
             </select>
@@ -226,13 +227,12 @@ function CompliancePage() {
               disabled={uploadMutation.isPending}
               onClick={() => fileInput.current?.click()}
             >
-              {uploadMutation.isPending ? "Uploading…" : "Upload / add document"}
+              {uploadMutation.isPending ? t("comp.docs.uploading") : t("comp.docs.upload")}
             </Button>
           </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          JPG, PNG, WEBP or PDF up to 5 MB. Files are stored privately and are only visible to
-          our compliance reviewers.
+          {t("comp.docs.hint")}
         </p>
 
         {documents.length > 0 ? (
@@ -244,7 +244,10 @@ function CompliancePage() {
               >
                 <span>
                   <span className="font-medium">
-                    {docTypes.find((d) => d.value === doc.doc_type)?.label ?? doc.doc_type}
+                    {(() => {
+                    const match = docTypes.find((d) => d.value === doc.doc_type);
+                    return match ? t(match.key) : doc.doc_type;
+                  })()}
                   </span>
                   <span className="block text-xs text-muted-foreground">{doc.file_name}</span>
                 </span>
@@ -257,22 +260,22 @@ function CompliancePage() {
                         : "border-warning/40 text-warning"
                   }`}
                 >
-                  {doc.status.toLowerCase()}
+                  {t(`comp.status.${doc.status}`)}
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-4 text-sm text-muted-foreground">No documents uploaded yet.</p>
+          <p className="mt-4 text-sm text-muted-foreground">{t("comp.docs.empty")}</p>
         )}
       </section>
 
       <section className="mt-6 rounded-xl border border-border p-5">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          Submit identity verification
+          {t("comp.submit.title")}
         </p>
         <label className="mt-4 block text-sm" htmlFor="sof">
-          Source of funds
+          {t("comp.submit.sof")}
         </label>
         <select
           id="sof"
@@ -282,7 +285,7 @@ function CompliancePage() {
         >
           {sources.map((s) => (
             <option key={s.value} value={s.value}>
-              {s.label}
+              {t(s.key)}
             </option>
           ))}
         </select>
@@ -293,7 +296,7 @@ function CompliancePage() {
             checked={declaredPep}
             onChange={(event) => setDeclaredPep(event.target.checked)}
           />
-          I am a politically exposed person (PEP) or a close associate of one
+          {t("comp.submit.pep")}
         </label>
 
         <Button
@@ -301,11 +304,10 @@ function CompliancePage() {
           disabled={mutation.isPending || kycStatus === "APPROVED"}
           onClick={() => mutation.mutate()}
         >
-          {kycStatus === "APPROVED" ? "Verified" : "Submit for verification"}
+          {kycStatus === "APPROVED" ? t("comp.submit.verified") : t("comp.submit.button")}
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">
-          Submissions are screened automatically and then confirmed by our compliance team.
-          Details that do not match your uploaded documents will be rejected.
+          {t("comp.submit.hint")}
         </p>
       </section>
     </main>

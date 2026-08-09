@@ -356,9 +356,9 @@ function AuthPage() {
                   onChange={(event) => setField("currency")(event.target.value)}
                   className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
-                  <option value="USD">USD — US Dollar ($)</option>
-                  <option value="EUR">EUR — Euro (€)</option>
-                  <option value="EGP">EGP — Egyptian Pound</option>
+                  <option value="USD">{t("ui.currencyUsd")}</option>
+                  <option value="EUR">{t("ui.currencyEur")}</option>
+                  <option value="EGP">{t("ui.currencyEgp")}</option>
                 </select>
                 <p className="text-xs text-muted-foreground">{t("auth.currencyHint")}</p>
               </div>

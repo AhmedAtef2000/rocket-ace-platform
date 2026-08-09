@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AccountNav } from "@/components/account/AccountNav";
 import { Button } from "@/components/ui/button";
 import { listNotifications, markNotificationsRead } from "@/lib/notifications.functions";
+import { useI18n } from "@/lib/i18n";
 
 const title = "Notifications — AstroBet";
 const description =
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/_authenticated/notifications")({
 });
 
 function NotificationsPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchAll = useServerFn(listNotifications);
   const markRead = useServerFn(markNotificationsRead);
@@ -39,7 +41,7 @@ function NotificationsPage() {
   const mark = useMutation({
     mutationFn: async () => markRead({ data: undefined }),
     onSuccess: () => {
-      toast.success("All caught up");
+      toast.success(t("acct.notifications.allCaughtUp"));
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -49,15 +51,15 @@ function NotificationsPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
-      <h1 className="font-display text-3xl font-extrabold tracking-tight">Notifications</h1>
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("acct.notifications.title")}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        {unread > 0 ? `${unread} unread` : "Nothing new right now."}
+        {unread > 0 ? t("acct.notifications.unread", { count: unread }) : t("acct.notifications.nothingNew")}
       </p>
       <AccountNav />
 
       {unread > 0 ? (
         <Button className="mt-6" variant="secondary" onClick={() => mark.mutate()}>
-          Mark all as read
+          {t("acct.notifications.markAllRead")}
         </Button>
       ) : null}
 
@@ -75,7 +77,7 @@ function NotificationsPage() {
           </li>
         ))}
         {notifications.data?.length === 0 ? (
-          <li className="text-sm text-muted-foreground">No notifications yet.</li>
+          <li className="text-sm text-muted-foreground">{t("acct.notifications.none")}</li>
         ) : null}
       </ul>
     </main>

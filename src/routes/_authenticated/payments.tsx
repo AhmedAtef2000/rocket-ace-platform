@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AccountNav } from "@/components/account/AccountNav";
+import { useI18n } from "@/lib/i18n";
 
 const title = "Deposits & withdrawals — AstroBet";
 const description =
@@ -45,6 +46,7 @@ function num(value: string | number | null | undefined, decimals = 2) {
 }
 
 function PaymentsPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchOverview = useServerFn(getPaymentsOverview);
   const newDeposit = useServerFn(createDeposit);
@@ -83,11 +85,11 @@ function PaymentsPage() {
 
   const depositMutation = useMutation({
     mutationFn: async () => {
-      if (!selected) throw new Error("Choose a network.");
+      if (!selected) throw new Error(t("pay.chooseNetworkError"));
       return newDeposit({ data: { currency: selected.currency, network: selected.network } });
     },
     onSuccess: () => {
-      toast.success("Deposit address issued.");
+      toast.success(t("pay.depositIssued"));
       invalidate();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -96,7 +98,7 @@ function PaymentsPage() {
   const settleMutation = useMutation({
     mutationFn: async (vars: { depositId: string; amount: number }) => settle({ data: vars }),
     onSuccess: (result) => {
-      toast.success(result.credited ? "Deposit credited." : "Deposit already settled.");
+      toast.success(result.credited ? t("pay.depositCredited") : t("pay.depositAlreadySettled"));
       invalidate();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -104,7 +106,7 @@ function PaymentsPage() {
 
   const withdrawMutation = useMutation({
     mutationFn: async () => {
-      if (!selected) throw new Error("Choose a network.");
+      if (!selected) throw new Error(t("pay.chooseNetworkError"));
       return withdraw({
         data: {
           currency: selected.currency,
@@ -115,7 +117,7 @@ function PaymentsPage() {
       });
     },
     onSuccess: () => {
-      toast.success("Withdrawal requested and funds reserved.");
+      toast.success(t("pay.withdrawalRequested"));
       setWdAmount("");
       setWdAddress("");
       invalidate();
@@ -126,7 +128,7 @@ function PaymentsPage() {
   const cancelMutation = useMutation({
     mutationFn: async (id: string) => cancel({ data: { id } }),
     onSuccess: () => {
-      toast.success("Withdrawal cancelled and funds released.");
+      toast.success(t("pay.withdrawalCancelled"));
       invalidate();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -134,7 +136,7 @@ function PaymentsPage() {
 
   const manualMutation = useMutation({
     mutationFn: async () => {
-      if (!manualFile) throw new Error("Attach a screenshot of the transfer.");
+      if (!manualFile) throw new Error(t("pay.attachScreenshotError"));
       const buffer = await manualFile.arrayBuffer();
       let binary = "";
       const view = new Uint8Array(buffer);
@@ -153,7 +155,7 @@ function PaymentsPage() {
       });
     },
     onSuccess: () => {
-      toast.success("Deposit submitted for review.");
+      toast.success(t("pay.depositSubmittedForReview"));
       setManualAmount("");
       setManualSender("");
       setManualReference("");
@@ -188,18 +190,18 @@ function PaymentsPage() {
       <div className="w-full">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-extrabold tracking-tight">Wallet</h1>
+            <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("pay.title")}</h1>
             <AccountNav />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl border border-border bg-card/60 px-5 py-3">
-              <p className="text-xs text-muted-foreground">Total deposited</p>
+              <p className="text-xs text-muted-foreground">{t("pay.totalDeposited")}</p>
               <p className="mt-1 font-mono text-xl font-semibold text-primary" dir="ltr">
                 {num(totalDeposited, 8)}
               </p>
             </div>
             <div className="rounded-2xl border border-border bg-card/60 px-5 py-3">
-              <p className="text-xs text-muted-foreground">Total withdrawn</p>
+              <p className="text-xs text-muted-foreground">{t("pay.totalWithdrawn")}</p>
               <p className="mt-1 font-mono text-xl font-semibold text-foreground" dir="ltr">
                 {num(totalWithdrawn, 8)}
               </p>
@@ -208,26 +210,25 @@ function PaymentsPage() {
         </div>
 
         {overview.isPending ? (
-          <p className="mt-6 text-sm text-muted-foreground">Loading payment options…</p>
+          <p className="mt-6 text-sm text-muted-foreground">{t("pay.loading")}</p>
         ) : (
           <div className="mt-6 space-y-6">
             {!eligible && (
               <section className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
-                <h2 className="text-sm font-medium text-foreground">Withdrawals locked</h2>
+                <h2 className="text-sm font-medium text-foreground">{t("pay.withdrawalsLocked")}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {blockedGate
-                    ? `${blockedGate.label}: ${blockedGate.detail}`
-                    : "Complete verification to unlock deposits and withdrawals."}
+                    ? t("pay.gateDetail", { label: blockedGate.label, detail: blockedGate.detail })
+                    : t("pay.gateFallback")}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Your name, date of birth and uploaded documents must match. Mismatched or
-                  missing details will block payouts.
+                  {t("pay.verificationNote")}
                 </p>
                 <a
                   href="/compliance"
                   className="mt-3 inline-block rounded-md border border-primary/50 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
                 >
-                  Upload / add documents
+                  {t("pay.uploadDocuments")}
                 </a>
               </section>
             )}
@@ -235,16 +236,16 @@ function PaymentsPage() {
             <div className="grid gap-6 lg:grid-cols-2">
               {/* ---------------- Deposit ---------------- */}
               <section className="rounded-2xl border border-border bg-card/60 p-5">
-                <h2 className="font-display text-xl font-bold text-foreground">Deposit</h2>
+                <h2 className="font-display text-xl font-bold text-foreground">{t("pay.deposit")}</h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Choose a payment method to fund your account.
+                  {t("pay.depositSubtitle")}
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <MethodChip
                     active={channel === "CRYPTO"}
                     onClick={() => setChannel("CRYPTO")}
-                    label="Crypto"
+                    label={t("pay.methodCrypto")}
                   />
                   {manualMethods.map((m) => (
                     <MethodChip
@@ -263,7 +264,7 @@ function PaymentsPage() {
                   <div className="mt-5 grid gap-5 xl:grid-cols-2">
                     <div className="grid gap-3">
                       <div className="grid gap-2">
-                        <Label htmlFor="network">Network</Label>
+                        <Label htmlFor="network">{t("pay.network")}</Label>
                         <select
                           id="network"
                           className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
@@ -282,7 +283,7 @@ function PaymentsPage() {
                       </div>
 
                       <div className="grid gap-2">
-                        <Label htmlFor="dep-amount">Deposit amount</Label>
+                        <Label htmlFor="dep-amount">{t("pay.depositAmount")}</Label>
                         <div className="relative">
                           <Input
                             id="dep-amount"
@@ -313,7 +314,7 @@ function PaymentsPage() {
                       </div>
 
                       <div>
-                        <p className="text-xs text-muted-foreground">You will receive</p>
+                        <p className="text-xs text-muted-foreground">{t("pay.youWillReceive")}</p>
                         <p className="font-mono text-2xl font-semibold text-primary" dir="ltr">
                           {num(Number(depAmount || 0), 8)} {selected?.currency ?? ""}
                         </p>
@@ -323,33 +324,33 @@ function PaymentsPage() {
                         disabled={!eligible || depositMutation.isPending}
                         onClick={() => depositMutation.mutate()}
                       >
-                        {depositMutation.isPending ? "Issuing…" : "Create deposit"}
+                        {depositMutation.isPending ? t("pay.issuing") : t("pay.createDeposit")}
                       </Button>
                     </div>
 
                     <div className="rounded-xl border border-border/60 bg-background/40 p-4">
                       <h3 className="text-sm font-medium text-foreground">
-                        Send {selected?.currency ?? "funds"} to the address below
+                        {t("pay.sendCurrencyTo", { currency: selected?.currency ?? t("pay.deposit") })}
                       </h3>
                       <p className="mt-2 break-all rounded-lg border border-border/60 bg-card/60 p-2 font-mono text-xs text-foreground">
                         {latestPending?.deposit_address ??
-                          "Create a deposit to generate your address."}
+                          t("pay.createDepositToGenerate")}
                       </p>
                       <dl className="mt-3 space-y-1.5 text-xs">
                         <div className="flex justify-between gap-2">
-                          <dt className="text-muted-foreground">Minimum deposit</dt>
+                          <dt className="text-muted-foreground">{t("pay.minimumDeposit")}</dt>
                           <dd className="font-mono text-foreground" dir="ltr">
                             {num(selected?.minDeposit ?? minDeposit, 8)} {selected?.currency ?? ""}
                           </dd>
                         </div>
                         <div className="flex justify-between gap-2">
-                          <dt className="text-muted-foreground">Confirmations required</dt>
+                          <dt className="text-muted-foreground">{t("pay.confirmationsRequired")}</dt>
                           <dd className="font-mono text-foreground" dir="ltr">
                             {selected?.requiredConfirmations ?? "—"}
                           </dd>
                         </div>
                         <div className="flex justify-between gap-2">
-                          <dt className="text-muted-foreground">Current confirmations</dt>
+                          <dt className="text-muted-foreground">{t("pay.currentConfirmations")}</dt>
                           <dd className="font-mono text-primary" dir="ltr">
                             {latestPending?.confirmations ?? 0} /{" "}
                             {latestPending?.required_confirmations ??
@@ -359,16 +360,17 @@ function PaymentsPage() {
                         </div>
                       </dl>
                       <p className="mt-3 rounded-lg border border-border/60 bg-card/40 p-3 text-xs text-muted-foreground">
-                        Send only {selected?.currency ?? "the selected asset"} on{" "}
-                        {selected?.network ?? "the selected network"}. Any other coin may be lost
-                        permanently.
+                        {t("pay.sendOnlyNote", {
+                          currency: selected?.currency ?? t("pay.theSelectedAsset"),
+                          network: selected?.network ?? t("pay.theSelectedNetwork"),
+                        })}
                       </p>
                       {latestPending && (
                         <div className="mt-3 flex gap-2">
                           <Input
-                            aria-label="Amount received"
+                            aria-label={t("pay.amountReceived")}
                             inputMode="decimal"
-                            placeholder="Amount received"
+                            placeholder={t("pay.amountReceived")}
                             value={settleAmount[latestPending.id] ?? ""}
                             onChange={(event) =>
                               setSettleAmount((prev) => ({
@@ -387,7 +389,7 @@ function PaymentsPage() {
                               })
                             }
                           >
-                            Simulate
+                            {t("pay.simulate")}
                           </Button>
                         </div>
                       )}
@@ -397,16 +399,15 @@ function PaymentsPage() {
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
                     <div className="grid gap-2 sm:col-span-2">
                       <p className="rounded-lg border border-border/60 bg-background/40 p-3 text-xs text-muted-foreground">
-                        Send the amount from your own wallet number to{" "}
+                        {t("pay.sendFromWalletNumber")}{" "}
                         <span className="font-mono text-foreground">
                           {selectedManual?.payTo ?? "—"}
                         </span>
-                        , then upload the transfer receipt. Minimum deposit {num(minDeposit)}. Our
-                        team reviews and credits it manually.
+                        {t("pay.uploadReceiptNote", { amount: num(minDeposit) })}
                       </p>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="manual-amount">Amount sent</Label>
+                      <Label htmlFor="manual-amount">{t("pay.amountSent")}</Label>
                       <Input
                         id="manual-amount"
                         inputMode="decimal"
@@ -416,17 +417,17 @@ function PaymentsPage() {
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="manual-sender">Your wallet number</Label>
+                      <Label htmlFor="manual-sender">{t("pay.yourWalletNumber")}</Label>
                       <Input
                         id="manual-sender"
                         inputMode="tel"
-                        placeholder="01xxxxxxxxx"
+                        placeholder={t("pay.walletNumberPlaceholder")}
                         value={manualSender}
                         onChange={(event) => setManualSender(event.target.value)}
                       />
                     </div>
                     <div className="grid gap-2 sm:col-span-2">
-                      <Label htmlFor="manual-reference">Transaction reference (optional)</Label>
+                      <Label htmlFor="manual-reference">{t("pay.transactionReference")}</Label>
                       <Input
                         id="manual-reference"
                         value={manualReference}
@@ -435,7 +436,7 @@ function PaymentsPage() {
                     </div>
                     <div className="grid gap-2 sm:col-span-2">
                       <Label htmlFor="manual-proof">
-                        Payment proof (JPG, PNG, WEBP or PDF · max 5 MB)
+                        {t("pay.paymentProof")}
                       </Label>
                       <input
                         id="manual-proof"
@@ -451,7 +452,7 @@ function PaymentsPage() {
                         disabled={!eligible || manualMutation.isPending}
                         onClick={() => manualMutation.mutate()}
                       >
-                        {manualMutation.isPending ? "Submitting…" : "Submit deposit for review"}
+                        {manualMutation.isPending ? t("pay.submitting") : t("pay.submitDepositForReview")}
                       </Button>
                     </div>
                     {manualDeposits.length > 0 && (
@@ -478,13 +479,13 @@ function PaymentsPage() {
               <section className="rounded-2xl border border-border bg-card/60 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="font-display text-xl font-bold text-foreground">Withdraw</h2>
+                    <h2 className="font-display text-xl font-bold text-foreground">{t("pay.withdraw")}</h2>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Withdraw funds from your account.
+                      {t("pay.withdrawSubtitle")}
                     </p>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Available:{" "}
+                    {t("pay.available")}:{" "}
                     <span className="font-mono text-primary" dir="ltr">
                       {num(availableBalance, 8)} {walletCurrency}
                     </span>
@@ -493,15 +494,17 @@ function PaymentsPage() {
 
                 {playthrough && !playthrough.cleared && (
                   <p className="mt-4 rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs text-muted-foreground">
-                    Anti-money-laundering rules require every deposit to be played through once
-                    before it can be withdrawn. You have wagered {num(playthrough.wagered)} of{" "}
-                    {num(playthrough.required)} — {num(playthrough.remaining)} of play remaining.
+                    {t("pay.amlNote", {
+                      wagered: num(playthrough.wagered),
+                      required: num(playthrough.required),
+                      remaining: num(playthrough.remaining),
+                    })}
                   </p>
                 )}
 
                 <div className="mt-4 grid gap-3">
                   <div className="grid gap-2">
-                    <Label htmlFor="wd-amount">Withdraw amount</Label>
+                    <Label htmlFor="wd-amount">{t("pay.withdrawAmount")}</Label>
                     <Input
                       id="wd-amount"
                       inputMode="decimal"
@@ -525,35 +528,35 @@ function PaymentsPage() {
                         onClick={() => setWdAmount(String(availableBalance))}
                         className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
                       >
-                        MAX
+                        {t("pay.max")}
                       </button>
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="wd-address">Wallet address</Label>
+                    <Label htmlFor="wd-address">{t("pay.walletAddress")}</Label>
                     <Input
                       id="wd-address"
                       value={wdAddress}
                       onChange={(event) => setWdAddress(event.target.value)}
-                      placeholder="Your wallet address"
+                      placeholder={t("pay.walletAddressPlaceholder")}
                     />
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 rounded-xl border border-border/60 bg-background/40 p-3 text-center">
                     <div>
-                      <p className="text-[11px] text-muted-foreground">You send</p>
+                      <p className="text-[11px] text-muted-foreground">{t("pay.youSend")}</p>
                       <p className="font-mono text-sm text-foreground" dir="ltr">
                         {num(Number(wdAmount || 0), 8)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[11px] text-muted-foreground">Network fee (1%)</p>
+                      <p className="text-[11px] text-muted-foreground">{t("pay.networkFee")}</p>
                       <p className="font-mono text-sm text-foreground" dir="ltr">
                         {num(Number(wdAmount || 0) * 0.01, 8)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[11px] text-muted-foreground">You will get</p>
+                      <p className="text-[11px] text-muted-foreground">{t("pay.youWillGet")}</p>
                       <p className="font-mono text-sm text-primary" dir="ltr">
                         {num(wdNet, 8)}
                       </p>
@@ -566,13 +569,11 @@ function PaymentsPage() {
                     }
                     onClick={() => withdrawMutation.mutate()}
                   >
-                    {withdrawMutation.isPending ? "Submitting…" : "Continue"}
+                    {withdrawMutation.isPending ? t("pay.submitting") : t("pay.continue")}
                   </Button>
 
                   <p className="rounded-xl border border-border/60 bg-background/40 p-3 text-xs text-muted-foreground">
-                    Funds are reserved as soon as you request the payout, and withdrawals are
-                    reviewed and processed within {noticeHours} hours. Large payouts need two
-                    approvers before they are released.
+                    {t("pay.withdrawalNote", { hours: noticeHours })}
                   </p>
                 </div>
               </section>
@@ -581,20 +582,20 @@ function PaymentsPage() {
             {/* ---------------- History ---------------- */}
             <div className="grid gap-6 lg:grid-cols-2">
               <section className="rounded-2xl border border-border bg-card/60 p-5">
-                <h2 className="text-sm font-medium text-foreground">Recent deposits</h2>
+                <h2 className="text-sm font-medium text-foreground">{t("pay.recentDeposits")}</h2>
                 {deposits.length === 0 ? (
-                  <p className="mt-2 text-sm text-muted-foreground">No deposits yet.</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{t("pay.noDeposits")}</p>
                 ) : (
                   <div className="mt-3 overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-start text-xs uppercase text-muted-foreground">
-                          <th className="py-2 text-start font-medium">Coin</th>
-                          <th className="py-2 text-start font-medium">Network</th>
-                          <th className="py-2 text-start font-medium">Amount</th>
-                          <th className="py-2 text-start font-medium">Conf.</th>
-                          <th className="py-2 text-start font-medium">Status</th>
-                          <th className="py-2 text-start font-medium">Date</th>
+                          <th className="py-2 text-start font-medium">{t("pay.colCoin")}</th>
+                          <th className="py-2 text-start font-medium">{t("pay.colNetwork")}</th>
+                          <th className="py-2 text-start font-medium">{t("pay.colAmount")}</th>
+                          <th className="py-2 text-start font-medium">{t("pay.colConf")}</th>
+                          <th className="py-2 text-start font-medium">{t("pay.colStatus")}</th>
+                          <th className="py-2 text-start font-medium">{t("pay.colDate")}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/60">
@@ -623,18 +624,18 @@ function PaymentsPage() {
               </section>
 
               <section className="rounded-2xl border border-border bg-card/60 p-5">
-                <h2 className="text-sm font-medium text-foreground">Recent withdrawals</h2>
+                <h2 className="text-sm font-medium text-foreground">{t("pay.recentWithdrawals")}</h2>
                 {withdrawals.length === 0 ? (
-                  <p className="mt-2 text-sm text-muted-foreground">No withdrawals yet.</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{t("pay.noWithdrawals")}</p>
                 ) : (
                   <div className="mt-3 overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-xs uppercase text-muted-foreground">
-                          <th className="py-2 text-start font-medium">Amount</th>
-                          <th className="py-2 text-start font-medium">Network</th>
-                          <th className="py-2 text-start font-medium">Status</th>
-                          <th className="py-2 text-start font-medium">Date</th>
+                          <th className="py-2 text-start font-medium">{t("pay.colAmount")}</th>
+                          <th className="py-2 text-start font-medium">{t("pay.colNetwork")}</th>
+                          <th className="py-2 text-start font-medium">{t("pay.colStatus")}</th>
+                          <th className="py-2 text-start font-medium">{t("pay.colDate")}</th>
                           <th className="py-2 text-end font-medium" />
                         </tr>
                       </thead>
@@ -659,7 +660,7 @@ function PaymentsPage() {
                                   disabled={cancelMutation.isPending}
                                   onClick={() => cancelMutation.mutate(w.id)}
                                 >
-                                  Cancel
+                                  {t("pay.cancel")}
                                 </Button>
                               )}
                             </td>
@@ -674,10 +675,10 @@ function PaymentsPage() {
 
             <section className="grid gap-4 rounded-2xl border border-border bg-card/60 p-5 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { title: "Minimum deposit", detail: `${num(minDeposit)} ${walletCurrency}` },
-                { title: "Instant credit", detail: "After required confirmations" },
-                { title: "Secure & trusted", detail: "Ledger-backed, audited movements" },
-                { title: "Need help?", detail: "Contact support any time" },
+                { title: t("pay.infoMinDeposit"), detail: `${num(minDeposit)} ${walletCurrency}` },
+                { title: t("pay.infoInstantCredit"), detail: t("pay.infoInstantCreditDetail") },
+                { title: t("pay.infoSecure"), detail: t("pay.infoSecureDetail") },
+                { title: t("pay.infoNeedHelp"), detail: t("pay.infoNeedHelpDetail") },
               ].map((item) => (
                 <div key={item.title}>
                   <p className="text-sm font-medium text-foreground">{item.title}</p>
