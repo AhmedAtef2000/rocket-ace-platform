@@ -282,6 +282,7 @@ function GamePage() {
           <RocketStage
             phase={phase}
             multiplier={shown}
+            secondsLeft={secondsLeft}
             countdownLabel={
               secondsLeft !== null
                 ? `Launching in ${secondsLeft}s`
