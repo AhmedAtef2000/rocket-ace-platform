@@ -330,11 +330,11 @@ function WalletPage() {
                     >
                       <div className="flex items-center gap-2">
                         <span
-                          className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border/60 bg-background/60 text-[11px] font-bold ${
+                          className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border/60 bg-background/60 text-[9px] font-bold tracking-tight ${
                             CRYPTO_META[code]?.tint ?? "text-foreground"
                           }`}
                         >
-                          {code.slice(0, 3)}
+                          {code}
                         </span>
                         <span className="min-w-0">
                           <span className="block truncate text-sm font-semibold text-foreground">
@@ -413,8 +413,8 @@ function WalletPage() {
                 </div>
 
                 {tab === "DEPOSIT" ? (
-                  <div className="mt-5 grid gap-5 xl:grid-cols-2">
-                    <div className="grid content-start gap-3">
+                  <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                    <div className="grid min-w-0 content-start gap-3">
                       <div className="grid gap-2">
                         <Label htmlFor="dep-amount">Deposit amount (optional)</Label>
                         <div className="relative">
@@ -460,7 +460,7 @@ function WalletPage() {
                       </Button>
                     </div>
 
-                    <div className="rounded-2xl border border-border/60 bg-background/40 p-4">
+                    <div className="min-w-0 rounded-2xl border border-border/60 bg-background/40 p-4">
                       <h3 className="text-sm font-semibold text-foreground">
                         {currency} deposit address
                       </h3>
@@ -509,8 +509,8 @@ function WalletPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-5 grid gap-5 xl:grid-cols-2">
-                    <div className="grid content-start gap-3">
+                  <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                    <div className="grid min-w-0 content-start gap-3">
                       <div className="grid gap-2">
                         <div className="flex items-center justify-between gap-2">
                           <Label htmlFor="wd-address">3 · Destination address</Label>
@@ -599,7 +599,7 @@ function WalletPage() {
                       </Button>
                     </div>
 
-                    <div className="grid content-start gap-3 rounded-2xl border border-border/60 bg-background/40 p-4 text-xs text-muted-foreground">
+                    <div className="grid min-w-0 content-start gap-3 rounded-2xl border border-border/60 bg-background/40 p-4 text-xs text-muted-foreground">
                       <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
                         <ShieldCheck className="h-4 w-4 text-primary" /> Withdrawal safety
                       </p>
