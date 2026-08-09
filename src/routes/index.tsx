@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Rocket } from "lucide-react";
 
 import { RocketStage } from "@/components/game/RocketStage";
 
@@ -93,8 +94,8 @@ function Index() {
     <main className="min-h-screen bg-background text-foreground">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6">
         <div className="flex items-center gap-2">
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-thrust text-lg">
-            <span aria-hidden>🚀</span>
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-thrust">
+            <Rocket className="size-5 text-primary-foreground" aria-hidden />
           </span>
           <span className="font-display text-lg font-extrabold tracking-tight">AstroBet</span>
         </div>
