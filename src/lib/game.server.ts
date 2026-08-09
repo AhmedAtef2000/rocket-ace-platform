@@ -113,13 +113,16 @@ export function simulatedLiveBets(
   if (count <= 0) return [];
   const rnd = hashInt(roundId);
   const rows: LiveBetRow[] = [];
+  // Each round gets its own cash-out appetite, so the winner/loser split
+  // changes from round to round instead of looking identical every time.
+  const eagerness = 0.35 + rnd() * 0.45;
   for (let i = 0; i < count; i += 1) {
     const amount = Math.round((5 + rnd() * 195) * 100) / 100;
-    const target = Math.round((1.1 + rnd() * 6) * 100) / 100;
+    const target = Math.round((1.05 + rnd() * (2 + rnd() * 8)) * 100) / 100;
     let rowStatus = "ACTIVE";
     let multiplier: number | null = null;
     let payout: number | null = null;
-    if (status === "RUNNING" && rnd() > 0.6) {
+    if (status === "RUNNING" && rnd() < eagerness) {
       rowStatus = "CASHED_OUT";
       multiplier = target;
       payout = Math.round(amount * target * 100) / 100;

@@ -29,6 +29,128 @@ import { useI18n, type TranslationKey } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { getAdminSession } from "@/lib/admin.functions";
 import { getWallets } from "@/lib/wallet.functions";
+import { getAccount } from "@/lib/account.functions";
+
+/** Hover/click account card in the header: photo, name, balance and account ID. */
+function AccountMenu({ username, balance }: { username: string | null; balance: number }) {
+  const { t, formatMoney } = useI18n();
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const fetchAccount = useServerFn(getAccount);
+  const account = useQuery({
+    queryKey: ["account", "header"],
+    queryFn: async () => fetchAccount({ data: undefined }),
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  const photo =
+    (user?.user_metadata?.["avatar_url"] as string | undefined) ??
+    (user?.user_metadata?.["picture"] as string | undefined) ??
+    null;
+  const accountNumber = account.data?.user?.account_number ?? null;
+
+  return (
+    <div
+      className="relative hidden sm:block"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex items-center gap-2 rounded-xl border border-border px-2.5 py-1.5 transition-colors hover:bg-secondary/60"
+      >
+        {photo ? (
+          <img src={photo} alt="" className="size-7 rounded-lg object-cover" />
+        ) : (
+          <span className="grid size-7 place-items-center rounded-lg bg-secondary text-[11px] font-black uppercase">
+            {(username ?? "A").slice(0, 2)}
+          </span>
+        )}
+        <span className="leading-tight">
+          <span className="block max-w-28 truncate text-start text-[11px] font-bold">
+            {username ?? t("nav.player")}
+          </span>
+          <span
+            dir="ltr"
+            className="block text-[11px] font-semibold tabular-nums text-primary rtl:text-end"
+          >
+            {formatMoney(balance)}
+          </span>
+        </span>
+      </button>
+
+      {open ? (
+        <div className="absolute end-0 top-full z-50 w-64 pt-2">
+          <div className="panel p-3 shadow-orbit">
+            <div className="flex items-center gap-3">
+              {photo ? (
+                <img src={photo} alt="" className="size-11 rounded-xl object-cover" />
+              ) : (
+                <span className="grid size-11 place-items-center rounded-xl bg-secondary text-sm font-black uppercase">
+                  {(username ?? "A").slice(0, 2)}
+                </span>
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold">{username ?? t("nav.player")}</p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {account.data?.user?.email ?? ""}
+                </p>
+              </div>
+            </div>
+
+            <div className="panel-inset mt-3 space-y-2 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {t("common.balance")}
+                </span>
+                <span dir="ltr" className="font-mono text-sm tabular-nums text-primary">
+                  {formatMoney(balance)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  ID
+                </span>
+                <span dir="ltr" className="font-mono text-xs tabular-nums">
+                  {accountNumber ?? "—"}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-3 grid gap-1">
+              <Link
+                to="/profile"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold transition-colors hover:bg-secondary/60"
+              >
+                <UserRound className="size-4" aria-hidden />
+                {t("nav.profile")}
+              </Link>
+              <Link
+                to="/wallet"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold transition-colors hover:bg-secondary/60"
+              >
+                <Wallet className="size-4" aria-hidden />
+                {t("nav.wallet")}
+              </Link>
+              <button
+                type="button"
+                onClick={() => void supabase.auth.signOut()}
+                className="flex items-center gap-2 rounded-lg px-2 py-2 text-start text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+              >
+                <LogOut className="size-4" aria-hidden />
+                {t("nav.signOut")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 /** Primary product navigation, rendered in both the top bar and the rail. */
 export const topNav = [
@@ -196,7 +318,7 @@ export function AppShell({
     (top, w) => Math.max(top, Number(w.available_amount ?? 0)),
     0,
   );
-  const username = user?.email ? user.email.split("@")[0] : null;
+  const username = user?.email ? (user.email.split("@")[0] ?? null) : null;
 
   return (
     <div
@@ -263,19 +385,7 @@ export function AppShell({
                   {t("nav.deposit")}
                 </Link>
                 <InboxMenu />
-                <div className="hidden items-center gap-2 rounded-xl border border-border px-2.5 py-1.5 sm:flex">
-                  <span className="grid size-7 place-items-center rounded-lg bg-secondary text-[11px] font-black uppercase">
-                    {(username ?? "A").slice(0, 2)}
-                  </span>
-                  <span className="leading-tight">
-                    <span className="block max-w-28 truncate text-[11px] font-bold">
-                      {username ?? t("nav.player")}
-                    </span>
-                    <span dir="ltr" className="block text-[11px] font-semibold tabular-nums text-primary rtl:text-end">
-                      {formatMoney(balance)}
-                    </span>
-                  </span>
-                </div>
+                <AccountMenu username={username} balance={balance} />
               </>
             )}
           </div>
