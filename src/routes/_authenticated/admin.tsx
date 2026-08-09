@@ -23,7 +23,7 @@ import {
   runRiskScan,
 } from "@/lib/admin.functions";
 
-const title = "Back office — Rocket Flight";
+const title = "Back office — AstroBet";
 const description =
   "Operator console for withdrawal approvals, KYC decisions, risk events, support tickets and the audit trail.";
 
@@ -79,7 +79,7 @@ function AdminPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Back office</h1>
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">Back office</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {identity
           ? `Signed in as ${identity.roleKey.replace(/_/g, " ").toLowerCase()} · ${identity.permissions.length} permissions`

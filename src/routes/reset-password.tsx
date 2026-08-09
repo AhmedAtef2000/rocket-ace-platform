@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const title = "Reset password — Rocket Flight";
-const description = "Set a new password for your Rocket Flight account.";
+const title = "Reset password — AstroBet";
+const description = "Set a new password for your AstroBet account.";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({

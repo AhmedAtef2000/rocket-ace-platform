@@ -7,9 +7,9 @@ import { AccountNav } from "@/components/account/AccountNav";
 import { Button } from "@/components/ui/button";
 import { listNotifications, markNotificationsRead } from "@/lib/notifications.functions";
 
-const title = "Notifications — Rocket Flight";
+const title = "Notifications — AstroBet";
 const description =
-  "Deposit confirmations, withdrawal decisions, verification outcomes and support replies for your Rocket Flight account.";
+  "Deposit confirmations, withdrawal decisions, verification outcomes and support replies for your AstroBet account.";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
   head: () => ({
@@ -48,8 +48,8 @@ function NotificationsPage() {
   const unread = (notifications.data ?? []).filter((n) => !n.read_at).length;
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 pb-16 pt-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">Notifications</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {unread > 0 ? `${unread} unread` : "Nothing new right now."}
       </p>

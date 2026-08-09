@@ -8,7 +8,7 @@ import { AccountNav } from "@/components/account/AccountNav";
 import { Button } from "@/components/ui/button";
 import { getComplianceStatus, submitKyc } from "@/lib/compliance.functions";
 
-const title = "Verification & Compliance — Rocket Flight";
+const title = "Verification & Compliance — AstroBet";
 const description =
   "Check your jurisdiction eligibility, age verification and KYC status. Real-money features unlock only once every compliance gate passes.";
 
@@ -61,8 +61,8 @@ function CompliancePage() {
   const kycStatus = data?.kyc?.status ?? "NOT_STARTED";
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">Verification &amp; compliance</h1>
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">Verification &amp; compliance</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Real-money deposits and withdrawals stay locked until every gate below is green. Demo
         play is unaffected.

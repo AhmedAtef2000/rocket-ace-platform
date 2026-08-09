@@ -7,7 +7,7 @@ import { AccountNav } from "@/components/account/AccountNav";
 import { listVerifiableRounds } from "@/lib/fairness.functions";
 import { verifyRevealedRound } from "@/lib/fairness-verify";
 
-const title = "Provably fair verification — Rocket Flight";
+const title = "Provably fair verification — AstroBet";
 const description =
   "Independently recompute every crash multiplier in your browser from the revealed server seed, client seed and nonce.";
 
@@ -55,7 +55,7 @@ function FairnessPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Provably fair verification</h1>
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">Provably fair verification</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         The server seed is hashed and committed before betting opens, then revealed after the
         round settles. Everything below is recomputed in your browser — nothing here trusts our

@@ -16,9 +16,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AccountNav } from "@/components/account/AccountNav";
 
-const title = "Deposits & withdrawals — Rocket Flight";
+const title = "Deposits & withdrawals — AstroBet";
 const description =
-  "Fund your Rocket Flight account with crypto and request payouts, with compliance and responsible-gambling checks on every movement.";
+  "Fund your AstroBet account with crypto and request payouts, with compliance and responsible-gambling checks on every movement.";
 
 export const Route = createFileRoute("/_authenticated/payments")({
   head: () => ({
@@ -127,9 +127,9 @@ function PaymentsPage() {
   const blockedGate = overview.data?.gates?.find((g) => !g.passed);
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10">
-      <div className="mx-auto w-full max-w-2xl">
-        <h1 className="text-2xl font-semibold text-foreground">Deposits &amp; withdrawals</h1>
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
+      <div className="w-full">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">Deposits &amp; withdrawals</h1>
         <AccountNav />
 
         {overview.isPending ? (
@@ -147,7 +147,7 @@ function PaymentsPage() {
               </section>
             )}
 
-            <section className="rounded-lg border border-border p-4">
+            <section className="rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Real-money balances</h2>
               {(overview.data?.wallets ?? []).length === 0 ? (
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -170,7 +170,7 @@ function PaymentsPage() {
               )}
             </section>
 
-            <section className="rounded-lg border border-border p-4">
+            <section className="rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Choose asset &amp; network</h2>
               <div className="mt-3 grid gap-2">
                 <Label htmlFor="network">Asset / network</Label>
@@ -204,7 +204,7 @@ function PaymentsPage() {
               </Button>
             </section>
 
-            <section className="rounded-lg border border-border p-4">
+            <section className="rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Deposits</h2>
               {(overview.data?.deposits ?? []).length === 0 ? (
                 <p className="mt-2 text-sm text-muted-foreground">No deposits yet.</p>
@@ -261,7 +261,7 @@ function PaymentsPage() {
               </p>
             </section>
 
-            <section className="rounded-lg border border-border p-4">
+            <section className="rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Request a withdrawal</h2>
               <div className="mt-3 grid gap-3">
                 <div className="grid gap-2">
@@ -297,7 +297,7 @@ function PaymentsPage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-border p-4">
+            <section className="rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Withdrawal history</h2>
               {(overview.data?.withdrawals ?? []).length === 0 ? (
                 <p className="mt-2 text-sm text-muted-foreground">No withdrawals yet.</p>

@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const title = "Profile — Rocket Flight";
+const title = "Profile — AstroBet";
 const description =
-  "Manage the personal details on your Rocket Flight account: name, contact details, address and identity data used for KYC.";
+  "Manage the personal details on your AstroBet account: name, contact details, address and identity data used for KYC.";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -102,9 +102,9 @@ function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10">
-      <div className="mx-auto w-full max-w-2xl">
-        <h1 className="text-2xl font-semibold text-foreground">Profile</h1>
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
+      <div className="w-full">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">Profile</h1>
         <AccountNav />
 
         {account.isPending ? (
@@ -117,7 +117,7 @@ function ProfilePage() {
               mutation.mutate(form);
             }}
           >
-            <section className="space-y-4 rounded-lg border border-border p-4">
+            <section className="space-y-4 rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Personal details</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -149,7 +149,7 @@ function ProfilePage() {
               </div>
             </section>
 
-            <section className="space-y-4 rounded-lg border border-border p-4">
+            <section className="space-y-4 rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Address</h2>
               <div className="space-y-4">
                 <div className="space-y-2">
