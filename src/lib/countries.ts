@@ -69,11 +69,21 @@ export function dialFor(iso: string): string {
   return countryByIso(iso)?.dial ?? "+1";
 }
 
-/** Strips the dial code (and any leading zeros) so it is never duplicated in the number box. */
+/** Strips a pasted dial code / trunk zero so the code is never duplicated in the number box. */
 export function stripDial(value: string, dial: string): string {
-  let digits = String(value ?? "").replace(/[^\d]/g, "");
+  const raw = String(value ?? "");
+  let digits = raw.replace(/[^\d]/g, "");
   const code = dial.replace(/[^\d]/g, "");
-  while (code && digits.startsWith(code)) digits = digits.slice(code.length);
+  // Only treat a leading dial code as duplicated when a full local number follows,
+  // or when the user explicitly typed it with a leading "+".
+  const typedPlus = raw.trim().startsWith("+");
+  while (
+    code &&
+    digits.startsWith(code) &&
+    (typedPlus || digits.length >= code.length + 7)
+  ) {
+    digits = digits.slice(code.length);
+  }
   return digits.replace(/^0+/, "");
 }
 
