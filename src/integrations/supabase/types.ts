@@ -1127,6 +1127,39 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_settings: {
+        Row: {
+          house_edge_note: string
+          id: boolean
+          logo_url: string | null
+          maintenance_mode: boolean
+          site_name: string
+          support_email: string
+          tagline: string
+          updated_at: string
+        }
+        Insert: {
+          house_edge_note?: string
+          id?: boolean
+          logo_url?: string | null
+          maintenance_mode?: boolean
+          site_name?: string
+          support_email?: string
+          tagline?: string
+          updated_at?: string
+        }
+        Update: {
+          house_edge_note?: string
+          id?: boolean
+          logo_url?: string | null
+          maintenance_mode?: boolean
+          site_name?: string
+          support_email?: string
+          tagline?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       provably_fair_secrets: {
         Row: {
           created_at: string
