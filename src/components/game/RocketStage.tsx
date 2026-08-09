@@ -95,9 +95,9 @@ export function RocketStage({
 
       // Deep space gradient.
       const bg = ctx.createLinearGradient(0, 0, 0, height);
-      bg.addColorStop(0, "rgba(18,10,44,1)");
-      bg.addColorStop(0.55, "rgba(26,13,58,1)");
-      bg.addColorStop(1, "rgba(10,7,26,1)");
+      bg.addColorStop(0, "rgba(8,20,16,1)");
+      bg.addColorStop(0.55, "rgba(10,26,22,1)");
+      bg.addColorStop(1, "rgba(5,12,11,1)");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, width, height);
 
@@ -111,7 +111,7 @@ export function RocketStage({
         Math.max(width, height) * (0.45 + climb * 0.35),
       );
       const heat = p === "crashed" ? 0.45 : 0.18 + climb * 0.35;
-      glow.addColorStop(0, `rgba(${p === "crashed" ? "255,90,60" : "150,90,255"},${heat})`);
+      glow.addColorStop(0, `rgba(${p === "crashed" ? "255,90,60" : "40,230,120"},${heat})`);
       glow.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, width, height);
@@ -155,7 +155,7 @@ export function RocketStage({
             vx: (Math.random() - 0.5) * 0.5,
             vy: 1.6 + Math.random() * 2.4 + climb * 3,
             life: 1,
-            hue: 200 + Math.random() * 90,
+            hue: 120 + Math.random() * 45,
           });
         }
       }
@@ -218,7 +218,7 @@ export function RocketStage({
                 : "Prepping launch"}
         </p>
         <p
-          className={`mt-2 font-display text-6xl font-extrabold tabular-nums drop-shadow-[0_0_28px_rgba(150,90,255,0.55)] sm:text-7xl ${
+          className={`mt-2 font-display text-6xl font-extrabold tabular-nums drop-shadow-[0_0_28px_rgba(40,230,120,0.5)] sm:text-7xl ${
             crashed ? "text-destructive" : "text-thrust"
           }`}
         >
@@ -257,7 +257,7 @@ function drawRocket(
   }
 
   // Fins.
-  ctx.fillStyle = "#8b5cf6";
+  ctx.fillStyle = "#22e06a";
   ctx.beginPath();
   ctx.moveTo(-6, 4);
   ctx.lineTo(-15, 18);
@@ -286,7 +286,7 @@ function drawRocket(
   ctx.fill();
 
   // Nose cone + window.
-  ctx.fillStyle = "#f43f8e";
+  ctx.fillStyle = "#16a34a";
   ctx.beginPath();
   ctx.moveTo(0, -30);
   ctx.quadraticCurveTo(6, -20, 4.5, -14);
@@ -295,7 +295,7 @@ function drawRocket(
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = "#22d3ee";
+  ctx.fillStyle = "#5ef2a0";
   ctx.beginPath();
   ctx.arc(0, -4, 4, 0, Math.PI * 2);
   ctx.fill();

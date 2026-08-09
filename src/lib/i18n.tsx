@@ -17,6 +17,10 @@ export const LANGUAGES = [
 export type Lang = (typeof LANGUAGES)[number]["code"];
 
 const STORAGE_KEY = "astrobet.lang";
+const CURRENCY_KEY = "astrobet.currency";
+
+export const CURRENCIES = ["USD", "EUR", "EGP"] as const;
+export type CurrencyCode = (typeof CURRENCIES)[number];
 
 /** Shared chrome + navigation copy. Missing keys fall back to English. */
 const dictionary = {
@@ -157,6 +161,8 @@ type I18nValue = {
   dir: "ltr" | "rtl";
   locale: string;
   setLang: (lang: Lang) => void;
+  currency: CurrencyCode;
+  setCurrency: (currency: CurrencyCode) => void;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   formatMoney: (amount: number | string, currency?: string) => string;
 };
@@ -169,11 +175,16 @@ function isLang(value: string | null): value is Lang {
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
+  const [currency, setCurrencyState] = useState<CurrencyCode>("USD");
 
   // Read the stored preference after hydration so SSR markup stays stable.
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (isLang(stored)) setLangState(stored);
+    const storedCurrency = window.localStorage.getItem(CURRENCY_KEY);
+    if (storedCurrency && (CURRENCIES as readonly string[]).includes(storedCurrency)) {
+      setCurrencyState(storedCurrency as CurrencyCode);
+    }
   }, []);
 
   const dir = LANGUAGES.find((l) => l.code === lang)?.dir ?? "ltr";
@@ -187,6 +198,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     setLangState(next);
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      /* storage unavailable — preference stays in memory */
+    }
+  }, []);
+
+  const setCurrency = useCallback((next: CurrencyCode) => {
+    setCurrencyState(next);
+    try {
+      window.localStorage.setItem(CURRENCY_KEY, next);
     } catch {
       /* storage unavailable — preference stays in memory */
     }
@@ -206,25 +226,26 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const locale = LOCALES[lang];
 
   const formatMoney = useCallback(
-    (amount: number | string, currency = "USD") => {
+    (amount: number | string, override?: string) => {
+      const code = override ?? currency;
       const value = typeof amount === "string" ? Number(amount) : amount;
       if (!Number.isFinite(value)) return "—";
       try {
         return new Intl.NumberFormat(locale, {
           style: "currency",
-          currency,
+          currency: code,
           maximumFractionDigits: 2,
         }).format(value);
       } catch {
-        return `${value.toFixed(2)} ${currency}`;
+        return `${value.toFixed(2)} ${code}`;
       }
     },
-    [locale],
+    [locale, currency],
   );
 
   const value = useMemo<I18nValue>(
-    () => ({ lang, dir, locale, setLang, t, formatMoney }),
-    [lang, dir, locale, setLang, t, formatMoney],
+    () => ({ lang, dir, locale, setLang, currency, setCurrency, t, formatMoney }),
+    [lang, dir, locale, setLang, currency, setCurrency, t, formatMoney],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
