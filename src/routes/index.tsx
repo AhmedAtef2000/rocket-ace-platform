@@ -337,7 +337,7 @@ function Index() {
           {([
             { k: "home.statRound", v: "~10s" },
             { k: "home.statMax", v: "1000x" },
-            { k: "home.statEdge", v: "1%" },
+            { k: "home.statEdge", v: depositors === null ? "—" : depositors.toLocaleString() },
           ] as { k: TranslationKey; v: string }[]).map((s) => (
             <div key={s.k} className="panel px-4 py-3">
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t(s.k)}</p>
