@@ -35,6 +35,8 @@ export const topUpDemoWallet = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { enforceRateLimit } = await import("@/lib/rate-limit.server");
+    await enforceRateLimit(supabaseAdmin, "wallet.demo_topup", userId);
 
     const { data: user, error: userError } = await supabaseAdmin
       .from("users")

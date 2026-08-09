@@ -73,7 +73,9 @@ export const placeBet = createServerFn({ method: "POST" })
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { tickEngine } = await import("@/lib/game-engine.server");
+    const { enforceRateLimit } = await import("@/lib/rate-limit.server");
 
+    await enforceRateLimit(supabaseAdmin, "bet.place", userId);
     await assertCanPlay(supabaseAdmin, userId);
     const { round } = await tickEngine(supabaseAdmin);
     if (!round || round.status !== "BETTING") {
