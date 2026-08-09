@@ -66,10 +66,23 @@ export function BrandMark() {
   );
 }
 
-function SideNav({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () => void }) {
+/** Sections hidden from signed-out visitors until they log in. */
+const gatedLabels = ["Crash", "Wallet", "Transactions", "Profile", "VIP & Fairness"];
+
+function SideNav({
+  isAdmin,
+  publicView = false,
+  onNavigate,
+}: {
+  isAdmin: boolean;
+  publicView?: boolean;
+  onNavigate?: () => void;
+}) {
   const items = [
-    ...railItems,
-    ...(isAdmin ? ([{ to: "/admin", label: "Back office", icon: ShieldCheck }] as const) : []),
+    ...railItems.filter((item) => !(publicView && gatedLabels.includes(item.label))),
+    ...(isAdmin && !publicView
+      ? ([{ to: "/admin", label: "Back office", icon: ShieldCheck }] as const)
+      : []),
   ];
   return (
     <nav className="flex flex-col gap-0.5" aria-label="Sections">
@@ -255,7 +268,7 @@ export function AppShell({
         <aside className="sticky top-[72px] hidden h-[calc(100vh-88px)] w-60 shrink-0 flex-col justify-between overflow-y-auto panel p-3 lg:flex">
           <div className="space-y-3">
             <BalanceCard balance={balance} publicView={publicView} />
-            <SideNav isAdmin={isAdmin} />
+            <SideNav isAdmin={isAdmin} publicView={publicView} />
           </div>
           {publicView && !username ? null : (
             <button
@@ -290,7 +303,7 @@ export function AppShell({
             <div className="mb-3">
               <BalanceCard balance={balance} publicView={publicView} />
             </div>
-            <SideNav isAdmin={isAdmin} onNavigate={() => setOpen(false)} />
+            <SideNav isAdmin={isAdmin} publicView={publicView} onNavigate={() => setOpen(false)} />
             <div className="mt-3 flex items-center gap-2">
               <LanguageSwitcher />
               <CurrencySwitcher />

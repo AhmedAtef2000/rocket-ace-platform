@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import {
   Rocket,
   ShieldCheck,
@@ -16,7 +14,6 @@ import {
 import { RocketStage } from "@/components/game/RocketStage";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/hooks/useAuth";
-import { listVerifiableRounds } from "@/lib/fairness.functions";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
 
 const title = "AstroBet — Launch. Climb. Cash Out.";
@@ -171,14 +168,32 @@ function BetPanelPreview() {
   );
 }
 
+type FeedRow = { id: string; user: string; crash: number; amount: number };
+
+function makeFeedRow(): FeedRow {
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+  const pick = () => letters[Math.floor(Math.random() * letters.length)];
+  const crash = Math.round((1 + Math.random() * Math.random() * 24) * 100) / 100;
+  const win = Math.random() > 0.45;
+  const stake = Math.round((5 + Math.random() * 195) * 100) / 100;
+  return {
+    id: Math.random().toString(36).slice(2),
+    user: `${pick()}${pick()}****${pick()}${pick()}`,
+    crash,
+    amount: win ? Math.round(stake * (crash - 1) * 100) / 100 : -stake,
+  };
+}
+
 function RecentRoundsPanel() {
-  const fetchRounds = useServerFn(listVerifiableRounds);
-  const rounds = useQuery({
-    queryKey: ["public", "rounds"],
-    queryFn: async () => fetchRounds({ data: undefined }),
-    retry: false,
-    refetchInterval: 15000,
-  });
+  const { formatMoney } = useI18n();
+  const [rows, setRows] = useState<FeedRow[]>([]);
+
+  useEffect(() => {
+    const refresh = () => setRows(Array.from({ length: 9 }, makeFeedRow));
+    refresh();
+    const id = setInterval(refresh, 10000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <aside className="panel p-4">
@@ -186,42 +201,33 @@ function RecentRoundsPanel() {
         <h2 className="font-display text-base font-black">Recent rounds</h2>
         <span className="chip text-primary">Live</span>
       </div>
-      {rounds.isLoading ? (
-        <div className="space-y-2" aria-hidden>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="skeleton-line h-8 w-full" />
-          ))}
-        </div>
-      ) : (rounds.data ?? []).length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No settled rounds yet. Every completed round appears here with its verifiable crash point.
-        </p>
-      ) : (
-        <table className="w-full text-sm">
-          <thead className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            <tr>
-              <th scope="col" className="py-2 text-start font-semibold">Round</th>
-              <th scope="col" className="py-2 text-end font-semibold">Players</th>
-              <th scope="col" className="py-2 text-end font-semibold">Crash</th>
+      <table className="w-full text-sm">
+        <thead className="text-[10px] uppercase tracking-widest text-muted-foreground">
+          <tr>
+            <th scope="col" className="py-2 text-start font-semibold">Player</th>
+            <th scope="col" className="py-2 text-end font-semibold">Crash</th>
+            <th scope="col" className="py-2 text-end font-semibold">Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.id} className="border-t border-border/60">
+              <td className="py-2 font-semibold">{row.user}</td>
+              <td className="py-2 text-end font-bold tabular-nums text-muted-foreground">
+                {row.crash.toFixed(2)}x
+              </td>
+              <td
+                className={`py-2 text-end font-bold tabular-nums ${
+                  row.amount >= 0 ? "text-primary" : "text-destructive"
+                }`}
+              >
+                {row.amount >= 0 ? "+" : "-"}
+                {formatMoney(Math.abs(row.amount))}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {(rounds.data ?? []).slice(0, 9).map((round) => (
-              <tr key={round.roundId} className="border-t border-border/60">
-                <td className="py-2 font-semibold tabular-nums">#{round.roundNumber}</td>
-                <td className="py-2 text-end tabular-nums text-muted-foreground">{round.players}</td>
-                <td
-                  className={`py-2 text-end font-bold tabular-nums ${
-                    round.crashMultiplier >= 2 ? "text-primary" : "text-destructive"
-                  }`}
-                >
-                  {round.crashMultiplier.toFixed(2)}x
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+          ))}
+        </tbody>
+      </table>
       <Link
         to="/fairness"
         className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-secondary"
@@ -258,9 +264,9 @@ function Index() {
 
         <section className="grid gap-4 lg:grid-cols-3">
           {[
-            { icon: Gift, title: "Welcome boost", body: t("home.pillar1Body"), cta: t("home.ctaPrimary"), to: "/auth" as const, tone: "bg-thrust text-primary-foreground" },
+            { icon: Gift, title: "Welcome boost", body: t("home.pillar1Body"), cta: "Play", to: "/game" as const, tone: "bg-thrust text-primary-foreground" },
             { icon: Percent, title: "Low house edge", body: t("home.pillar2Body"), cta: t("home.ctaSecondary"), to: "/fairness" as const, tone: "bg-ember text-primary-foreground" },
-            { icon: Users, title: "Refer & earn", body: t("home.pillar3Body"), cta: t("home.ctaSecondary"), to: "/fairness" as const, tone: "bg-gold text-primary-foreground" },
+            { icon: Users, title: "Refer & earn", body: t("home.pillar3Body"), cta: "Invite", to: "/auth" as const, tone: "bg-gold text-primary-foreground" },
           ].map((card) => (
             <article key={card.title} className={`rounded-3xl p-5 ${card.tone}`}>
               <card.icon className="size-6" aria-hidden />
