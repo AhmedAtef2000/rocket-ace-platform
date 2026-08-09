@@ -4,8 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { getUserManagement, updateProfile } from "@/lib/user.functions";
+import { getProfileOverview, getUserManagement, updateProfile } from "@/lib/user.functions";
 import { AccountNav } from "@/components/account/AccountNav";
+import { ProfileOverview } from "@/components/account/ProfileOverview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,12 +59,18 @@ function ProfilePage() {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const fetchAll = useServerFn(getUserManagement);
+  const fetchOverview = useServerFn(getProfileOverview);
   const save = useServerFn(updateProfile);
   const [form, setForm] = useState<FormState>(empty);
 
   const account = useQuery({
     queryKey: ["user-management"],
     queryFn: async () => fetchAll({ data: undefined }),
+  });
+
+  const overview = useQuery({
+    queryKey: ["profile-overview"],
+    queryFn: async () => fetchOverview({ data: undefined }),
   });
 
   useEffect(() => {
@@ -110,8 +117,12 @@ function ProfilePage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
       <div className="w-full">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("acct.profile.title")}</h1>
+        <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight">
+          {t("acct.profile.title")}
+        </h1>
         <AccountNav />
+
+        <ProfileOverview data={overview.data ?? null} />
 
         {account.isPending ? (
           <p className="mt-6 text-sm text-muted-foreground">{t("acct.profile.loading")}</p>
