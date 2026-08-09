@@ -27,7 +27,7 @@ export const getPaymentsOverview = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("deposits")
         .select(
-          "id, currency, network, status, deposit_address, requested_amount, confirmed_amount, confirmations, required_confirmations, created_at",
+          "id, currency, network, status, deposit_address, requested_amount, confirmed_amount, confirmations, required_confirmations, provider_transaction_id, created_at, updated_at, confirmed_at",
         )
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
@@ -35,7 +35,7 @@ export const getPaymentsOverview = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("withdrawals")
         .select(
-          "id, currency, network, amount, fee_amount, destination_address, status, risk_status, approvals_required, approvals_count, failure_reason, requested_at",
+          "id, currency, network, amount, fee_amount, destination_address, status, risk_status, approvals_required, approvals_count, failure_reason, provider_transaction_id, requested_at, updated_at, processed_at, completed_at",
         )
         .eq("user_id", userId)
         .order("requested_at", { ascending: false })
