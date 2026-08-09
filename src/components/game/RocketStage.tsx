@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { formatMultiplier } from "@/lib/game-math";
+import { useI18n } from "@/lib/i18n";
 
 type Phase = "idle" | "betting" | "running" | "crashed";
 
@@ -30,6 +31,7 @@ export function RocketStage({
   countdownLabel?: string;
   secondsLeft?: number | null;
 }) {
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stateRef = useRef({ phase, multiplier });
   stateRef.current = { phase, multiplier };
@@ -326,6 +328,7 @@ export function RocketStage({
 }
 
 function CountdownRing({ seconds }: { seconds: number | null }) {
+  const { t } = useI18n();
   const total = 10;
   const value = seconds === null ? total : Math.max(0, Math.min(total, seconds));
   const ticks = 40;
