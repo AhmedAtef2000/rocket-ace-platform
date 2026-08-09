@@ -30,15 +30,18 @@ export function maskPlayer(handle: string): string {
   return `****${tail}`;
 }
 
-function makeEntry(): Entry {
-  const handle = HANDLES[Math.floor(Math.random() * HANDLES.length)]!;
-  const bet = Math.round((5 + Math.random() * 245) * 100) / 100;
-  const won = Math.random() > 0.42;
+function makeEntry(seed?: number): Entry {
+  // Deterministic when a seed is supplied so SSR and hydration agree.
+  const r = (n: number) =>
+    seed === undefined ? Math.random() : ((Math.sin(seed * 97.3 + n * 12.9898) + 1) / 2) % 1;
+  const handle = HANDLES[Math.floor(r(1) * HANDLES.length)]!;
+  const bet = Math.round((5 + r(2) * 245) * 100) / 100;
+  const won = r(3) > 0.42;
   const multiplier = won
-    ? Math.round((1.05 + Math.random() * 8) * 100) / 100
-    : Math.round((1 + Math.random() * 2) * 100) / 100;
+    ? Math.round((1.05 + r(4) * 8) * 100) / 100
+    : Math.round((1 + r(5) * 2) * 100) / 100;
   return {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: seed === undefined ? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` : `s${seed}`,
     player: maskPlayer(handle),
     bet,
     multiplier,
@@ -48,7 +51,7 @@ function makeEntry(): Entry {
 }
 
 export function LiveActivityFeed() {
-  const initial = useMemo(() => Array.from({ length: 8 }, makeEntry), []);
+  const initial = useMemo(() => Array.from({ length: 8 }, (_, i) => makeEntry(i + 1)), []);
   const [rows, setRows] = useState<Entry[]>(initial);
 
   useEffect(() => {
