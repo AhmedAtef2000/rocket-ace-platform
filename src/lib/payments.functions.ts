@@ -62,6 +62,8 @@ export const createDeposit = createServerFn({ method: "POST" })
     } = await import("@/lib/payments.server");
     const userId = context.userId;
 
+    const { enforceRateLimit } = await import("@/lib/rate-limit.server");
+    await enforceRateLimit(supabaseAdmin, "deposit.create", userId);
     await assertRealMoneyEligible(supabaseAdmin, userId);
     await assertNotRestricted(supabaseAdmin, userId);
     const network = await requireNetwork(supabaseAdmin, data.currency, data.network);
@@ -124,6 +126,9 @@ export const simulateDepositCredit = createServerFn({ method: "POST" })
     );
     const userId = context.userId;
 
+    const { enforceRateLimit } = await import("@/lib/rate-limit.server");
+    await enforceRateLimit(supabaseAdmin, "deposit.simulate", userId);
+
     const { data: deposit, error } = await supabaseAdmin
       .from("deposits")
       .select("id, user_id, provider, currency, network, status, required_confirmations")
@@ -177,6 +182,8 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
     } = await import("@/lib/payments.server");
     const userId = context.userId;
 
+    const { enforceRateLimit } = await import("@/lib/rate-limit.server");
+    await enforceRateLimit(supabaseAdmin, "withdrawal.request", userId);
     await assertRealMoneyEligible(supabaseAdmin, userId);
     await assertNotRestricted(supabaseAdmin, userId);
     const network = await requireNetwork(supabaseAdmin, data.currency, data.network);

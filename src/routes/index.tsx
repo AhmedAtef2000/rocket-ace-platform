@@ -36,6 +36,7 @@ const phases: { label: string; state: "done" | "next" | "planned" }[] = [
   { label: "Phase 15 — Admin RBAC back office", state: "done" },
   { label: "Phase 16 — Analytics & reporting", state: "done" },
   { label: "Phase 17 — Player fairness verifier", state: "done" },
+  { label: "Phase 18 — Security hardening (rate limits, headers)", state: "done" },
 ];
 
 const guarantees = [

@@ -1052,6 +1052,27 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          bucket_key: string
+          hits: number
+          updated_at: string
+          window_started_at: string
+        }
+        Insert: {
+          bucket_key: string
+          hits?: number
+          updated_at?: string
+          window_started_at?: string
+        }
+        Update: {
+          bucket_key?: string
+          hits?: number
+          updated_at?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
       responsible_gambling_events: {
         Row: {
           created_at: string
@@ -1690,6 +1711,14 @@ export type Database = {
           _wallet_id: string
         }
         Returns: string
+      }
+      rl_consume: {
+        Args: { _key: string; _limit: number; _window_seconds: number }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after_seconds: number
+        }[]
       }
       wallet_ledger_drift: {
         Args: never

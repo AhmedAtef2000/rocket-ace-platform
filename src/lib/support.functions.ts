@@ -38,6 +38,8 @@ export const createTicket = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { priorityFor, ticketReference } = await import("@/lib/support.server");
+    const { enforceRateLimit } = await import("@/lib/rate-limit.server");
+    await enforceRateLimit(supabaseAdmin, "support.ticket", context.userId);
     const { audit } = await import("@/lib/user-management.server");
 
     const { count } = await supabaseAdmin
@@ -88,6 +90,8 @@ export const replyToTicket = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => parseMessageInput(data))
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { enforceRateLimit } = await import("@/lib/rate-limit.server");
+    await enforceRateLimit(supabaseAdmin, "support.reply", context.userId);
 
     const { data: ticket, error } = await supabaseAdmin
       .from("support_tickets")
