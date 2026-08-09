@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -900,6 +900,13 @@ function UsersSection({ canManage }: { canManage: boolean }) {
                 ID: {u.accountNumber ?? "—"} · {u.id}
               </span>
             </button>
+            <Link
+              to="/admin/users/$userId"
+              params={{ userId: u.id }}
+              className="mt-1 inline-block text-xs font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              {t("u360.viewUser")}
+            </Link>
           </li>
         ))}
         {results.data && results.data.length === 0 ? (

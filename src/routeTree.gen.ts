@@ -27,6 +27,7 @@ import { Route as ApiPublicGameConfigRouteImport } from './routes/api/public/gam
 import { Route as ApiPublicGeoRouteImport } from './routes/api/public/geo'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
+import { Route as AuthenticatedAdminUsersUserIdRouteImport } from './routes/_authenticated/admin_.users.$userId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -119,6 +120,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAdminUsersUserIdRoute =
+  AuthenticatedAdminUsersUserIdRouteImport.update({
+    id: '/admin_/users/$userId',
+    path: '/admin/users/$userId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/api/public/geo': typeof ApiPublicGeoRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/admin/users/$userId': typeof AuthenticatedAdminUsersUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -157,6 +165,7 @@ export interface FileRoutesByTo {
   '/api/public/geo': typeof ApiPublicGeoRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/admin/users/$userId': typeof AuthenticatedAdminUsersUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -178,6 +187,7 @@ export interface FileRoutesById {
   '/api/public/geo': typeof ApiPublicGeoRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/_authenticated/admin_/users/$userId': typeof AuthenticatedAdminUsersUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/api/public/geo'
     | '/api/public/health'
     | '/api/public/payments-webhook'
+    | '/admin/users/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/api/public/geo'
     | '/api/public/health'
     | '/api/public/payments-webhook'
+    | '/admin/users/$userId'
   id:
     | '__root__'
     | '/'
@@ -238,6 +250,7 @@ export interface FileRouteTypes {
     | '/api/public/geo'
     | '/api/public/health'
     | '/api/public/payments-webhook'
+    | '/_authenticated/admin_/users/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -379,6 +392,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin_/users/$userId': {
+      id: '/_authenticated/admin_/users/$userId'
+      path: '/admin/users/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AuthenticatedAdminUsersUserIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -393,6 +413,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
+  AuthenticatedAdminUsersUserIdRoute: typeof AuthenticatedAdminUsersUserIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -406,6 +427,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
+  AuthenticatedAdminUsersUserIdRoute: AuthenticatedAdminUsersUserIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
