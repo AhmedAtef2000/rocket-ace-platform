@@ -25,32 +25,32 @@ import { supabase } from "@/integrations/supabase/client";
 import { InboxMenu } from "@/components/layout/InboxMenu";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { CurrencySwitcher } from "@/components/layout/CurrencySwitcher";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type TranslationKey } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { getAdminSession } from "@/lib/admin.functions";
 import { getWallets } from "@/lib/wallet.functions";
 
 /** Primary product navigation, rendered in both the top bar and the rail. */
 export const topNav = [
-  { to: "/", label: "Home" },
-  { to: "/game", label: "Crash" },
-  { to: "/wallet", label: "Wallet" },
-  { to: "/payments", label: "Transactions" },
-  { to: "/fairness", label: "Fairness" },
-  { to: "/support", label: "Support" },
-] as const;
+  { to: "/", label: "Home", key: "nav.home" },
+  { to: "/game", label: "Crash", key: "nav.crash" },
+  { to: "/wallet", label: "Wallet", key: "nav.wallet" },
+  { to: "/payments", label: "Transactions", key: "nav.transactions" },
+  { to: "/fairness", label: "Fairness", key: "nav.fairness" },
+  { to: "/support", label: "Support", key: "nav.support" },
+] as const satisfies readonly { to: string; label: string; key: TranslationKey }[];
 
 const railItems = [
-  { to: "/account", label: "Overview", icon: LayoutGrid },
-  { to: "/game", label: "Crash", icon: Rocket },
-  { to: "/wallet", label: "Wallet", icon: Wallet },
-  { to: "/payments", label: "Transactions", icon: Receipt },
-  { to: "/profile", label: "Profile", icon: UserRound },
-  { to: "/compliance", label: "Verification", icon: BadgeCheck },
-  { to: "/notifications", label: "Messages", icon: MailOpen },
-  { to: "/security", label: "Settings", icon: Settings },
-  { to: "/fairness", label: "VIP & Fairness", icon: Crown },
-  { to: "/support", label: "Help & Support", icon: LifeBuoy },
+  { to: "/account", label: "Overview", key: "nav.overview", icon: LayoutGrid },
+  { to: "/game", label: "Crash", key: "nav.crash", icon: Rocket },
+  { to: "/wallet", label: "Wallet", key: "nav.wallet", icon: Wallet },
+  { to: "/payments", label: "Transactions", key: "nav.transactions", icon: Receipt },
+  { to: "/profile", label: "Profile", key: "nav.profile", icon: UserRound },
+  { to: "/compliance", label: "Verification", key: "nav.verification", icon: BadgeCheck },
+  { to: "/notifications", label: "Messages", key: "nav.messages", icon: MailOpen },
+  { to: "/security", label: "Settings", key: "nav.settings", icon: Settings },
+  { to: "/fairness", label: "VIP & Fairness", key: "nav.vipFairness", icon: Crown },
+  { to: "/support", label: "Help & Support", key: "nav.helpSupport", icon: LifeBuoy },
 ] as const;
 
 export function BrandMark() {
@@ -87,10 +87,11 @@ function SideNav({
   publicView?: boolean;
   onNavigate?: () => void;
 }) {
+  const { t } = useI18n();
   const items = [
     ...railItems.filter((item) => !(publicView && gatedLabels.includes(item.label))),
     ...(isAdmin && !publicView
-      ? ([{ to: "/admin", label: "Back office", icon: ShieldCheck }] as const)
+      ? ([{ to: "/admin", label: "Back office", key: "nav.backOffice", icon: ShieldCheck }] as const)
       : []),
   ];
   return (
@@ -108,7 +109,7 @@ function SideNav({
           activeOptions={{ exact: false }}
         >
           <item.icon className="size-5 shrink-0" aria-hidden />
-          <span className="truncate">{item.label}</span>
+          <span className="truncate">{t(item.key)}</span>
         </Link>
       ))}
     </nav>
@@ -122,12 +123,12 @@ function BalanceCard({ balance, publicView }: { balance: number; publicView: boo
       <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
         {t("common.balance")}
       </p>
-      <p className="mt-1 font-display text-2xl font-black tabular-nums text-primary">
+      <p dir="ltr" className="mt-1 font-display text-2xl font-black tabular-nums text-primary rtl:text-end">
         {publicView ? formatMoney(0) : formatMoney(balance)}
       </p>
       {publicView ? (
         <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
-          Sign in to fund your account
+          {t("nav.signInToFund")}
         </p>
       ) : null}
       <div className="mt-3 grid gap-2">
@@ -136,14 +137,14 @@ function BalanceCard({ balance, publicView }: { balance: number; publicView: boo
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-thrust px-3 py-2 text-xs font-bold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.02]"
         >
           <ArrowDownToLine className="size-4" aria-hidden />
-          Deposit
+          {t("nav.deposit")}
         </Link>
         <Link
           to={publicView ? "/auth" : "/wallet"}
           className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary/50 px-3 py-2 text-xs font-bold transition-colors hover:bg-secondary"
         >
           <ArrowUpFromLine className="size-4" aria-hidden />
-          Withdraw
+          {t("nav.withdraw")}
         </Link>
       </div>
     </div>
@@ -216,7 +217,7 @@ export function AppShell({
                 activeProps={{ className: "nav-pill nav-pill-active" }}
                 activeOptions={{ exact: item.to === "/" }}
               >
-                {item.label}
+                {t(item.key)}
               </Link>
             ))}
           </nav>
@@ -251,7 +252,7 @@ export function AppShell({
                   to="/payments"
                   className="rounded-xl bg-thrust px-4 py-2 text-xs font-bold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.03]"
                 >
-                  Deposit
+                  {t("nav.deposit")}
                 </Link>
                 <InboxMenu />
                 <div className="hidden items-center gap-2 rounded-xl border border-border px-2.5 py-1.5 sm:flex">
@@ -260,9 +261,9 @@ export function AppShell({
                   </span>
                   <span className="leading-tight">
                     <span className="block max-w-28 truncate text-[11px] font-bold">
-                      {username ?? "Player"}
+                      {username ?? t("nav.player")}
                     </span>
-                    <span className="block text-[11px] font-semibold tabular-nums text-primary">
+                    <span dir="ltr" className="block text-[11px] font-semibold tabular-nums text-primary rtl:text-end">
                       {formatMoney(balance)}
                     </span>
                   </span>

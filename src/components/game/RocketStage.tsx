@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { formatMultiplier } from "@/lib/game-math";
+import { useI18n } from "@/lib/i18n";
 
 type Phase = "idle" | "betting" | "running" | "crashed";
 
@@ -30,6 +31,7 @@ export function RocketStage({
   countdownLabel?: string;
   secondsLeft?: number | null;
 }) {
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stateRef = useRef({ phase, multiplier });
   stateRef.current = { phase, multiplier };
@@ -297,15 +299,16 @@ export function RocketStage({
 
       {/* Countdown dial — top-left, like the reference launch console. */}
       {phase === "betting" ? (
-        <div className="pointer-events-none absolute left-4 top-4 w-[168px] rounded-2xl border border-border/70 bg-background/70 p-4 text-center backdrop-blur-md sm:left-6 sm:top-6">
+        <div className="pointer-events-none absolute start-4 top-4 w-[168px] rounded-2xl border border-border/70 bg-background/70 p-4 text-center backdrop-blur-md sm:start-6 sm:top-6">
           <CountdownRing seconds={secondsLeft ?? null} />
-          <p className="mt-2 text-xs font-bold text-primary">Place your bet</p>
+          <p className="mt-2 text-xs font-bold text-primary">{t("game.placeBet")}</p>
         </div>
       ) : null}
 
       {/* Multiplier — right side, big and legible over the plume. */}
-      <div className="pointer-events-none absolute inset-y-0 right-4 flex flex-col items-end justify-center text-right sm:right-10">
+      <div className="pointer-events-none absolute inset-y-0 end-4 flex flex-col items-end justify-center text-end sm:end-10">
         <p
+          dir="ltr"
           className={`font-display text-5xl font-black tabular-nums drop-shadow-[0_0_32px_rgba(40,230,120,0.45)] sm:text-7xl ${
             crashed ? "text-destructive" : "text-foreground"
           }`}
@@ -314,10 +317,10 @@ export function RocketStage({
         </p>
         <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
           {phase === "running"
-            ? "Current multiplier"
+            ? t("game.currentMultiplier")
             : crashed
-              ? "Crashed"
-              : (countdownLabel ?? "Current multiplier")}
+              ? t("game.crashed")
+              : (countdownLabel ?? t("game.currentMultiplier"))}
         </p>
       </div>
     </div>
@@ -325,6 +328,7 @@ export function RocketStage({
 }
 
 function CountdownRing({ seconds }: { seconds: number | null }) {
+  const { t } = useI18n();
   const total = 10;
   const value = seconds === null ? total : Math.max(0, Math.min(total, seconds));
   const ticks = 40;
@@ -354,9 +358,9 @@ function CountdownRing({ seconds }: { seconds: number | null }) {
         })}
       </svg>
       <div className="text-center leading-none">
-        <p className="text-[10px] font-semibold text-muted-foreground">Next round in</p>
+        <p className="text-[10px] font-semibold text-muted-foreground">{t("game.nextRoundIn")}</p>
         <p className="font-display text-3xl font-black tabular-nums text-foreground">{value}</p>
-        <p className="text-[10px] font-bold tracking-widest text-muted-foreground">SEC</p>
+        <p className="text-[10px] font-bold tracking-widest text-muted-foreground">{t("game.sec")}</p>
       </div>
     </div>
   );
