@@ -107,6 +107,95 @@ export function parseWithdrawalInput(data: unknown): {
 }
 
 export async function listNetworks(admin: Admin): Promise<NetworkOption[]> {
+  return listNetworksImpl(admin);
+}
+
+export function parseManualDepositInput(data: unknown): {
+  method: ManualMethodId;
+  currency: string;
+  amount: number;
+  senderNumber: string;
+  reference: string | null;
+  fileName: string;
+  mimeType: string;
+  contentBase64: string;
+} {
+  const d = (data ?? {}) as Record<string, unknown>;
+  const method = String(d["method"] ?? "").toUpperCase() as ManualMethodId;
+  if (!MANUAL_METHODS.some((m) => m.id === method)) throw new Error("Choose a payment method.");
+  const currency = String(d["currency"] ?? "").toUpperCase();
+  if (!currency) throw new Error("Choose a currency.");
+  const amount = Number(d["amount"]);
+  if (!Number.isFinite(amount) || amount < MIN_DEPOSIT_AMOUNT) {
+    throw new Error(`The minimum deposit is ${MIN_DEPOSIT_AMOUNT}.`);
+  }
+  const senderNumber = String(d["senderNumber"] ?? "").trim();
+  if (senderNumber.length < 6 || senderNumber.length > 32) {
+    throw new Error("Enter the phone number you sent the payment from.");
+  }
+  const referenceRaw = String(d["reference"] ?? "").trim();
+  const fileName = String(d["fileName"] ?? "").trim();
+  const mimeType = String(d["mimeType"] ?? "").trim();
+  const contentBase64 = String(d["contentBase64"] ?? "");
+  if (!fileName || !contentBase64) throw new Error("Attach a screenshot of the transfer.");
+  if (!/^(image\/(png|jpe?g|webp)|application\/pdf)$/.test(mimeType)) {
+    throw new Error("Upload a JPG, PNG, WEBP or PDF file.");
+  }
+  return {
+    method,
+    currency,
+    amount,
+    senderNumber,
+    reference: referenceRaw ? referenceRaw.slice(0, 120) : null,
+    fileName: fileName.slice(0, 160),
+    mimeType,
+    contentBase64,
+  };
+}
+
+export type PlaythroughStatus = {
+  deposited: number;
+  wagered: number;
+  required: number;
+  remaining: number;
+  cleared: boolean;
+};
+
+/**
+ * AML playthrough: funds must be wagered at least once before they can leave
+ * the platform, so the wallet cannot be used as a pass-through for value.
+ */
+export async function playthroughStatus(
+  admin: Admin,
+  userId: string,
+): Promise<PlaythroughStatus> {
+  const [{ data: deposits }, { data: bets }] = await Promise.all([
+    admin
+      .from("deposits")
+      .select("confirmed_amount")
+      .eq("user_id", userId)
+      .eq("status", "CONFIRMED"),
+    admin.from("bets").select("amount, kind, status").eq("user_id", userId),
+  ]);
+  const deposited = (deposits ?? []).reduce((s, d) => s + toNumber(d.confirmed_amount), 0);
+  const wagered = (bets ?? [])
+    .filter((b) => b.kind === "REAL" && b.status !== "REFUNDED" && b.status !== "CANCELLED")
+    .reduce((s, b) => s + toNumber(b.amount), 0);
+  const required = Number((deposited * PLAYTHROUGH_RATE).toFixed(8));
+  const remaining = Math.max(0, Number((required - wagered).toFixed(8)));
+  return { deposited, wagered, required, remaining, cleared: remaining <= 0 };
+}
+
+export async function assertPlaythrough(admin: Admin, userId: string): Promise<void> {
+  const status = await playthroughStatus(admin, userId);
+  if (!status.cleared) {
+    throw new Error(
+      `Anti-money-laundering rules require you to wager your deposits once before withdrawing. ${status.remaining.toLocaleString()} of play remains.`,
+    );
+  }
+}
+
+async function listNetworksImpl(admin: Admin): Promise<NetworkOption[]> {
   const [{ data: nets, error }, { data: currencies }] = await Promise.all([
     admin
       .from("currency_networks")
