@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { provisionAccount } from "@/lib/account.functions";
+import { AppShell } from "@/components/layout/AppShell";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -12,5 +13,9 @@ export const Route = createFileRoute("/_authenticated")({
     await provisionAccount({ data: undefined });
     return { user: data.user };
   },
-  component: () => <Outlet />,
+  component: () => (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  ),
 });
