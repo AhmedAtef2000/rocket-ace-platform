@@ -557,3 +557,428 @@ function AnalyticsSection() {
     </section>
   );
 }
+
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label className="block text-sm">
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
+      <input
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+      />
+    </label>
+  );
+}
+
+function SettingsSection() {
+  const queryClient = useQueryClient();
+  const fetchSettings = useServerFn(getPlatformSettings);
+  const save = useServerFn(updatePlatformSettings);
+  const [form, setForm] = useState<Record<string, string>>({});
+  const [maintenance, setMaintenance] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  const settings = useQuery({
+    queryKey: ["admin", "settings"],
+    queryFn: async () => fetchSettings({ data: undefined }),
+  });
+
+  if (settings.data && !loaded) {
+    setLoaded(true);
+    setForm({
+      siteName: settings.data.site_name,
+      tagline: settings.data.tagline,
+      logoUrl: settings.data.logo_url ?? "",
+      supportEmail: settings.data.support_email,
+      houseEdgeNote: settings.data.house_edge_note,
+    });
+    setMaintenance(settings.data.maintenance_mode);
+  }
+
+  const mutation = useMutation({
+    mutationFn: async () => save({ data: { ...form, maintenanceMode: maintenance } }),
+    onSuccess: () => {
+      toast.success("Settings saved");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "settings"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const set = (key: string) => (value: string) => setForm((p) => ({ ...p, [key]: value }));
+
+  return (
+    <section>
+      <h2 className="text-lg font-medium">System settings</h2>
+      <div className="mt-4 grid gap-3 rounded-xl border border-border p-5 sm:grid-cols-2">
+        <Field label="Site name" value={form["siteName"] ?? ""} onChange={set("siteName")} />
+        <Field label="Support email" value={form["supportEmail"] ?? ""} onChange={set("supportEmail")} />
+        <Field label="Tagline" value={form["tagline"] ?? ""} onChange={set("tagline")} />
+        <Field
+          label="Logo URL"
+          value={form["logoUrl"] ?? ""}
+          onChange={set("logoUrl")}
+          placeholder="https://…/logo.png"
+        />
+        <Field
+          label="Base rules note"
+          value={form["houseEdgeNote"] ?? ""}
+          onChange={set("houseEdgeNote")}
+        />
+        <label className="flex items-center gap-2 self-end text-sm">
+          <input
+            type="checkbox"
+            checked={maintenance}
+            onChange={(e) => setMaintenance(e.target.checked)}
+          />
+          Maintenance mode
+        </label>
+        <div className="sm:col-span-2">
+          <Button disabled={mutation.isPending} onClick={() => mutation.mutate()}>
+            {mutation.isPending ? "Saving…" : "Save settings"}
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const STATUSES = ["ACTIVE", "RESTRICTED", "SUSPENDED", "CLOSED"] as const;
+
+function UsersSection({ canManage }: { canManage: boolean }) {
+  const queryClient = useQueryClient();
+  const search = useServerFn(searchUsers);
+  const dossier = useServerFn(getUserDossier);
+  const setStatus = useServerFn(setUserStatus);
+  const updateProfile = useServerFn(adminUpdateUserProfile);
+  const reviewDoc = useServerFn(decideKycDocument);
+
+  const [term, setTerm] = useState("");
+  const [selected, setSelected] = useState<string | null>(null);
+  const [edit, setEdit] = useState<Record<string, string>>({});
+  const [note, setNote] = useState("");
+
+  const results = useMutation({
+    mutationFn: async () => search({ data: { query: term } }),
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const detail = useQuery({
+    queryKey: ["admin", "user", selected],
+    queryFn: async () => dossier({ data: { userId: selected! } }),
+    enabled: !!selected,
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: async (status: string) => setStatus({ data: { userId: selected, status, note } }),
+    onSuccess: () => {
+      toast.success("Status updated");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "user"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const profileMutation = useMutation({
+    mutationFn: async () => updateProfile({ data: { userId: selected, ...edit } }),
+    onSuccess: () => {
+      toast.success("Profile updated");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "user"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const docMutation = useMutation({
+    mutationFn: async (input: { id: string; decision: "APPROVED" | "REJECTED" }) =>
+      reviewDoc({ data: input }),
+    onSuccess: () => {
+      toast.success("Document reviewed");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "user"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const d = detail.data;
+
+  return (
+    <section>
+      <h2 className="text-lg font-medium">User management</h2>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <input
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder="Search by user ID, email, phone or name"
+          className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
+        />
+        <Button disabled={results.isPending} onClick={() => results.mutate()}>
+          Search
+        </Button>
+      </div>
+
+      <ul className="mt-3 space-y-2 text-sm">
+        {(results.data ?? []).map((u) => (
+          <li key={u.id}>
+            <button
+              onClick={() => {
+                setSelected(u.id);
+                setEdit({});
+              }}
+              className={`w-full rounded-xl border px-3 py-2 text-left ${selected === u.id ? "border-primary" : "border-border"}`}
+            >
+              <span className="font-medium">{u.email}</span>
+              <span className="ml-2 text-xs text-muted-foreground">
+                {[u.firstName, u.lastName].filter(Boolean).join(" ") || "No name"} · {u.phone ?? "no phone"} ·{" "}
+                {u.status}
+              </span>
+              <span className="block font-mono text-[11px] text-muted-foreground">{u.id}</span>
+            </button>
+          </li>
+        ))}
+        {results.data && results.data.length === 0 ? (
+          <li className="text-sm text-muted-foreground">No accounts matched.</li>
+        ) : null}
+      </ul>
+
+      {d ? (
+        <div className="mt-5 space-y-4 rounded-xl border border-border p-5 text-sm">
+          <div>
+            <p className="font-medium">{d.user.email}</p>
+            <p className="text-xs text-muted-foreground">
+              {d.user.status} · joined {new Date(d.user.created_at).toLocaleDateString()} · last login{" "}
+              {d.user.last_login_at ? new Date(d.user.last_login_at).toLocaleString() : "never"}
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-4">
+            <Metric label="Bets" value={d.stats.bets} />
+            <Metric label="Wagered" value={fmt(d.stats.wagered)} />
+            <Metric label="Returned" value={fmt(d.stats.returned)} />
+            <Metric label="Net" value={fmt(d.stats.net)} />
+          </div>
+
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Wallets</p>
+            <ul className="mt-2 space-y-1">
+              {d.wallets.map((w) => (
+                <li key={w.id}>
+                  {w.currency} {w.kind} · available {fmt(Number(w.available_amount))} · locked{" "}
+                  {fmt(Number(w.locked_amount))} · {w.status}
+                </li>
+              ))}
+              {d.wallets.length === 0 ? <li className="text-muted-foreground">No wallets.</li> : null}
+            </ul>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Recent bets</p>
+              <ul className="mt-2 space-y-1">
+                {d.bets.slice(0, 8).map((b) => (
+                  <li key={b.id}>
+                    {fmt(Number(b.amount))} → {fmt(Number(b.payout_amount ?? 0))} · {b.status}
+                  </li>
+                ))}
+                {d.bets.length === 0 ? <li className="text-muted-foreground">No bets.</li> : null}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Money movement</p>
+              <ul className="mt-2 space-y-1">
+                {d.deposits.slice(0, 5).map((x) => (
+                  <li key={x.id}>
+                    Deposit {fmt(Number(x.confirmed_amount ?? x.requested_amount ?? 0))} {x.currency} ·{" "}
+                    {x.status}
+                  </li>
+                ))}
+                {d.withdrawals.slice(0, 5).map((x) => (
+                  <li key={x.id}>
+                    Payout {fmt(Number(x.amount))} {x.currency} · {x.status}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">KYC documents</p>
+            <ul className="mt-2 space-y-2">
+              {d.documents.map((doc) => (
+                <li key={doc.id} className="flex flex-wrap items-center gap-2">
+                  <span>
+                    {doc.docType} · {doc.status}
+                  </span>
+                  {doc.url ? (
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary underline"
+                    >
+                      View file
+                    </a>
+                  ) : null}
+                  <Button
+                    size="sm"
+                    onClick={() => docMutation.mutate({ id: doc.id, decision: "APPROVED" })}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => docMutation.mutate({ id: doc.id, decision: "REJECTED" })}
+                  >
+                    Reject
+                  </Button>
+                </li>
+              ))}
+              {d.documents.length === 0 ? (
+                <li className="text-muted-foreground">No documents uploaded.</li>
+              ) : null}
+            </ul>
+          </div>
+
+          {canManage ? (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  label="First name"
+                  value={edit["firstName"] ?? d.profile?.first_name ?? ""}
+                  onChange={(v) => setEdit((p) => ({ ...p, firstName: v }))}
+                />
+                <Field
+                  label="Last name"
+                  value={edit["lastName"] ?? d.profile?.last_name ?? ""}
+                  onChange={(v) => setEdit((p) => ({ ...p, lastName: v }))}
+                />
+                <Field
+                  label="Phone"
+                  value={edit["phone"] ?? d.profile?.phone ?? ""}
+                  onChange={(v) => setEdit((p) => ({ ...p, phone: v }))}
+                />
+                <Field
+                  label="Date of birth"
+                  value={edit["dateOfBirth"] ?? d.user.date_of_birth ?? ""}
+                  onChange={(v) => setEdit((p) => ({ ...p, dateOfBirth: v }))}
+                  placeholder="YYYY-MM-DD"
+                />
+              </div>
+              <Button disabled={profileMutation.isPending} onClick={() => profileMutation.mutate()}>
+                Save profile
+              </Button>
+
+              <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row">
+                <input
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Reason shown to the player"
+                  className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
+                />
+                {STATUSES.map((s) => (
+                  <Button
+                    key={s}
+                    size="sm"
+                    variant={s === "ACTIVE" ? "default" : s === "CLOSED" ? "destructive" : "secondary"}
+                    disabled={statusMutation.isPending}
+                    onClick={() => statusMutation.mutate(s)}
+                  >
+                    {s === "ACTIVE" ? "Unban" : s === "SUSPENDED" ? "Ban" : s.toLowerCase()}
+                  </Button>
+                ))}
+              </div>
+            </>
+          ) : null}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function ManualDepositsSection({ canApprove }: { canApprove: boolean }) {
+  const queryClient = useQueryClient();
+  const fetchList = useServerFn(listManualDeposits);
+  const decide = useServerFn(decideManualDeposit);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+
+  const list = useQuery({
+    queryKey: ["admin", "manual-deposits"],
+    queryFn: async () => fetchList({ data: undefined }),
+    refetchInterval: 30_000,
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (input: { id: string; decision: "APPROVED" | "REJECTED" }) =>
+      decide({ data: { ...input, note: notes[input.id] ?? "" } }),
+    onSuccess: () => {
+      toast.success("Request processed");
+      void queryClient.invalidateQueries({ queryKey: ["admin"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  return (
+    <section>
+      <h2 className="text-lg font-medium">Local wallet deposits</h2>
+      <div className="mt-4 space-y-3">
+        {list.data?.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No pending transfers.</p>
+        ) : null}
+        {(list.data ?? []).map((r) => (
+          <article key={r.id} className="rounded-xl border border-border p-4 text-sm">
+            <p className="font-medium">
+              {fmt(Number(r.amount))} {r.currency} · {r.method.replace(/_/g, " ")}
+            </p>
+            <p className="text-xs text-muted-foreground break-all">
+              From {r.sender_number} · ref {r.reference ?? "—"} · user {r.user_id}
+            </p>
+            {r.proofUrl ? (
+              <a
+                href={r.proofUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block text-primary underline"
+              >
+                View payment proof
+              </a>
+            ) : (
+              <p className="mt-2 text-xs text-muted-foreground">No proof attached.</p>
+            )}
+            {canApprove ? (
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                <input
+                  value={notes[r.id] ?? ""}
+                  onChange={(e) => setNotes((p) => ({ ...p, [r.id]: e.target.value }))}
+                  placeholder="Review note"
+                  className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
+                />
+                <Button
+                  disabled={mutation.isPending}
+                  onClick={() => mutation.mutate({ id: r.id, decision: "APPROVED" })}
+                >
+                  Approve & credit
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={mutation.isPending}
+                  onClick={() => mutation.mutate({ id: r.id, decision: "REJECTED" })}
+                >
+                  Reject
+                </Button>
+              </div>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
