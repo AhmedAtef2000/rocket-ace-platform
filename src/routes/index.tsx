@@ -37,6 +37,8 @@ const phases: { label: string; state: "done" | "next" | "planned" }[] = [
   { label: "Phase 16 — Analytics & reporting", state: "done" },
   { label: "Phase 17 — Player fairness verifier", state: "done" },
   { label: "Phase 18 — Security hardening (rate limits, headers)", state: "done" },
+  { label: "Phase 19 — Automated test suite", state: "done" },
+  { label: "Phase 20 — Deployment readiness & health checks", state: "done" },
 ];
 
 const guarantees = [
