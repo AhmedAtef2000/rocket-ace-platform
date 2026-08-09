@@ -50,7 +50,7 @@ const dictionary = {
     "home.ctaSecondary": "Bet Now",
     "home.statRound": "Round length",
     "home.statMax": "Max multiplier",
-    "home.statEdge": "House edge",
+    "home.statEdge": "Players deposited",
     "home.pillar1Title": "One tap to launch",
     "home.pillar1Body":
       "Place your stake, feel the countdown, then watch the rocket tear off the pad. No forms, no friction.",
@@ -92,7 +92,7 @@ const dictionary = {
     "home.ctaSecondary": "تحقق من جولة",
     "home.statRound": "مدة الجولة",
     "home.statMax": "أقصى مضاعف",
-    "home.statEdge": "نسبة الصالة",
+    "home.statEdge": "لاعبون أودعوا",
     "home.pillar1Title": "نقرة واحدة للانطلاق",
     "home.pillar1Body":
       "ضع رهانك، عِش العد التنازلي، ثم شاهد الصاروخ ينطلق. بلا نماذج ولا تعقيد.",
@@ -134,7 +134,7 @@ const dictionary = {
     "home.ctaSecondary": "Runde verifizieren",
     "home.statRound": "Rundenlänge",
     "home.statMax": "Max. Multiplikator",
-    "home.statEdge": "Hausvorteil",
+    "home.statEdge": "Spieler mit Einzahlung",
     "home.pillar1Title": "Ein Tipp zum Start",
     "home.pillar1Body":
       "Einsatz setzen, Countdown spüren und zusehen, wie die Rakete abhebt. Keine Formulare, keine Reibung.",

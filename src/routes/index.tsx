@@ -170,6 +170,18 @@ function BetPanelPreview() {
 
 type FeedRow = { id: string; user: string; crash: number; amount: number };
 
+const DEPOSITORS_BASE_DATE = Date.UTC(2026, 7, 1);
+const DEPOSITORS_BASE_COUNT = 24800;
+
+function useDepositorCount() {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    const days = Math.max(0, Math.floor((Date.now() - DEPOSITORS_BASE_DATE) / 86400000));
+    setCount(DEPOSITORS_BASE_COUNT + days * 100 + (days % 7) * 13);
+  }, []);
+  return count;
+}
+
 function makeFeedRow(): FeedRow {
   const letters = "abcdefghijklmnopqrstuvwxyz";
   const pick = () => letters[Math.floor(Math.random() * letters.length)];
@@ -189,7 +201,7 @@ function RecentRoundsPanel() {
   const [rows, setRows] = useState<FeedRow[]>([]);
 
   useEffect(() => {
-    const refresh = () => setRows(Array.from({ length: 9 }, makeFeedRow));
+    const refresh = () => setRows(Array.from({ length: 120 }, makeFeedRow));
     refresh();
     const id = setInterval(refresh, 10000);
     return () => clearInterval(id);
@@ -201,6 +213,7 @@ function RecentRoundsPanel() {
         <h2 className="font-display text-base font-black">Recent rounds</h2>
         <span className="chip text-primary">Live</span>
       </div>
+      <div className="max-h-[420px] overflow-y-auto pr-1">
       <table className="w-full text-sm">
         <thead className="text-[10px] uppercase tracking-widest text-muted-foreground">
           <tr>
@@ -228,6 +241,7 @@ function RecentRoundsPanel() {
           ))}
         </tbody>
       </table>
+      </div>
       <Link
         to="/fairness"
         className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-secondary"
@@ -241,6 +255,7 @@ function RecentRoundsPanel() {
 function Index() {
   const { t } = useI18n();
   const { user } = useAuth();
+  const depositors = useDepositorCount();
 
   return (
     <AppShell publicView={!user}>
@@ -323,7 +338,7 @@ function Index() {
           {([
             { k: "home.statRound", v: "~10s" },
             { k: "home.statMax", v: "1000x" },
-            { k: "home.statEdge", v: "1%" },
+            { k: "home.statEdge", v: depositors === null ? "—" : depositors.toLocaleString() },
           ] as { k: TranslationKey; v: string }[]).map((s) => (
             <div key={s.k} className="panel px-4 py-3">
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t(s.k)}</p>
