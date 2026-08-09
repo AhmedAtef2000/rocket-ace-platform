@@ -96,7 +96,9 @@ export const getProfileOverview = createServerFn({ method: "GET" })
     const betRows = bets.data ?? [];
     const staked = betRows.reduce((sum, b) => sum + Number(b.amount ?? 0), 0);
     const returned = betRows.reduce((sum, b) => sum + Number(b.payout_amount ?? 0), 0);
-    const real = (wallets.data ?? []).filter((w) => w.kind !== "DEMO");
+    const all = wallets.data ?? [];
+    const nonDemo = all.filter((w) => w.kind !== "DEMO");
+    const real = nonDemo.some((w) => Number(w.available_amount ?? 0) > 0) ? nonDemo : all;
 
     return {
       user: userRow.data,
