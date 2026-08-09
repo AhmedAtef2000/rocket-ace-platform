@@ -91,6 +91,7 @@ function HeroStage() {
     <RocketStage
       phase={phase}
       multiplier={multiplier}
+      secondsLeft={secondsLeft}
       countdownLabel={
         phase === "betting" ? t("game.launchingIn", { s: secondsLeft }) : t("game.boarding")
       }
