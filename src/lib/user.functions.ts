@@ -274,16 +274,18 @@ export const registerSession = createServerFn({ method: "POST" })
       .eq("id", data.deviceId)
       .maybeSingle();
 
-    if (existing && existing.user_id !== userId) {
-      throw new Error("Session belongs to another account.");
-    }
-    if (existing?.revoked_at) {
-      return { revoked: true as const };
+    // The device id lives in browser storage, so a second account signing in on
+    // the same browser will collide with it. Issue a fresh id instead of failing.
+    const sessionId =
+      existing && existing.user_id !== userId ? crypto.randomUUID() : data.deviceId;
+
+    if (existing && existing.user_id === userId && existing.revoked_at) {
+      return { revoked: true as const, deviceId: sessionId };
     }
 
     const { error } = await supabaseAdmin.from("user_sessions").upsert(
       {
-        id: data.deviceId,
+        id: sessionId,
         user_id: userId,
         device_label: deviceLabelFrom(data.userAgent),
         user_agent: data.userAgent,
@@ -295,7 +297,7 @@ export const registerSession = createServerFn({ method: "POST" })
 
     await supabaseAdmin.from("users").update({ last_login_at: now }).eq("id", userId);
 
-    return { revoked: false as const };
+    return { revoked: false as const, deviceId: sessionId };
   });
 
 export const revokeSession = createServerFn({ method: "POST" })
