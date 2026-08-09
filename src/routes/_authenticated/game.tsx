@@ -134,35 +134,27 @@ function GamePage() {
   const potential = myBet ? Number(myBet.amount) * shown : 0;
   const liveBets = state.data?.liveBets ?? [];
 
+  const history = state.data?.history ?? [];
+
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
-      <h1 className="font-display text-3xl font-extrabold tracking-tight">
-        Rocket <span className="text-thrust">launch</span>
-      </h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Every round is server-authoritative and provably fair.
-      </p>
+    <main className="w-full pb-10">
       <AccountNav />
-
-      <section className="mt-8">
-        <RocketStage
-          phase={phase}
-          multiplier={shown}
-          countdownLabel={
-            secondsLeft !== null
-              ? `Launching in ${secondsLeft}s`
-              : status === "RUNNING"
-                ? "In flight"
-                : "Boarding"
-          }
-        />
-        <p className="mt-3 text-center text-xs uppercase tracking-[0.3em] text-muted-foreground">
-          Round {round?.number ?? "—"}
-        </p>
-      </section>
-
-      <section className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-3xl border border-border bg-card/60 p-5">
+      <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+        <div className="order-2 panel p-4 xl:order-1">
+          <div className="mb-3 flex items-center justify-between">
+            <h1 className="font-display text-lg font-extrabold tracking-tight">Place your bet</h1>
+            <span className="chip">{status.toLowerCase()}</span>
+          </div>
+          <div className="panel-inset mb-3 grid grid-cols-2 gap-2 p-3 text-center">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Balance</p>
+              <p className="font-mono text-sm tabular-nums">{(wallet?.available ?? 0).toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">In play</p>
+              <p className="font-mono text-sm tabular-nums">{(wallet?.locked ?? 0).toFixed(2)}</p>
+            </div>
+          </div>
           <label className="text-xs uppercase tracking-widest text-muted-foreground" htmlFor="stake">
             Bet amount
           </label>
@@ -226,9 +218,9 @@ function GamePage() {
             onChange={(event) => setAuto(event.target.value)}
             className="mt-2"
           />
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex flex-col gap-2">
             <Button
-              className="h-11 flex-1 rounded-full bg-thrust font-semibold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.02]"
+              className="h-12 w-full rounded-xl bg-thrust text-base font-bold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.02]"
               disabled={!canBet || !stakeValid || betMutation.isPending}
               onClick={() => betMutation.mutate()}
             >
@@ -239,7 +231,7 @@ function GamePage() {
                   : "Place bet"}
             </Button>
             <Button
-              className="h-11 flex-1 rounded-full font-semibold"
+              className="h-12 w-full rounded-xl text-base font-bold"
               variant="secondary"
               disabled={!canCash || cashMutation.isPending}
               onClick={() => myBet && cashMutation.mutate(myBet.id)}
@@ -247,19 +239,9 @@ function GamePage() {
               {canCash ? `Cash out ${potential.toFixed(2)}` : "Cash out"}
             </Button>
           </div>
-        </div>
-
-        <div className="rounded-3xl border border-border bg-card/60 p-5">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Wallet balance</p>
-          <p className="mt-2 font-mono text-2xl tabular-nums">
-            {(wallet?.available ?? 0).toFixed(2)}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Locked in play: {(wallet?.locked ?? 0).toFixed(2)}
-          </p>
           {lastResult ? (
             <p
-              className={`mt-2 text-sm font-semibold ${
+              className={`mt-3 text-sm font-semibold ${
                 lastResult.net >= 0 ? "text-primary" : "text-destructive"
               }`}
             >
@@ -268,29 +250,57 @@ function GamePage() {
               {lastResult.multiplier ? ` at ${lastResult.multiplier.toFixed(2)}x` : ""}
             </p>
           ) : (
-            <p className="mt-2 text-sm text-muted-foreground">Last round: no bet settled yet.</p>
+            <p className="mt-3 text-sm text-muted-foreground">Last round: no bet settled yet.</p>
           )}
-
-          <p className="mt-4 text-xs uppercase tracking-widest text-muted-foreground">Your bet</p>
           {myBet ? (
-            <p className="mt-1 text-sm">
-              {Number(myBet.amount).toFixed(2)} credits · {myBet.status.toLowerCase()}
+            <p className="mt-1 text-xs text-muted-foreground">
+              Your bet: {Number(myBet.amount).toFixed(2)} · {myBet.status.toLowerCase()}
               {myBet.cashout_multiplier
                 ? ` at ${Number(myBet.cashout_multiplier).toFixed(2)}x`
                 : ""}
             </p>
-          ) : (
-            <p className="mt-1 text-sm text-muted-foreground">No bet in this round.</p>
-          )}
-
+          ) : null}
         </div>
-      </section>
 
-      <section className="mt-6">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
+        <section className="order-1 panel overflow-hidden p-3 xl:order-2">
+          <div className="mb-3 flex items-center gap-2 overflow-x-auto">
+            {history.length === 0 ? (
+              <span className="chip text-muted-foreground">No rounds yet</span>
+            ) : (
+              history.slice(0, 12).map((item, index) => (
+                <span
+                  key={`${item.roundId}-${index}`}
+                  className={`chip shrink-0 ${
+                    Number(item.crash) >= 2 ? "text-accent" : "text-muted-foreground"
+                  }`}
+                >
+                  {Number(item.crash).toFixed(2)}x
+                </span>
+              ))
+            )}
+          </div>
+          <RocketStage
+            phase={phase}
+            multiplier={shown}
+            countdownLabel={
+              secondsLeft !== null
+                ? `Launching in ${secondsLeft}s`
+                : status === "RUNNING"
+                  ? "In flight"
+                  : "Boarding"
+            }
+          />
+          <p className="mt-3 text-center text-xs uppercase tracking-[0.3em] text-muted-foreground">
+            Round {round?.number ?? "—"}
+          </p>
+        </section>
+      </div>
+
+      <section className="mt-4">
+        <p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">
           Live bets this round
         </p>
-        <div className="mt-2 overflow-hidden rounded-3xl border border-border bg-card/60">
+        <div className="panel overflow-hidden">
           {liveBets.length === 0 ? (
             <p className="p-5 text-sm text-muted-foreground">No bets placed yet this round.</p>
           ) : (
