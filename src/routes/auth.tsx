@@ -213,27 +213,42 @@ function AuthPage() {
 
           <TabsContent value="signin">
             <form onSubmit={handleSignIn} className="space-y-4">
-              {identifierIsPhone ? (
-                <PhoneField
-                  id="signin-identifier"
-                  label={t("auth.identifier")}
-                  countryLabel={t("auth.countryCode")}
-                  iso={signInCountry}
-                  onIso={setSignInCountry}
-                  value={identifier}
-                  onChange={setIdentifier}
-                  autoComplete="username"
-                />
-              ) : (
-                <Field
-                  id="signin-identifier"
-                  label={t("auth.identifier")}
-                  type="text"
-                  autoComplete="username"
-                  value={identifier}
-                  onChange={setIdentifier}
-                />
-              )}
+              <div className="space-y-2">
+                <Label htmlFor="signin-identifier">{t("auth.identifier")}</Label>
+                <div className="flex gap-2">
+                  {identifierIsPhone ? (
+                    <select
+                      aria-label={t("auth.countryCode")}
+                      dir="ltr"
+                      value={signInCountry}
+                      onChange={(event) => {
+                        setIdentifier(stripDial(identifier, signInDial));
+                        setSignInCountry(event.target.value);
+                      }}
+                      className="h-10 w-32 shrink-0 rounded-md border border-input bg-background px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      {COUNTRIES.map((c) => (
+                        <option key={c.iso} value={c.iso}>
+                          {c.iso} {c.dial}
+                        </option>
+                      ))}
+                    </select>
+                  ) : null}
+                  <Input
+                    id="signin-identifier"
+                    type="text"
+                    autoComplete="username"
+                    required
+                    value={identifier}
+                    onChange={(event) => {
+                      const next = event.target.value;
+                      setIdentifier(
+                        next.includes("@") ? next : stripDial(next, signInDial),
+                      );
+                    }}
+                  />
+                </div>
+              </div>
               <PasswordField
                 id="signin-password"
                 label={t("auth.password")}
@@ -469,6 +484,7 @@ function PasswordField({
   autoComplete?: string;
 }) {
   const [visible, setVisible] = useState(false);
+  const { t } = useI18n();
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -485,7 +501,7 @@ function PasswordField({
         <button
           type="button"
           onClick={() => setVisible((current) => !current)}
-          aria-label={visible ? "Hide password" : "Show password"}
+          aria-label={visible ? t("auth.hidePassword") : t("auth.showPassword")}
           className="absolute inset-y-0 right-0 grid w-10 place-items-center text-muted-foreground transition-colors hover:text-foreground"
         >
           {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
