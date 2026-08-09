@@ -269,7 +269,6 @@ function Index() {
                   {t("home.badge")}
                 </p>
               </div>
-              <span className="chip text-primary">Server-authoritative</span>
             </div>
             <HeroStage />
             <BetPanelPreview />
