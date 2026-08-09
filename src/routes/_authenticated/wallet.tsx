@@ -622,7 +622,7 @@ function WalletPage() {
             </section>
 
             {/* ---------- FAQ + support ---------- */}
-            <aside className="grid gap-4 md:grid-cols-2 2xl:grid-cols-1 2xl:col-start-3 2xl:row-start-1 2xl:row-span-2">
+            <aside className="grid gap-4 md:grid-cols-2 lg:col-span-2 2xl:col-span-1 2xl:grid-cols-1 2xl:col-start-3 2xl:row-start-1 2xl:row-span-2">
               <section className="rounded-2xl border border-border bg-card/60 p-4">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <HelpCircle className="h-4 w-4 text-primary" /> FAQ
