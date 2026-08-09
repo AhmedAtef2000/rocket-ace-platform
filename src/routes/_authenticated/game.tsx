@@ -335,24 +335,6 @@ function GamePage() {
           )}
         </div>
       </section>
-
-      <section className="mt-6">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Recent crashes</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {(state.data?.history ?? []).map((item) => (
-            <span
-              key={item.roundId}
-              className={`rounded-full border px-2.5 py-1 font-mono text-xs ${
-                item.crash >= 2
-                  ? "border-primary/40 text-primary"
-                  : "border-border text-muted-foreground"
-              }`}
-            >
-              {item.crash.toFixed(2)}x
-            </span>
-          ))}
-        </div>
-      </section>
     </main>
   );
 }
