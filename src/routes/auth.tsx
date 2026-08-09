@@ -173,8 +173,7 @@ function AuthPage() {
         <Button variant="outline" className="w-full" onClick={handleGoogle} disabled={busy}>
           Continue with Google
         </Button>
-      </div>
-    </main>
+    </AuthShell>
   );
 }
 
