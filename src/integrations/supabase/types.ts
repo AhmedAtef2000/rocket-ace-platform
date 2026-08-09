@@ -789,6 +789,72 @@ export type Database = {
           },
         ]
       }
+      kyc_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          file_name: string
+          id: string
+          kyc_case_id: string | null
+          mime_type: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          size_bytes: number
+          status: string
+          storage_path: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          file_name: string
+          id?: string
+          kyc_case_id?: string | null
+          mime_type: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          size_bytes: number
+          status?: string
+          storage_path: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          file_name?: string
+          id?: string
+          kyc_case_id?: string | null
+          mime_type?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          size_bytes?: number
+          status?: string
+          storage_path?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kyc_documents_kyc_case_id_fkey"
+            columns: ["kyc_case_id"]
+            isOneToOne: false
+            referencedRelation: "kyc_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kyc_documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ledger_accounts: {
         Row: {
           account_type: Database["public"]["Enums"]["ledger_account_type"]
