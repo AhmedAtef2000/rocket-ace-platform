@@ -25,6 +25,7 @@ import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as ApiPublicGameConfigRouteImport } from './routes/api/public/game-config'
+import { Route as ApiPublicGeoRouteImport } from './routes/api/public/geo'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments-webhook'
 
@@ -108,6 +109,11 @@ const ApiPublicGameConfigRoute = ApiPublicGameConfigRouteImport.update({
   path: '/api/public/game-config',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicGeoRoute = ApiPublicGeoRouteImport.update({
+  id: '/api/public/geo',
+  path: '/api/public/geo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   id: '/api/public/health',
   path: '/api/public/health',
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof AuthenticatedSupportRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/api/public/game-config': typeof ApiPublicGameConfigRoute
+  '/api/public/geo': typeof ApiPublicGeoRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/support': typeof AuthenticatedSupportRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/api/public/game-config': typeof ApiPublicGameConfigRoute
+  '/api/public/geo': typeof ApiPublicGeoRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/api/public/game-config': typeof ApiPublicGameConfigRoute
+  '/api/public/geo': typeof ApiPublicGeoRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/payments-webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/wallet'
     | '/api/public/game-config'
+    | '/api/public/geo'
     | '/api/public/health'
     | '/api/public/payments-webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/wallet'
     | '/api/public/game-config'
+    | '/api/public/geo'
     | '/api/public/health'
     | '/api/public/payments-webhook'
   id:
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/_authenticated/support'
     | '/_authenticated/wallet'
     | '/api/public/game-config'
+    | '/api/public/geo'
     | '/api/public/health'
     | '/api/public/payments-webhook'
   fileRoutesById: FileRoutesById
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiPublicGameConfigRoute: typeof ApiPublicGameConfigRoute
+  ApiPublicGeoRoute: typeof ApiPublicGeoRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -364,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGameConfigRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/geo': {
+      id: '/api/public/geo'
+      path: '/api/public/geo'
+      fullPath: '/api/public/geo'
+      preLoaderRoute: typeof ApiPublicGeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health': {
       id: '/api/public/health'
       path: '/api/public/health'
@@ -418,6 +438,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiPublicGameConfigRoute: ApiPublicGameConfigRoute,
+  ApiPublicGeoRoute: ApiPublicGeoRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
