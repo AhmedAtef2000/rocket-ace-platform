@@ -106,19 +106,7 @@ export function ProfileOverview({ data }: { data: Overview | null }) {
       </section>
 
       {/* Stat cards */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <section className="rounded-2xl border border-border bg-card/60 p-5">
-          <h3 className="text-sm font-semibold">{t("acct.profile.accountDetails")}</h3>
-          <dl className="mt-3 space-y-2 text-sm">
-            <Row label={t("acct.profile.tierStatus")} value="VIP Club — Gold" />
-            <Row label={t("acct.profile.dailyCashback")} value="10%" accent />
-            <Row
-              label={t("acct.profile.nextReward")}
-              value={t("acct.profile.loyaltyPoints", { count: 200 })}
-            />
-          </dl>
-        </section>
-
+      <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-2xl border border-border bg-card/60 p-5">
           <h3 className="text-sm font-semibold">{t("acct.profile.bettingStats")}</h3>
           <dl className="mt-3 space-y-2 text-sm">
