@@ -5,8 +5,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/hooks/useAuth";
+import { AdminShell, type AdminSection } from "@/components/admin/AdminShell";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 
-import { AccountNav } from "@/components/account/AccountNav";
 import { Button } from "@/components/ui/button";
 import {
   answerTicket,
@@ -40,7 +42,24 @@ const title = "Back office — AstroBet";
 const description =
   "Operator console for withdrawal approvals, KYC decisions, risk events, support tickets and the audit trail.";
 
+const SECTIONS: AdminSection[] = [
+  "dashboard",
+  "users",
+  "kyc",
+  "deposits",
+  "withdrawals",
+  "risk",
+  "support",
+  "analytics",
+  "audit",
+  "settings",
+];
+
 export const Route = createFileRoute("/_authenticated/admin")({
+  validateSearch: (search: Record<string, unknown>): { section: AdminSection } => {
+    const raw = typeof search["section"] === "string" ? (search["section"] as AdminSection) : "dashboard";
+    return { section: SECTIONS.includes(raw) ? raw : "dashboard" };
+  },
   head: () => ({
     meta: [
       { title },
@@ -70,6 +89,8 @@ function fmt(value: number): string {
 
 function AdminPage() {
   const { t } = useI18n();
+  const { section } = Route.useSearch();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const fetchSession = useServerFn(getAdminSession);
   const claim = useServerFn(claimSuperAdmin);
@@ -91,59 +112,71 @@ function AdminPage() {
   const identity = session.data?.identity ?? null;
   const can = (permission: string) => identity?.permissions.includes(permission) ?? false;
 
+  if (!identity) {
+    return (
+      <main className="mx-auto w-full max-w-3xl px-4 pb-16 pt-8">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("admin.title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("admin.subtitle.staffOnly")}</p>
+        {session.isLoading ? (
+          <p className="mt-8 text-sm text-muted-foreground">{t("admin.loading")}</p>
+        ) : session.data ? (
+          <section className="mt-8 rounded-xl border border-border p-5">
+            <h2 className="text-lg font-medium">{t("admin.noAccess.title")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t("admin.noAccess.body")}{" "}
+              {session.data.bootstrapAvailable
+                ? t("admin.noAccess.bootstrap")
+                : t("admin.noAccess.askAdmin")}
+            </p>
+            {session.data.bootstrapAvailable ? (
+              <Button
+                className="mt-4"
+                disabled={claimMutation.isPending}
+                onClick={() => claimMutation.mutate()}
+              >
+                {t("admin.claimSuperAdmin")}
+              </Button>
+            ) : null}
+          </section>
+        ) : null}
+      </main>
+    );
+  }
+
+  const body = (() => {
+    switch (section) {
+      case "users":
+        return can("user.view") ? <UsersSection canManage={can("user.suspend")} /> : null;
+      case "kyc":
+        return can("kyc.view") ? <KycSection canDecide={can("kyc.decide")} /> : null;
+      case "deposits":
+        return can("finance.view") ? <ManualDepositsSection canApprove={can("withdrawal.approve")} /> : null;
+      case "withdrawals":
+        return can("withdrawal.review") ? <WithdrawalsSection canApprove={can("withdrawal.approve")} /> : null;
+      case "risk":
+        return can("risk.view") ? <RiskSection canResolve={can("risk.resolve")} /> : null;
+      case "support":
+        return can("support.view") ? <TicketsSection canReply={can("support.reply")} /> : null;
+      case "analytics":
+        return can("analytics.view") ? <AnalyticsSection /> : null;
+      case "audit":
+        return can("audit.view") ? <AuditSection /> : null;
+      case "settings":
+        return can("admin.manage") ? <SettingsSection /> : null;
+      default:
+        return can("analytics.view") ? <AdminDashboard can={can} /> : <OverviewSection />;
+    }
+  })();
+
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
-      <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("admin.title")}</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {identity
-          ? t("admin.subtitle.signedIn", {
-              role: identity.roleKey.replace(/_/g, " ").toLowerCase(),
-              count: identity.permissions.length,
-            })
-          : t("admin.subtitle.staffOnly")}
-      </p>
-      <AccountNav />
-
-      {session.isLoading ? <p className="mt-8 text-sm text-muted-foreground">{t("admin.loading")}</p> : null}
-
-      {!identity && session.data ? (
-        <section className="mt-8 rounded-xl border border-border p-5">
-          <h2 className="text-lg font-medium">{t("admin.noAccess.title")}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t("admin.noAccess.body")}{" "}
-            {session.data.bootstrapAvailable
-              ? t("admin.noAccess.bootstrap")
-              : t("admin.noAccess.askAdmin")}
-          </p>
-          {session.data.bootstrapAvailable ? (
-            <Button
-              className="mt-4"
-              disabled={claimMutation.isPending}
-              onClick={() => claimMutation.mutate()}
-            >
-              {t("admin.claimSuperAdmin")}
-            </Button>
-          ) : null}
-        </section>
-      ) : null}
-
-      {identity ? (
-        <div className="mt-8 space-y-10">
-          {can("analytics.view") ? <OverviewSection /> : null}
-          {can("admin.manage") ? <SettingsSection /> : null}
-          {can("user.view") ? <UsersSection canManage={can("user.suspend")} /> : null}
-          {can("finance.view") ? (
-            <ManualDepositsSection canApprove={can("withdrawal.approve")} />
-          ) : null}
-          {can("analytics.view") ? <AnalyticsSection /> : null}
-          {can("withdrawal.review") ? <WithdrawalsSection canApprove={can("withdrawal.approve")} /> : null}
-          {can("kyc.view") ? <KycSection canDecide={can("kyc.decide")} /> : null}
-          {can("risk.view") ? <RiskSection canResolve={can("risk.resolve")} /> : null}
-          {can("support.view") ? <TicketsSection canReply={can("support.reply")} /> : null}
-          {can("audit.view") ? <AuditSection /> : null}
-        </div>
-      ) : null}
-    </main>
+    <AdminShell
+      active={section}
+      can={can}
+      roleLabel={identity.roleKey.replace(/_/g, " ")}
+      email={user?.email ?? null}
+    >
+      {body ?? <p className="text-sm text-muted-foreground">{t("admin.noAccess.askAdmin")}</p>}
+    </AdminShell>
   );
 }
 
