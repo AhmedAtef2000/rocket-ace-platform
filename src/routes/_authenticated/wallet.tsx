@@ -305,7 +305,7 @@ function WalletPage() {
             </section>
           )}
 
-          <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)_300px]">
+          <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] 2xl:grid-cols-[240px_minmax(0,1fr)_300px]">
             {/* ---------- Wallet list ---------- */}
             <aside className="space-y-3">
               <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -413,7 +413,7 @@ function WalletPage() {
                 </div>
 
                 {tab === "DEPOSIT" ? (
-                  <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                  <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                     <div className="grid min-w-0 content-start gap-3">
                       <div className="grid gap-2">
                         <Label htmlFor="dep-amount">Deposit amount (optional)</Label>
@@ -509,7 +509,7 @@ function WalletPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                  <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                     <div className="grid min-w-0 content-start gap-3">
                       <div className="grid gap-2">
                         <div className="flex items-center justify-between gap-2">
@@ -622,7 +622,7 @@ function WalletPage() {
             </section>
 
             {/* ---------- FAQ + support ---------- */}
-            <aside className="space-y-4 xl:col-start-3 xl:row-start-1 xl:row-span-2">
+            <aside className="grid gap-4 md:grid-cols-2 2xl:grid-cols-1 2xl:col-start-3 2xl:row-start-1 2xl:row-span-2">
               <section className="rounded-2xl border border-border bg-card/60 p-4">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <HelpCircle className="h-4 w-4 text-primary" /> FAQ
