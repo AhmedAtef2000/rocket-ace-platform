@@ -78,14 +78,14 @@ function SideNav({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () =>
           key={item.label}
           to={item.to}
           onClick={onNavigate}
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors duration-200 hover:bg-secondary hover:text-foreground"
           activeProps={{
             className:
-              "flex items-center gap-3 rounded-xl border-s-2 border-primary bg-primary/12 px-3 py-2.5 text-sm font-bold text-primary",
+              "flex items-center gap-3 rounded-xl bg-primary/12 px-3 py-2.5 text-sm font-semibold text-foreground [&_svg]:text-primary",
           }}
           activeOptions={{ exact: false }}
         >
-          <item.icon className="size-4 shrink-0" aria-hidden />
+          <item.icon className="size-5 shrink-0" aria-hidden />
           <span className="truncate">{item.label}</span>
         </Link>
       ))}
