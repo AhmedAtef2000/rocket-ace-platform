@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 const items = [
   { to: "/account", label: "Overview" },
   { to: "/game", label: "Crash game" },
+  { to: "/fairness", label: "Fairness" },
   { to: "/wallet", label: "Wallet" },
   { to: "/payments", label: "Deposits & withdrawals" },
   { to: "/profile", label: "Profile" },
