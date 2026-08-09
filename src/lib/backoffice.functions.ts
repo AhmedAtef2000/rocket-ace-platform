@@ -246,9 +246,9 @@ export const adminUpdateUserProfile = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     if (data.dateOfBirth || data.countryCode) {
-      const patch: Record<string, string> = {};
-      if (data.dateOfBirth) patch["date_of_birth"] = data.dateOfBirth;
-      if (data.countryCode) patch["country_code"] = data.countryCode;
+      const patch: { date_of_birth?: string; country_code?: string } = {};
+      if (data.dateOfBirth) patch.date_of_birth = data.dateOfBirth;
+      if (data.countryCode) patch.country_code = data.countryCode;
       const { error: userError } = await supabaseAdmin.from("users").update(patch).eq("id", data.userId);
       if (userError) throw new Error(userError.message);
     }
