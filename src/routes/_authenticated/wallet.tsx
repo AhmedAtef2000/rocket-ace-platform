@@ -704,7 +704,7 @@ function WalletPage() {
                               })
                             }
                           >
-                            View
+                            {t("wallet.table.view")}
                           </Button>
                         </td>
                       </tr>
@@ -810,26 +810,26 @@ function WalletPage() {
       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Withdrawal review</DialogTitle>
+            <DialogTitle>{t("wallet.review.title")}</DialogTitle>
             <DialogDescription>
-              Check every detail — blockchain transfers cannot be reversed.
+              {t("wallet.review.description")}
             </DialogDescription>
           </DialogHeader>
           <dl className="grid gap-1.5 text-sm">
-            <Row label="Currency" value={currency} />
+            <Row label={t("wallet.review.currency")} value={currency} />
             <Row label={t("wallet.deposit.network")} value={networkLabel(network)} />
-            <Row label="Destination" value={shortHash(wdAddress.trim(), 10, 8)} />
-            <Row label="Requested amount" value={`${formatAmount(wdValue, decimals)} ${currency}`} />
-            <Row label="Network fee" value={`${formatAmount(wdFee, decimals)} ${currency}`} />
-            <Row label="You receive" value={`${formatAmount(wdNet, decimals)} ${currency}`} strong />
-            <Row label="Processing" value={`Up to ${noticeHours} hours`} />
+            <Row label={t("wallet.review.destination")} value={shortHash(wdAddress.trim(), 10, 8)} />
+            <Row label={t("wallet.review.requestedAmount")} value={`${formatAmount(wdValue, decimals)} ${currency}`} />
+            <Row label={t("wallet.review.networkFee")} value={`${formatAmount(wdFee, decimals)} ${currency}`} />
+            <Row label={t("wallet.review.youReceive")} value={`${formatAmount(wdNet, decimals)} ${currency}`} strong />
+            <Row label={t("wallet.review.processing")} value={t("wallet.review.processingValue", { hours: noticeHours })} />
           </dl>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReviewOpen(false)}>
-              Back
+              {t("wallet.review.back")}
             </Button>
             <Button disabled={withdrawMutation.isPending} onClick={submitWithdrawal}>
-              {withdrawMutation.isPending ? "Submitting…" : "Confirm withdrawal"}
+              {withdrawMutation.isPending ? t("wallet.review.submitting") : t("wallet.review.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -840,24 +840,24 @@ function WalletPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-primary" /> Withdrawal submitted
+              <CheckCircle2 className="h-5 w-5 text-primary" /> {t("wallet.receipt.title")}
             </DialogTitle>
             <DialogDescription>
-              Your funds are reserved while our payouts team reviews the request.
+              {t("wallet.receipt.description")}
             </DialogDescription>
           </DialogHeader>
           <dl className="grid gap-1.5 text-sm">
-            <Row label="Transaction ID" value={receipt ? shortHash(receipt.id, 8, 6) : ""} />
+            <Row label={t("wallet.receipt.txId")} value={receipt ? shortHash(receipt.id, 8, 6) : ""} />
             <Row
-              label="Status"
+              label={t("wallet.receipt.status")}
               value={(receipt?.status ?? "").replace(/_/g, " ").toLowerCase()}
               strong
             />
-            <Row label="Estimated processing" value={`Within ${noticeHours} hours`} />
+            <Row label={t("wallet.receipt.estimatedProcessing")} value={t("wallet.receipt.estimatedProcessingValue", { hours: noticeHours })} />
           </dl>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReceipt(null)}>
-              Back to wallet
+              {t("wallet.receipt.back")}
             </Button>
             <Button
               onClick={() => {
@@ -880,7 +880,7 @@ function WalletPage() {
                 }
               }}
             >
-              View transaction
+              {t("wallet.receipt.viewTransaction")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -890,29 +890,29 @@ function WalletPage() {
       <Dialog open={detail !== null} onOpenChange={(open) => !open && setDetail(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{detail?.kind} details</DialogTitle>
-            <DialogDescription>Full record for this movement.</DialogDescription>
+            <DialogTitle>{detail && t(detail.kind === "Deposit" ? "wallet.detail.deposit" : "wallet.detail.withdrawal")} {t("wallet.detail.titleSuffix")}</DialogTitle>
+            <DialogDescription>{t("wallet.detail.description")}</DialogDescription>
           </DialogHeader>
           {detail && (
             <dl className="grid gap-1.5 text-sm">
-              <Row label="Transaction ID" value={detail.id} />
-              <Row label="Type" value={detail.kind} />
-              <Row label="Currency" value={detail.currency} />
-              <Row label="Network" value={networkLabel(detail.network)} />
-              <Row label="Amount" value={`${formatAmount(detail.amount, 8)} ${detail.currency}`} />
+              <Row label={t("wallet.detail.txId")} value={detail.id} />
+              <Row label={t("wallet.detail.type")} value={detail.kind} />
+              <Row label={t("wallet.detail.currency")} value={detail.currency} />
+              <Row label={t("wallet.detail.network")} value={networkLabel(detail.network)} />
+              <Row label={t("wallet.detail.amount")} value={`${formatAmount(detail.amount, 8)} ${detail.currency}`} />
               {detail.fee !== undefined && (
-                <Row label="Fee" value={`${formatAmount(detail.fee, 8)} ${detail.currency}`} />
+                <Row label={t("wallet.detail.fee")} value={`${formatAmount(detail.fee, 8)} ${detail.currency}`} />
               )}
-              <Row label="Status" value={detail.status.replace(/_/g, " ").toLowerCase()} />
-              <Row label="Created" value={new Date(detail.createdAt).toLocaleString()} />
+              <Row label={t("wallet.detail.status")} value={detail.status.replace(/_/g, " ").toLowerCase()} />
+              <Row label={t("wallet.detail.created")} value={new Date(detail.createdAt).toLocaleString()} />
               {detail.updatedAt && (
-                <Row label="Updated" value={new Date(detail.updatedAt).toLocaleString()} />
+                <Row label={t("wallet.detail.updated")} value={new Date(detail.updatedAt).toLocaleString()} />
               )}
-              {detail.confirmations && <Row label="Confirmations" value={detail.confirmations} />}
+              {detail.confirmations && <Row label={t("wallet.detail.confirmations")} value={detail.confirmations} />}
               {detail.address && (
-                <Row label="Address" value={shortHash(detail.address, 10, 8)} />
+                <Row label={t("wallet.detail.address")} value={shortHash(detail.address, 10, 8)} />
               )}
-              {detail.hash && <Row label="Tx hash" value={shortHash(detail.hash, 10, 8)} />}
+              {detail.hash && <Row label={t("wallet.detail.txHash")} value={shortHash(detail.hash, 10, 8)} />}
             </dl>
           )}
           <DialogFooter>
@@ -923,11 +923,11 @@ function WalletPage() {
                   target="_blank"
                   rel="noreferrer noopener"
                 >
-                  <ExternalLink className="me-2 h-4 w-4" /> View on blockchain explorer
+                  <ExternalLink className="me-2 h-4 w-4" /> {t("wallet.detail.viewExplorer")}
                 </a>
               </Button>
             )}
-            <Button onClick={() => setDetail(null)}>Close</Button>
+            <Button onClick={() => setDetail(null)}>{t("wallet.detail.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -936,38 +936,14 @@ function WalletPage() {
 }
 
 const FAQ = [
-  {
-    q: "How long does a crypto deposit take?",
-    a: "Funds are credited automatically once the network reaches the required confirmations — usually a few minutes.",
-  },
-  {
-    q: "How long does a withdrawal take?",
-    a: "Most payouts are reviewed and released within 24 hours. Large amounts need two approvers.",
-  },
-  {
-    q: "Which network should I use?",
-    a: "Use the network selected in the deposit panel. TRC20 is the cheapest option for USDT.",
-  },
-  {
-    q: "What happens if I use the wrong network?",
-    a: "Funds sent over an unsupported network cannot be recovered. Always match the network shown with your address.",
-  },
-  {
-    q: "What is the minimum deposit?",
-    a: "The minimum is shown per currency and network in the deposit summary before you send anything.",
-  },
-  {
-    q: "Are there withdrawal fees?",
-    a: "A flat 1% network fee is applied and shown before you confirm the payout.",
-  },
-  {
-    q: "Why is my withdrawal pending?",
-    a: "Payouts pass through automated risk checks. If a manual review is needed, you will see the status change here.",
-  },
-  {
-    q: "Why is KYC required?",
-    a: "Licensing and anti-money-laundering rules require identity verification before real-money payouts.",
-  },
+  { q: "wallet.faq.q1", a: "wallet.faq.a1" },
+  { q: "wallet.faq.q2", a: "wallet.faq.a2" },
+  { q: "wallet.faq.q3", a: "wallet.faq.a3" },
+  { q: "wallet.faq.q4", a: "wallet.faq.a4" },
+  { q: "wallet.faq.q5", a: "wallet.faq.a5" },
+  { q: "wallet.faq.q6", a: "wallet.faq.a6" },
+  { q: "wallet.faq.q7", a: "wallet.faq.a7" },
+  { q: "wallet.faq.q8", a: "wallet.faq.a8" },
 ];
 
 function StatBox({ label, value, tone }: { label: string; value: string; tone: string }) {
