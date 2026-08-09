@@ -18,6 +18,7 @@ export type Lang = (typeof LANGUAGES)[number]["code"];
 
 const STORAGE_KEY = "astrobet.lang";
 const CURRENCY_KEY = "astrobet.currency";
+const COUNTRY_KEY = "astrobet.country";
 
 export const CURRENCIES = ["USD", "EUR", "EGP"] as const;
 export type CurrencyCode = (typeof CURRENCIES)[number];
