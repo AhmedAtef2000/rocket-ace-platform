@@ -55,25 +55,42 @@ export const searchUsers = createServerFn({ method: "POST" })
     const term = data.query;
     const isFullUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(term);
     const isPartialUuid = /^[0-9a-f-]{4,36}$/i.test(term);
+    const isDigits = /^[0-9]{3,}$/.test(term);
 
     const byUser = supabaseAdmin
       .from("users")
-      .select("id, email, status, country_code, created_at, last_login_at")
+      .select("id, account_number, email, status, country_code, created_at, last_login_at")
       .limit(20);
 
-    let users: { id: string; email: string; status: string; country_code: string | null; created_at: string; last_login_at: string | null }[] | null = null;
+    let users:
+      | {
+          id: string;
+          account_number: string | null;
+          email: string;
+          status: string;
+          country_code: string | null;
+          created_at: string;
+          last_login_at: string | null;
+        }[]
+      | null = null;
     let error: { message: string } | null = null;
 
-    if (isFullUuid) {
+    if (isDigits) {
+      const result = await byUser.ilike("account_number", `%${term}%`);
+      users = result.data;
+      error = result.error;
+    } else if (isFullUuid) {
       const result = await byUser.eq("id", term);
       users = result.data;
       error = result.error;
     } else if (isPartialUuid) {
-      const result = await byUser.or(`email.ilike.%${term}%,id.ilike.%${term}%`);
+      const result = await byUser.or(
+        `email.ilike.%${term}%,id.ilike.%${term}%,account_number.ilike.%${term}%`,
+      );
       users = result.data;
       error = result.error;
     } else {
-      const result = await byUser.ilike("email", `%${term}%`);
+      const result = await byUser.or(`email.ilike.%${term}%,account_number.ilike.%${term}%`);
       users = result.data;
       error = result.error;
     }
@@ -90,7 +107,7 @@ export const searchUsers = createServerFn({ method: "POST" })
       if (ids.length) {
         const { data: matched } = await supabaseAdmin
           .from("users")
-          .select("id, email, status, country_code, created_at, last_login_at")
+          .select("id, account_number, email, status, country_code, created_at, last_login_at")
           .in("id", ids);
         rows = matched ?? [];
       }
@@ -108,6 +125,7 @@ export const searchUsers = createServerFn({ method: "POST" })
       const p = (profiles ?? []).find((x) => x.user_id === r.id);
       return {
         ...r,
+        accountNumber: r.account_number ?? null,
         firstName: p?.first_name ?? null,
         lastName: p?.last_name ?? null,
         phone: p?.phone ?? null,
@@ -133,7 +151,7 @@ export const getUserDossier = createServerFn({ method: "POST" })
       await Promise.all([
         supabaseAdmin
           .from("users")
-          .select("id, email, status, country_code, date_of_birth, created_at, last_login_at")
+          .select("id, account_number, email, status, country_code, date_of_birth, created_at, last_login_at")
           .eq("id", userId)
           .maybeSingle(),
         supabaseAdmin

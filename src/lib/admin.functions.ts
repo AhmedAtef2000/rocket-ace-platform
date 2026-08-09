@@ -436,10 +436,24 @@ export const listAdminTickets = createServerFn({ method: "GET" })
             .order("created_at", { ascending: true })
         ).data ?? []
       : [];
-    return (tickets ?? []).map((t) => ({
-      ...t,
-      messages: messages.filter((m) => m.ticket_id === t.id),
-    }));
+    const userIds = [...new Set((tickets ?? []).map((t) => t.user_id))];
+    const accounts = userIds.length
+      ? (
+          await supabaseAdmin
+            .from("users")
+            .select("id, account_number, email")
+            .in("id", userIds)
+        ).data ?? []
+      : [];
+    return (tickets ?? []).map((t) => {
+      const acct = accounts.find((a) => a.id === t.user_id);
+      return {
+        ...t,
+        accountNumber: acct?.account_number ?? null,
+        userEmail: acct?.email ?? null,
+        messages: messages.filter((m) => m.ticket_id === t.id),
+      };
+    });
   });
 
 export const answerTicket = createServerFn({ method: "POST" })
