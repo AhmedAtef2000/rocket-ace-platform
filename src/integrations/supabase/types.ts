@@ -950,6 +950,85 @@ export type Database = {
           },
         ]
       }
+      manual_deposit_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          credited_deposit_id: string | null
+          currency: string
+          id: string
+          method: string
+          proof_name: string | null
+          proof_path: string | null
+          reference: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sender_number: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          credited_deposit_id?: string | null
+          currency: string
+          id?: string
+          method: string
+          proof_name?: string | null
+          proof_path?: string | null
+          reference?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sender_number: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          credited_deposit_id?: string | null
+          currency?: string
+          id?: string
+          method?: string
+          proof_name?: string | null
+          proof_path?: string | null
+          reference?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sender_number?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_deposit_requests_credited_deposit_id_fkey"
+            columns: ["credited_deposit_id"]
+            isOneToOne: false
+            referencedRelation: "deposits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_deposit_requests_currency_fkey"
+            columns: ["currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "manual_deposit_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string
