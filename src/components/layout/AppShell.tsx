@@ -77,8 +77,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     retry: false,
   });
   const isAdmin = Boolean(admin.data?.identity);
-  const main = wallets.data?.wallets?.[0];
-  const balance = Number(main?.available_amount ?? 0);
+  // Show the wallet the player actually plays with (highest available balance).
+  const balance = (wallets.data?.wallets ?? []).reduce(
+    (top, w) => Math.max(top, Number(w.available_amount ?? 0)),
+    0,
+  );
 
   return (
     <div
