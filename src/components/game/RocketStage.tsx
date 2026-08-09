@@ -119,7 +119,7 @@ export function RocketStage({
       const drift = Math.sin(now / 9000) * 12;
       const pr = Math.max(width, height) * 0.62;
       const pcx = width * 0.16 + drift;
-      const pcy = -pr * 0.72 + climbOffset(m) * 26;
+      const pcy = -pr * 0.72 + climb * 26;
       const planet = ctx.createRadialGradient(pcx - pr * 0.3, pcy + pr * 0.5, 0, pcx, pcy, pr);
       planet.addColorStop(0, "rgba(36,72,74,0.55)");
       planet.addColorStop(0.7, "rgba(14,34,36,0.5)");
