@@ -124,7 +124,7 @@ function PaymentsPage() {
   });
 
   const eligible = overview.data?.realMoneyEligible ?? false;
-  const blockedGate = overview.data?.gates?.find((g) => !g.passed);
+  const blockedGate = overview.data?.gates?.find((g) => !g.passed && !g.internal);
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
@@ -138,12 +138,22 @@ function PaymentsPage() {
           <div className="mt-6 space-y-6">
             {!eligible && (
               <section className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
-                <h2 className="text-sm font-medium text-foreground">Real-money access locked</h2>
+                <h2 className="text-sm font-medium text-foreground">Withdrawals locked</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {blockedGate
                     ? `${blockedGate.label}: ${blockedGate.detail}`
                     : "Complete verification to unlock deposits and withdrawals."}
                 </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Your name, date of birth and uploaded documents must match. Mismatched or
+                  missing details will block payouts.
+                </p>
+                <a
+                  href="/compliance"
+                  className="mt-3 inline-block rounded-md border border-primary/50 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                >
+                  Upload / add documents
+                </a>
               </section>
             )}
 

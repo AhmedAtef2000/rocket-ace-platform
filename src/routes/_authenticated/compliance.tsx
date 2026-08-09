@@ -1,12 +1,17 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { AccountNav } from "@/components/account/AccountNav";
 import { Button } from "@/components/ui/button";
-import { getComplianceStatus, submitKyc } from "@/lib/compliance.functions";
+import {
+  getComplianceStatus,
+  submitKyc,
+  uploadKycDocument,
+} from "@/lib/compliance.functions";
 
 const title = "Verification & Compliance — AstroBet";
 const description =
@@ -35,13 +40,35 @@ const sources = [
   { value: "OTHER", label: "Other" },
 ];
 
+const docTypes = [
+  { value: "ID_FRONT", label: "Government ID — front" },
+  { value: "ID_BACK", label: "Government ID — back" },
+  { value: "SELFIE", label: "Selfie holding your ID" },
+  { value: "PROOF_OF_ADDRESS", label: "Proof of address" },
+];
+
+function readAsBase64(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("The file could not be read."));
+    reader.onload = () => {
+      const result = String(reader.result ?? "");
+      resolve(result.slice(result.indexOf(",") + 1));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function CompliancePage() {
   const queryClient = useQueryClient();
   const fetchStatus = useServerFn(getComplianceStatus);
   const submit = useServerFn(submitKyc);
+  const upload = useServerFn(uploadKycDocument);
 
   const [sourceOfFunds, setSourceOfFunds] = useState("EMPLOYMENT");
   const [declaredPep, setDeclaredPep] = useState(false);
+  const [docType, setDocType] = useState("ID_FRONT");
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const status = useQuery({
     queryKey: ["compliance", "status"],
@@ -59,13 +86,31 @@ function CompliancePage() {
 
   const data = status.data;
   const kycStatus = data?.kyc?.status ?? "NOT_STARTED";
+  const verified = kycStatus === "APPROVED";
+  const visibleGates = (data?.gates ?? []).filter((gate) => !gate.internal);
+  const documents = data?.documents ?? [];
+
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (file.size > 5 * 1024 * 1024) throw new Error("Files must be 5 MB or smaller.");
+      const contentBase64 = await readAsBase64(file);
+      return upload({
+        data: { docType, fileName: file.name, mimeType: file.type, contentBase64 },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Document uploaded — our compliance team will review it shortly.");
+      if (fileInput.current) fileInput.current.value = "";
+      void queryClient.invalidateQueries({ queryKey: ["compliance"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
       <h1 className="font-display text-3xl font-extrabold tracking-tight">Verification &amp; compliance</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Real-money deposits and withdrawals stay locked until every gate below is green. Demo
-        play is unaffected.
+        Deposits and withdrawals stay locked until every check below is green.
       </p>
       <AccountNav />
 
@@ -92,8 +137,18 @@ function CompliancePage() {
           </span>
         </div>
 
+        {!verified ? (
+          <div className="mt-4 rounded-xl border border-warning/40 bg-warning/5 p-3 text-sm">
+            <p className="font-medium text-foreground">Withdrawals are locked</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Upload a clear photo of your ID and a matching selfie. Your name and date of birth
+              must match the details on your account exactly, or the review will be rejected.
+            </p>
+          </div>
+        ) : null}
+
         <ul className="mt-6 space-y-3">
-          {(data?.gates ?? []).map((gate) => (
+          {visibleGates.map((gate) => (
             <li key={gate.key} className="flex gap-3 rounded-xl border border-border bg-card/50 p-3 text-sm">
               <span
                 className={`mt-1.5 inline-block size-2 shrink-0 rounded-full ${
@@ -101,10 +156,26 @@ function CompliancePage() {
                 }`}
                 aria-hidden
               />
-              <span>
+              <span className="flex-1">
                 <span className="font-medium">{gate.label}</span>
                 <span className="block text-xs text-muted-foreground">{gate.detail}</span>
               </span>
+              {gate.key === "kyc" && !gate.passed ? (
+                <a
+                  href="#kyc-documents"
+                  className="self-center rounded-md border border-primary/50 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                >
+                  Upload documents
+                </a>
+              ) : null}
+              {gate.key === "identity" && !gate.passed ? (
+                <Link
+                  to="/profile"
+                  className="self-center rounded-md border border-primary/50 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                >
+                  Add details
+                </Link>
+              ) : null}
             </li>
           ))}
         </ul>
@@ -114,6 +185,86 @@ function CompliancePage() {
             {data.kyc.rejection_reason}
           </p>
         ) : null}
+      </section>
+
+      <section id="kyc-documents" className="mt-6 rounded-xl border border-border p-5">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">
+          Identity documents
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+          <div>
+            <label className="block text-sm" htmlFor="doc-type">
+              Document type
+            </label>
+            <select
+              id="doc-type"
+              value={docType}
+              onChange={(event) => setDocType(event.target.value)}
+              className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            >
+              {docTypes.map((d) => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) uploadMutation.mutate(file);
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              disabled={uploadMutation.isPending}
+              onClick={() => fileInput.current?.click()}
+            >
+              {uploadMutation.isPending ? "Uploading…" : "Upload / add document"}
+            </Button>
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          JPG, PNG, WEBP or PDF up to 5 MB. Files are stored privately and are only visible to
+          our compliance reviewers.
+        </p>
+
+        {documents.length > 0 ? (
+          <ul className="mt-4 space-y-2 text-sm">
+            {documents.map((doc) => (
+              <li
+                key={doc.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-card/40 px-3 py-2"
+              >
+                <span>
+                  <span className="font-medium">
+                    {docTypes.find((d) => d.value === doc.doc_type)?.label ?? doc.doc_type}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">{doc.file_name}</span>
+                </span>
+                <span
+                  className={`rounded-full border px-2.5 py-1 text-xs ${
+                    doc.status === "APPROVED"
+                      ? "border-success/40 text-success"
+                      : doc.status === "REJECTED"
+                        ? "border-destructive/40 text-destructive"
+                        : "border-warning/40 text-warning"
+                  }`}
+                >
+                  {doc.status.toLowerCase()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-4 text-sm text-muted-foreground">No documents uploaded yet.</p>
+        )}
       </section>
 
       <section className="mt-6 rounded-xl border border-border p-5">
@@ -153,8 +304,8 @@ function CompliancePage() {
           {kycStatus === "APPROVED" ? "Verified" : "Submit for verification"}
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">
-          Demo mode uses an internal rules-based reviewer. A licensed KYC provider replaces this
-          decision step before real-money launch; documents are never stored here.
+          Submissions are screened automatically and then confirmed by our compliance team.
+          Details that do not match your uploaded documents will be rejected.
         </p>
       </section>
     </main>

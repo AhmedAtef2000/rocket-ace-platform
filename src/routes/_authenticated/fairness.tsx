@@ -63,14 +63,6 @@ function FairnessPage() {
       </p>
       <AccountNav />
 
-      <section className="mt-8 rounded-xl border border-border p-5 text-sm leading-relaxed text-muted-foreground">
-        <p className="font-medium text-foreground">Algorithm</p>
-        <p className="mt-2">
-          uniform = first 13 hex chars of HMAC-SHA256(serverSeed, "clientSeed:nonce") ÷ 2^52
-        </p>
-        <p>crash = floor(min(maxMultiplier, (1 − houseEdge) ÷ (1 − uniform)) × 100) ÷ 100</p>
-      </section>
-
       <section className="mt-8">
         <h2 className="text-lg font-medium">Revealed rounds</h2>
         {rounds.isLoading ? (
@@ -80,62 +72,68 @@ function FairnessPage() {
             No settled rounds yet — play a round and it will appear here once the seed is revealed.
           </p>
         ) : (
-          <ul className="mt-4 space-y-3">
-            {(rounds.data ?? []).map((row: Row) => {
-              const check = checks[row.roundId];
-              const ok = check?.hashMatches && check?.crashMatches;
-              return (
-                <li key={row.roundId} className="rounded-xl border border-border p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="font-medium">Round {row.roundNumber}</p>
-                      <p className="text-xs text-muted-foreground">
-                        crashed at {row.crashMultiplier.toFixed(2)}× · nonce {row.nonce} ·{" "}
-                        {row.algorithmVersion}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        check === undefined
-                          ? "border border-border text-muted-foreground"
-                          : ok
-                            ? "bg-success/15 text-success"
-                            : "bg-destructive/15 text-destructive"
-                      }`}
-                    >
-                      {check === undefined
-                        ? "Verifying…"
-                        : ok
-                          ? "Verified in your browser"
-                          : "Mismatch"}
-                    </span>
-                  </div>
-                  <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
-                    <div>
-                      <dt className="text-muted-foreground">Server seed hash (committed)</dt>
-                      <dd className="break-all font-mono">{row.serverSeedHash}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Server seed (revealed)</dt>
-                      <dd className="break-all font-mono">{row.serverSeed}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Client seed</dt>
-                      <dd className="break-all font-mono">{row.clientSeed}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">Recomputed crash point</dt>
-                      <dd className="font-mono">
-                        {check ? `${check.recomputed.toFixed(2)}×` : "…"}
-                      </dd>
-                    </div>
-                  </dl>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="mt-4 overflow-x-auto rounded-xl border border-border">
+            <table className="w-full min-w-[520px] text-sm">
+              <thead className="bg-card/60 text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">Round ID</th>
+                  <th className="px-4 py-3 text-right font-medium">Crash</th>
+                  <th className="px-4 py-3 text-right font-medium">Total bets</th>
+                  <th className="px-4 py-3 text-right font-medium">Player win / loss</th>
+                  <th className="px-4 py-3 text-right font-medium">Check</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(rounds.data ?? []).map((row: Row) => {
+                  const check = checks[row.roundId];
+                  const ok = check?.hashMatches && check?.crashMatches;
+                  const net = row.netPlayerResult;
+                  return (
+                    <tr key={row.roundId} className="border-t border-border/60">
+                      <td className="px-4 py-3 font-mono text-xs">{row.roundNumber}</td>
+                      <td className="px-4 py-3 text-right font-mono">
+                        {row.crashMultiplier.toFixed(2)}×
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono">
+                        {money(row.totalWagered)}
+                      </td>
+                      <td
+                        className={`px-4 py-3 text-right font-mono ${
+                          net > 0 ? "text-success" : net < 0 ? "text-destructive" : ""
+                        }`}
+                      >
+                        {net > 0 ? "+" : ""}
+                        {money(net)}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                            check === undefined
+                              ? "border border-border text-muted-foreground"
+                              : ok
+                                ? "bg-success/15 text-success"
+                                : "bg-destructive/15 text-destructive"
+                          }`}
+                        >
+                          {check === undefined ? "Checking…" : ok ? "Verified" : "Mismatch"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
+        <p className="mt-3 text-xs text-muted-foreground">
+          Each row is recomputed from the revealed seed inside your browser. Raw seeds and
+          algorithm internals stay out of public view.
+        </p>
       </section>
     </main>
   );
+}
+
+function money(value: number) {
+  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
