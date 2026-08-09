@@ -28,7 +28,6 @@ import {
   Network,
   Receipt,
   Rocket,
-  ScrollText,
   Search,
   Settings,
   ShieldAlert,
