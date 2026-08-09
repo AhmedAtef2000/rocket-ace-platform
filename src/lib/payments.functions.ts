@@ -1,16 +1,22 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { parseDepositInput, parseWithdrawalInput } from "@/lib/payments.server";
+import {
+  parseDepositInput,
+  parseManualDepositInput,
+  parseWithdrawalInput,
+} from "@/lib/payments.server";
 
 export const getPaymentsOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { listNetworks } = await import("@/lib/payments.server");
+    const { listNetworks, playthroughStatus, MANUAL_METHODS, MIN_DEPOSIT_AMOUNT, WITHDRAWAL_NOTICE_HOURS } =
+      await import("@/lib/payments.server");
     const { complianceSnapshot } = await import("@/lib/compliance.server");
     const userId = context.userId;
 
-    const [networks, compliance, wallets, deposits, withdrawals] = await Promise.all([
+    const [networks, compliance, wallets, deposits, withdrawals, playthrough, manual] =
+      await Promise.all([
       listNetworks(supabaseAdmin),
       complianceSnapshot(supabaseAdmin, userId),
       supabaseAdmin
@@ -34,16 +40,82 @@ export const getPaymentsOverview = createServerFn({ method: "GET" })
         .eq("user_id", userId)
         .order("requested_at", { ascending: false })
         .limit(20),
-    ]);
+        playthroughStatus(supabaseAdmin, userId),
+        supabaseAdmin
+          .from("manual_deposit_requests")
+          .select("id, method, currency, amount, status, review_note, created_at")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(20),
+      ]);
 
     return {
       networks,
+      manualMethods: MANUAL_METHODS.map((m) => ({ ...m })),
+      minDeposit: MIN_DEPOSIT_AMOUNT,
+      withdrawalNoticeHours: WITHDRAWAL_NOTICE_HOURS,
+      playthrough,
+      manualDeposits: manual.data ?? [],
       realMoneyEligible: compliance.realMoneyEligible,
       gates: compliance.gates,
       wallets: wallets.data ?? [],
       deposits: deposits.data ?? [],
       withdrawals: withdrawals.data ?? [],
     };
+  });
+
+/** Manual local rails (Vodafone / Etisalat / Orange Cash) — reviewed by staff. */
+export const submitManualDeposit = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => parseManualDepositInput(data))
+  .handler(async ({ context, data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertRealMoneyEligible } = await import("@/lib/compliance.server");
+    const { assertNotRestricted, auditPayments } = await import("@/lib/payments.server");
+    const { enforceRateLimit } = await import("@/lib/rate-limit.server");
+    const userId = context.userId;
+
+    await enforceRateLimit(supabaseAdmin, "deposit.create", userId);
+    await assertRealMoneyEligible(supabaseAdmin, userId);
+    await assertNotRestricted(supabaseAdmin, userId);
+
+    const bytes = Buffer.from(data.contentBase64, "base64");
+    if (bytes.byteLength === 0) throw new Error("The attached file is empty.");
+    if (bytes.byteLength > 5 * 1024 * 1024) throw new Error("Files must be 5 MB or smaller.");
+
+    const ext = (data.fileName.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const path = `${userId}/${Date.now()}-${data.method.toLowerCase()}.${ext || "bin"}`;
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("payment-proofs")
+      .upload(path, bytes, { contentType: data.mimeType, upsert: false });
+    if (uploadError) throw new Error(uploadError.message);
+
+    const { data: row, error } = await supabaseAdmin
+      .from("manual_deposit_requests")
+      .insert({
+        user_id: userId,
+        method: data.method,
+        currency: data.currency,
+        amount: data.amount,
+        sender_number: data.senderNumber,
+        reference: data.reference,
+        proof_path: path,
+        proof_name: data.fileName,
+        status: "PENDING",
+      })
+      .select("id, status")
+      .single();
+    if (error) throw new Error(error.message);
+
+    await auditPayments(supabaseAdmin, {
+      actorId: userId,
+      action: "deposit.manual_submitted",
+      resourceType: "manual_deposit_requests",
+      resourceId: row.id,
+      metadata: { method: data.method, amount: data.amount, currency: data.currency },
+    });
+
+    return row;
   });
 
 export const createDeposit = createServerFn({ method: "POST" })
@@ -175,6 +247,7 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       PROVIDER_ID,
       WITHDRAWAL_FEE_RATE,
       assertNotRestricted,
+      assertPlaythrough,
       auditPayments,
       ensureRealWallet,
       requireNetwork,
@@ -186,6 +259,7 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
     await enforceRateLimit(supabaseAdmin, "withdrawal.request", userId);
     await assertRealMoneyEligible(supabaseAdmin, userId);
     await assertNotRestricted(supabaseAdmin, userId);
+    await assertPlaythrough(supabaseAdmin, userId);
     const network = await requireNetwork(supabaseAdmin, data.currency, data.network);
     if (data.amount < network.minWithdrawal) {
       throw new Error(`Minimum withdrawal is ${network.minWithdrawal} ${data.currency}.`);

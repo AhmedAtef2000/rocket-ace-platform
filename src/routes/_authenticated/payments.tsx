@@ -10,6 +10,7 @@ import {
   getPaymentsOverview,
   requestWithdrawal,
   simulateDepositCredit,
+  submitManualDeposit,
 } from "@/lib/payments.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,11 +51,17 @@ function PaymentsPage() {
   const settle = useServerFn(simulateDepositCredit);
   const withdraw = useServerFn(requestWithdrawal);
   const cancel = useServerFn(cancelWithdrawal);
+  const manualSubmit = useServerFn(submitManualDeposit);
 
   const [pair, setPair] = useState("");
   const [wdAmount, setWdAmount] = useState("");
   const [wdAddress, setWdAddress] = useState("");
   const [settleAmount, setSettleAmount] = useState<Record<string, string>>({});
+  const [manualMethod, setManualMethod] = useState("VODAFONE_CASH");
+  const [manualAmount, setManualAmount] = useState("");
+  const [manualSender, setManualSender] = useState("");
+  const [manualReference, setManualReference] = useState("");
+  const [manualFile, setManualFile] = useState<File | null>(null);
 
   const overview = useQuery({
     queryKey: ["payments", "overview"],
@@ -123,8 +130,44 @@ function PaymentsPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const manualMutation = useMutation({
+    mutationFn: async () => {
+      if (!manualFile) throw new Error("Attach a screenshot of the transfer.");
+      const buffer = await manualFile.arrayBuffer();
+      let binary = "";
+      const view = new Uint8Array(buffer);
+      for (let i = 0; i < view.length; i += 1) binary += String.fromCharCode(view[i]!);
+      return manualSubmit({
+        data: {
+          method: manualMethod,
+          currency: overview.data?.wallets?.[0]?.currency ?? "USDT",
+          amount: Number(manualAmount),
+          senderNumber: manualSender,
+          reference: manualReference,
+          fileName: manualFile.name,
+          mimeType: manualFile.type,
+          contentBase64: btoa(binary),
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Deposit submitted for review.");
+      setManualAmount("");
+      setManualSender("");
+      setManualReference("");
+      setManualFile(null);
+      invalidate();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const eligible = overview.data?.realMoneyEligible ?? false;
   const blockedGate = overview.data?.gates?.find((g) => !g.passed && !g.internal);
+  const playthrough = overview.data?.playthrough;
+  const minDeposit = overview.data?.minDeposit ?? 5;
+  const noticeHours = overview.data?.withdrawalNoticeHours ?? 24;
+  const manualMethods = overview.data?.manualMethods ?? [];
+  const selectedManual = manualMethods.find((m) => m.id === manualMethod);
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
@@ -215,6 +258,99 @@ function PaymentsPage() {
             </section>
 
             <section className="rounded-2xl border border-border bg-card/60 p-5">
+              <h2 className="text-sm font-medium text-foreground">
+                Deposit with Vodafone / Etisalat / Orange Cash
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Send the amount from your own wallet number, then upload the transfer receipt.
+                Minimum deposit {num(minDeposit)}. Our team reviews and credits it manually.
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="manual-method">Payment method</Label>
+                  <select
+                    id="manual-method"
+                    className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                    value={manualMethod}
+                    onChange={(event) => setManualMethod(event.target.value)}
+                  >
+                    {manualMethods.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.label}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedManual && (
+                    <p className="text-xs text-muted-foreground">
+                      Send to <span className="font-mono text-foreground">{selectedManual.payTo}</span>
+                    </p>
+                  )}
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="manual-amount">Amount sent</Label>
+                  <Input
+                    id="manual-amount"
+                    inputMode="decimal"
+                    placeholder={`${minDeposit}.00`}
+                    value={manualAmount}
+                    onChange={(event) => setManualAmount(event.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="manual-sender">Your wallet number</Label>
+                  <Input
+                    id="manual-sender"
+                    inputMode="tel"
+                    placeholder="01xxxxxxxxx"
+                    value={manualSender}
+                    onChange={(event) => setManualSender(event.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="manual-reference">Transaction reference (optional)</Label>
+                  <Input
+                    id="manual-reference"
+                    value={manualReference}
+                    onChange={(event) => setManualReference(event.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2 sm:col-span-2">
+                  <Label htmlFor="manual-proof">Payment proof (JPG, PNG, WEBP or PDF · max 5 MB)</Label>
+                  <input
+                    id="manual-proof"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,application/pdf"
+                    className="text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-xs file:text-foreground"
+                    onChange={(event) => setManualFile(event.target.files?.[0] ?? null)}
+                  />
+                </div>
+              </div>
+              <Button
+                className="mt-4"
+                size="sm"
+                disabled={!eligible || manualMutation.isPending}
+                onClick={() => manualMutation.mutate()}
+              >
+                {manualMutation.isPending ? "Submitting…" : "Submit deposit for review"}
+              </Button>
+              {(overview.data?.manualDeposits ?? []).length > 0 && (
+                <ul className="mt-4 space-y-2 text-sm">
+                  {(overview.data?.manualDeposits ?? []).map((m) => (
+                    <li
+                      key={m.id}
+                      className="flex items-center justify-between rounded-xl border border-border/60 bg-card/40 px-3 py-2"
+                    >
+                      <span className="text-foreground">
+                        {num(m.amount)} {m.currency} · {m.method.replace(/_/g, " ").toLowerCase()}
+                      </span>
+                      <span className="text-xs uppercase text-muted-foreground">{m.status}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section className="rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Deposits</h2>
               {(overview.data?.deposits ?? []).length === 0 ? (
                 <p className="mt-2 text-sm text-muted-foreground">No deposits yet.</p>
@@ -273,6 +409,13 @@ function PaymentsPage() {
 
             <section className="rounded-2xl border border-border bg-card/60 p-5">
               <h2 className="text-sm font-medium text-foreground">Request a withdrawal</h2>
+              {playthrough && !playthrough.cleared && (
+                <p className="mt-2 rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs text-muted-foreground">
+                  Anti-money-laundering rules require every deposit to be played through once
+                  before it can be withdrawn. You have wagered {num(playthrough.wagered)} of{" "}
+                  {num(playthrough.required)} — {num(playthrough.remaining)} of play remaining.
+                </p>
+              )}
               <div className="mt-3 grid gap-3">
                 <div className="grid gap-2">
                   <Label htmlFor="wd-amount">Amount</Label>
@@ -295,14 +438,17 @@ function PaymentsPage() {
                 </div>
                 <Button
                   size="sm"
-                  disabled={!eligible || withdrawMutation.isPending}
+                  disabled={
+                    !eligible || withdrawMutation.isPending || playthrough?.cleared === false
+                  }
                   onClick={() => withdrawMutation.mutate()}
                 >
                   {withdrawMutation.isPending ? "Submitting…" : "Request withdrawal"}
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  A 1% network fee applies. Funds are reserved on request; large payouts go to risk
-                  review and need two approvers before they are paid out.
+                  A 1% network fee applies. Funds are reserved as soon as you request the payout,
+                  and withdrawals are reviewed and processed within {noticeHours} hours. Large
+                  payouts need two approvers before they are released.
                 </p>
               </div>
             </section>
