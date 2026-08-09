@@ -65,17 +65,36 @@ export const updateProfile = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    // Identity fields (name, phone) are KYC-relevant: writable only while unset.
+    // Once captured at registration they can only change through a support
+    // ticket with proof, never by self-service.
+    const { data: existingProfile } = await supabase
+      .from("user_profiles")
+      .select("first_name, last_name, phone")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const patch: {
+      address_line_1: string | null;
+      address_line_2: string | null;
+      city: string | null;
+      postal_code: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+      phone?: string | null;
+    } = {
+      address_line_1: data.address_line_1,
+      address_line_2: data.address_line_2,
+      city: data.city,
+      postal_code: data.postal_code,
+    };
+    if (!existingProfile?.first_name) patch.first_name = data.first_name;
+    if (!existingProfile?.last_name) patch.last_name = data.last_name;
+    if (!existingProfile?.phone) patch.phone = data.phone;
+
     const { error: profileError } = await supabase
       .from("user_profiles")
-      .update({
-        first_name: data.first_name,
-        last_name: data.last_name,
-        phone: data.phone,
-        address_line_1: data.address_line_1,
-        address_line_2: data.address_line_2,
-        city: data.city,
-        postal_code: data.postal_code,
-      })
+      .update(patch)
       .eq("user_id", userId);
     if (profileError) throw new Error(profileError.message);
 
