@@ -150,45 +150,6 @@ export function ProfileOverview({ data }: { data: Overview | null }) {
         </section>
       </div>
 
-      {/* Popular games */}
-      <section className="rounded-2xl border border-border bg-card/60 p-5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">{t("acct.profile.popularGames")}</h3>
-          <Button asChild size="sm" variant="ghost">
-            <Link to="/game">{t("acct.profile.viewAll")}</Link>
-          </Button>
-        </div>
-        <div className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
-          {GAMES.map((game) => {
-            const Icon = game.icon;
-            const tile = (
-              <div
-                className={`relative flex size-full min-h-28 w-36 shrink-0 snap-start flex-col items-center justify-center gap-2 rounded-xl border border-border bg-gradient-to-b ${game.tint} to-background/40 p-4 transition-colors hover:border-primary/50`}
-              >
-                {game.badge ? (
-                  <span className="absolute end-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
-                    {game.badge}
-                  </span>
-                ) : null}
-                <Icon className="size-7 text-primary" />
-                <span className="text-sm font-medium">{game.label}</span>
-              </div>
-            );
-            return "to" in game && game.to ? (
-              <Link key={game.key} to={game.to} className="shrink-0">
-                {tile}
-              </Link>
-            ) : (
-              <div key={game.key} className="shrink-0 opacity-70">
-                {tile}
-              </div>
-            );
-          })}
-          <div className="hidden">
-            <Gem className="size-4" />
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
