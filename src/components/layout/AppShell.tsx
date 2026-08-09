@@ -7,12 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 /** Shared AstroBet chrome: aurora backdrop + brand bar around every signed-in page. */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10"
-        style={{ backgroundImage: "var(--surface-glow)" }}
-      />
+    <div
+      className="relative min-h-screen bg-background bg-fixed bg-no-repeat text-foreground"
+      style={{ backgroundImage: "var(--surface-glow)" }}
+    >
       <header className="sticky top-0 z-20 border-b border-border/70 bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
