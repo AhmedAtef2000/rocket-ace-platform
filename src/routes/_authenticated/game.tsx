@@ -108,7 +108,11 @@ function GamePage() {
       }
       return bet({ data: { amount: stakeCheck.amount, autoCashout: autoValue } });
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
       toast.success("Bet placed for this round.");
       void queryClient.invalidateQueries({ queryKey: ["game"] });
       void queryClient.invalidateQueries({ queryKey: ["wallet"] });
@@ -119,7 +123,13 @@ function GamePage() {
   const cashMutation = useMutation({
     mutationFn: async (betId: string) => cash({ data: { betId } }),
     onSuccess: (result) => {
-      toast.success(`Cashed out at ${Number(result.multiplier).toFixed(2)}x for ${Number(result.payout).toFixed(2)} credits.`);
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success(
+        `Cashed out at ${result.multiplier.toFixed(2)}x for ${result.payout.toFixed(2)} credits.`,
+      );
       void queryClient.invalidateQueries({ queryKey: ["game"] });
       void queryClient.invalidateQueries({ queryKey: ["wallet"] });
     },

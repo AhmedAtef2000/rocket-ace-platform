@@ -123,20 +123,32 @@ export const getGameState = createServerFn({ method: "GET" })
     };
   });
 
+export type BetResult =
+  | { ok: true; betId: string; roundId: string }
+  | { ok: false; message: string };
+
+export type CashOutResult =
+  | { ok: true; betId: string; multiplier: number; payout: number }
+  | { ok: false; message: string };
+
 export const placeBet = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => betInput(data))
-  .handler(async ({ context, data }) => {
+  .handler(async ({ context, data }): Promise<BetResult> => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { tickEngine } = await import("@/lib/game-engine.server");
     const { enforceRateLimit } = await import("@/lib/rate-limit.server");
 
-    await enforceRateLimit(supabaseAdmin, "bet.place", userId);
-    await assertCanPlay(supabaseAdmin, userId);
+    try {
+      await enforceRateLimit(supabaseAdmin, "bet.place", userId);
+      await assertCanPlay(supabaseAdmin, userId);
+    } catch (error) {
+      return { ok: false, message: (error as Error).message };
+    }
     const { round } = await tickEngine(supabaseAdmin);
     if (!round || round.status !== "BETTING") {
-      throw new Error("Betting is closed for this round — wait for the next one.");
+      return { ok: false, message: "Betting is closed for this round — wait for the next one." };
     }
 
     // Config-driven limits, so the API and the form reject the same values.
@@ -150,7 +162,7 @@ export const placeBet = createServerFn({ method: "POST" })
       minBet: Number(config?.min_bet ?? 5),
       maxBet: config?.max_bet == null ? null : Number(config.max_bet),
     });
-    if (!stake.ok) throw new Error(stake.message);
+    if (!stake.ok) return { ok: false, message: stake.message };
 
     const args = {
       _user_id: userId,
@@ -159,22 +171,22 @@ export const placeBet = createServerFn({ method: "POST" })
       ...(data.autoCashout === null ? {} : { _auto_cashout: data.autoCashout }),
     };
     const { data: betId, error } = await supabaseAdmin.rpc("game_place_bet", args);
-    if (error) throw new Error(friendly(error.message));
+    if (error) return { ok: false, message: friendly(error.message) };
 
-    return { betId, roundId: round.id };
+    return { ok: true, betId: betId as string, roundId: round.id };
   });
 
 export const cashOut = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => cashOutInput(data))
-  .handler(async ({ context, data }) => {
+  .handler(async ({ context, data }): Promise<CashOutResult> => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { tickEngine, liveMultiplier } = await import("@/lib/game-engine.server");
 
     const { round, config } = await tickEngine(supabaseAdmin);
     if (!round || round.status !== "RUNNING") {
-      throw new Error("Too late — the round already crashed.");
+      return { ok: false, message: "Too late — the round already crashed." };
     }
 
     const multiplier = Math.max(1, Math.floor(liveMultiplier(round, config) * 100) / 100);
@@ -183,9 +195,15 @@ export const cashOut = createServerFn({ method: "POST" })
       _bet_id: data.betId,
       _multiplier: multiplier,
     });
-    if (error) throw new Error(friendly(error.message));
+    if (error) return { ok: false, message: friendly(error.message) };
 
-    return result as { bet_id: string; multiplier: number; payout: number };
+    const row = result as { bet_id: string; multiplier: number; payout: number };
+    return {
+      ok: true,
+      betId: row.bet_id,
+      multiplier: Number(row.multiplier),
+      payout: Number(row.payout),
+    };
   });
 
 function friendly(message: string): string {
