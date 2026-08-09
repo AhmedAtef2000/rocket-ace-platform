@@ -10,6 +10,7 @@ import {
   getPaymentsOverview,
   requestWithdrawal,
   simulateDepositCredit,
+  submitManualDeposit,
 } from "@/lib/payments.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,11 +51,17 @@ function PaymentsPage() {
   const settle = useServerFn(simulateDepositCredit);
   const withdraw = useServerFn(requestWithdrawal);
   const cancel = useServerFn(cancelWithdrawal);
+  const manualSubmit = useServerFn(submitManualDeposit);
 
   const [pair, setPair] = useState("");
   const [wdAmount, setWdAmount] = useState("");
   const [wdAddress, setWdAddress] = useState("");
   const [settleAmount, setSettleAmount] = useState<Record<string, string>>({});
+  const [manualMethod, setManualMethod] = useState("VODAFONE_CASH");
+  const [manualAmount, setManualAmount] = useState("");
+  const [manualSender, setManualSender] = useState("");
+  const [manualReference, setManualReference] = useState("");
+  const [manualFile, setManualFile] = useState<File | null>(null);
 
   const overview = useQuery({
     queryKey: ["payments", "overview"],
@@ -123,8 +130,44 @@ function PaymentsPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const manualMutation = useMutation({
+    mutationFn: async () => {
+      if (!manualFile) throw new Error("Attach a screenshot of the transfer.");
+      const buffer = await manualFile.arrayBuffer();
+      let binary = "";
+      const view = new Uint8Array(buffer);
+      for (let i = 0; i < view.length; i += 1) binary += String.fromCharCode(view[i]!);
+      return manualSubmit({
+        data: {
+          method: manualMethod,
+          currency: overview.data?.wallets?.[0]?.currency ?? "USDT",
+          amount: Number(manualAmount),
+          senderNumber: manualSender,
+          reference: manualReference,
+          fileName: manualFile.name,
+          mimeType: manualFile.type,
+          contentBase64: btoa(binary),
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Deposit submitted for review.");
+      setManualAmount("");
+      setManualSender("");
+      setManualReference("");
+      setManualFile(null);
+      invalidate();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const eligible = overview.data?.realMoneyEligible ?? false;
   const blockedGate = overview.data?.gates?.find((g) => !g.passed && !g.internal);
+  const playthrough = overview.data?.playthrough;
+  const minDeposit = overview.data?.minDeposit ?? 5;
+  const noticeHours = overview.data?.withdrawalNoticeHours ?? 24;
+  const manualMethods = overview.data?.manualMethods ?? [];
+  const selectedManual = manualMethods.find((m) => m.id === manualMethod);
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8">
