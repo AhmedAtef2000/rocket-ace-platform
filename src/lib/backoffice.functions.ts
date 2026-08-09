@@ -53,14 +53,31 @@ export const searchUsers = createServerFn({ method: "POST" })
     await requirePermission(supabaseAdmin, context.userId, "user.view");
 
     const term = data.query;
-    const isUuid = /^[0-9a-f-]{8,36}$/i.test(term);
+    const isFullUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(term);
+    const isPartialUuid = /^[0-9a-f-]{4,36}$/i.test(term);
+
     const byUser = supabaseAdmin
       .from("users")
       .select("id, email, status, country_code, created_at, last_login_at")
       .limit(20);
-    const { data: users, error } = isUuid
-      ? await byUser.or(`email.ilike.%${term}%,id.eq.${term}`)
-      : await byUser.ilike("email", `%${term}%`);
+
+    let users: { id: string; email: string; status: string; country_code: string | null; created_at: string; last_login_at: string | null }[] | null = null;
+    let error: { message: string } | null = null;
+
+    if (isFullUuid) {
+      const result = await byUser.eq("id", term);
+      users = result.data;
+      error = result.error;
+    } else if (isPartialUuid) {
+      const result = await byUser.or(`email.ilike.%${term}%,id.ilike.%${term}%`);
+      users = result.data;
+      error = result.error;
+    } else {
+      const result = await byUser.ilike("email", `%${term}%`);
+      users = result.data;
+      error = result.error;
+    }
+
     let rows = error ? [] : (users ?? []);
 
     if (rows.length === 0) {
