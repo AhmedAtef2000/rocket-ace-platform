@@ -62,6 +62,71 @@ export const updateProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => parseProfileInput(data))
   .handler(async ({ context, data }) => {
+    return updateProfileImpl(context, data);
+  });
+
+export const getProfileOverview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    const [userRow, profile, wallets, bets, cashouts, kyc] = await Promise.all([
+      supabase
+        .from("users")
+        .select("id, email, account_number, status, mfa_enabled, created_at, last_login_at")
+        .eq("id", userId)
+        .maybeSingle(),
+      supabase
+        .from("user_profiles")
+        .select("first_name, last_name")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabase
+        .from("wallets")
+        .select("currency, kind, available_amount, locked_amount")
+        .eq("user_id", userId),
+      supabase.from("bets").select("amount, payout_amount, status").eq("user_id", userId),
+      supabase
+        .from("cashouts")
+        .select("multiplier")
+        .eq("user_id", userId)
+        .order("multiplier", { ascending: false })
+        .limit(1),
+      supabase
+        .from("kyc_cases")
+        .select("status, reviewed_at")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(1),
+    ]);
+
+    const betRows = bets.data ?? [];
+    const staked = betRows.reduce((sum, b) => sum + Number(b.amount ?? 0), 0);
+    const returned = betRows.reduce((sum, b) => sum + Number(b.payout_amount ?? 0), 0);
+    const real = (wallets.data ?? []).filter((w) => w.kind !== "DEMO");
+
+    return {
+      user: userRow.data,
+      profile: profile.data ?? null,
+      balance: {
+        currency: real[0]?.currency ?? "USD",
+        available: real.reduce((s, w) => s + Number(w.available_amount ?? 0), 0),
+        locked: real.reduce((s, w) => s + Number(w.locked_amount ?? 0), 0),
+      },
+      stats: {
+        lifetimeBets: betRows.length,
+        highestMultiplier: Number(cashouts.data?.[0]?.multiplier ?? 0),
+        totalProfit: returned - staked,
+        totalStaked: staked,
+      },
+      kyc: { status: kyc.data?.[0]?.status ?? "NOT_STARTED", reviewedAt: kyc.data?.[0]?.reviewed_at ?? null },
+    };
+  });
+
+const updateProfileLegacy = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => parseProfileInput(data))
+  .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
