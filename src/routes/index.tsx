@@ -68,15 +68,15 @@ function Index() {
       >
         <div className="mx-auto max-w-5xl px-6 py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
-            Build in progress
+            All 20 phases delivered
           </p>
           <h1 className="mt-5 text-5xl font-bold tracking-tight sm:text-6xl">
             Rocket Flight
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            A server-authoritative crash platform being built phase by phase: immutable
-            double-entry accounting, provably fair rounds, KYC/AML gating, responsible
-            gambling controls and a full operator back office.
+            A server-authoritative crash platform: immutable double-entry accounting,
+            provably fair rounds, KYC/AML gating, responsible gambling controls and a
+            full operator back office.
           </p>
           <div className="mt-8 flex flex-wrap gap-3 text-sm">
             <span className="rounded-full border border-warning/40 bg-warning/10 px-4 py-1.5 font-medium text-warning">
@@ -111,9 +111,6 @@ function Index() {
                 </span>
               </li>
             ))}
-            <li className="pl-5 text-sm text-muted-foreground">
-              Phases 18–22 — security hardening, testing, deployment
-            </li>
           </ul>
         </section>
 
