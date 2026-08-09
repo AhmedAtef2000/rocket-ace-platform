@@ -101,8 +101,13 @@ function BalanceCard({ balance, publicView }: { balance: number; publicView: boo
         {t("common.balance")}
       </p>
       <p className="mt-1 font-display text-2xl font-black tabular-nums text-primary">
-        {publicView ? "—" : formatMoney(balance)}
+        {publicView ? formatMoney(0) : formatMoney(balance)}
       </p>
+      {publicView ? (
+        <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
+          Sign in to fund your account
+        </p>
+      ) : null}
       <div className="mt-3 grid gap-2">
         <Link
           to={publicView ? "/auth" : "/payments"}
