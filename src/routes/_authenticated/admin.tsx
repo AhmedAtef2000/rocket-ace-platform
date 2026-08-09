@@ -473,3 +473,71 @@ function AuditSection() {
     </section>
   );
 }
+function AnalyticsSection() {
+  const fetchAnalytics = useServerFn(getAdminAnalytics);
+  const analytics = useQuery({
+    queryKey: ["admin", "analytics"],
+    queryFn: async () => fetchAnalytics({ data: undefined }),
+    refetchInterval: 60_000,
+  });
+  const d = analytics.data;
+  const peak = Math.max(1, ...(d?.series ?? []).map((b) => Math.abs(b.wagered)));
+
+  return (
+    <section>
+      <h2 className="text-lg font-medium">Analytics · last {d?.days ?? 14} days</h2>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <Metric label="Wagered" value={d ? fmt(d.totals.wagered) : "—"} />
+        <Metric label="Returned" value={d ? fmt(d.totals.payout) : "—"} />
+        <Metric label="GGR" value={d ? fmt(d.totals.ggr) : "—"} />
+        <Metric label="Hold %" value={d ? `${d.totals.holdPercent.toFixed(2)}%` : "—"} />
+        <Metric label="Rounds" value={d ? d.totals.rounds : "—"} />
+        <Metric label="New players" value={d ? d.totals.newUsers : "—"} />
+        <Metric label="Deposit volume" value={d ? fmt(d.totals.depositVolume) : "—"} />
+        <Metric label="Payout volume" value={d ? fmt(d.totals.withdrawalVolume) : "—"} />
+      </div>
+
+      <div className="mt-5 rounded-xl border border-border p-5">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">Daily wagered vs GGR</p>
+        <div className="mt-4 flex h-32 items-end gap-1">
+          {(d?.series ?? []).map((bucket) => (
+            <div key={bucket.day} className="flex flex-1 flex-col items-center gap-1" title={`${bucket.day}: wagered ${fmt(bucket.wagered)} · GGR ${fmt(bucket.ggr)}`}>
+              <div className="flex h-28 w-full items-end gap-0.5">
+                <div
+                  className="flex-1 rounded-t bg-primary/60"
+                  style={{ height: `${(Math.abs(bucket.wagered) / peak) * 100}%` }}
+                />
+                <div
+                  className="flex-1 rounded-t bg-success/70"
+                  style={{ height: `${(Math.abs(bucket.ggr) / peak) * 100}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-muted-foreground">{bucket.day.slice(5)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-xl border border-border p-5">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">Top players by wagered</p>
+        {(d?.topPlayers ?? []).length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No betting activity in this window.</p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-sm">
+            {(d?.topPlayers ?? []).map((player) => (
+              <li key={player.userId} className="flex flex-wrap justify-between gap-2">
+                <span className="font-mono text-xs text-muted-foreground">{player.userId.slice(0, 8)}…</span>
+                <span className="tabular-nums">
+                  {player.bets} bets · wagered {fmt(player.wagered)} · net{" "}
+                  <span className={player.net >= 0 ? "text-success" : "text-destructive"}>
+                    {fmt(player.net)}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
