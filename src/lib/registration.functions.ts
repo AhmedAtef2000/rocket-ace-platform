@@ -28,7 +28,12 @@ export const checkRegistration = createServerFn({ method: "POST" })
     if (phoneRow.data) {
       return { ok: false as const, field: "phone" as const, message: "That phone number is already registered." };
     }
-    return { ok: true as const, email: data.email, phone: data.phone };
+    return {
+      ok: true as const,
+      email: data.email,
+      phone: data.phone,
+      currency: data.currency,
+    };
   });
 
 /**

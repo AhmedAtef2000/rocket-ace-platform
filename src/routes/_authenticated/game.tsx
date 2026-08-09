@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { RocketStage } from "@/components/game/RocketStage";
 import { cashOut, getGameState, placeBet } from "@/lib/game.functions";
 import { multiplierAt } from "@/lib/game-math";
+import { validateStake } from "@/lib/stake";
 import { useGameRealtime } from "@/hooks/useGameRealtime";
 
 const title = "AstroBet — Crash Game";
@@ -79,8 +80,9 @@ function GamePage() {
   const wallet = state.data?.wallet ?? null;
   const minBet = Number(state.data?.config?.minBet ?? 5);
   const bettingMs = Number(state.data?.config?.bettingDurationMs ?? 10000);
-  const stakeValue = Number(stake);
-  const stakeValid = Number.isFinite(stakeValue) && stakeValue >= minBet;
+  const maxBet = state.data?.config?.maxBet == null ? null : Number(state.data.config.maxBet);
+  const stakeCheck = validateStake(stake, { minBet, maxBet });
+  const stakeValid = stakeCheck.ok;
   const lastResult = state.data?.lastResult ?? null;
   const walletAvailable = state.data?.wallet?.available ?? 0;
   const presets = [minBet, minBet * 2, minBet * 10, minBet * 20];
@@ -99,14 +101,12 @@ function GamePage() {
 
   const betMutation = useMutation({
     mutationFn: async () => {
-      if (!stakeValid) {
-        throw new Error(`Bet amount must be at least ${minBet.toFixed(2)}.`);
-      }
+      if (!stakeCheck.ok) throw new Error(stakeCheck.message);
       const autoValue = auto.trim() === "" ? null : Number(auto);
       if (autoValue !== null && (!Number.isFinite(autoValue) || autoValue <= 1)) {
         throw new Error("Auto cash-out must be above 1.00x.");
       }
-      return bet({ data: { amount: stakeValue, autoCashout: autoValue } });
+      return bet({ data: { amount: stakeCheck.amount, autoCashout: autoValue } });
     },
     onSuccess: () => {
       toast.success("Bet placed for this round.");
@@ -209,10 +209,8 @@ function GamePage() {
               MAX
             </button>
           </div>
-          {stake !== "" && !stakeValid ? (
-            <p className="mt-2 text-xs text-destructive">
-              Bet amount must be at least {minBet.toFixed(2)}.
-            </p>
+          {stake !== "" && !stakeCheck.ok ? (
+            <p className="mt-2 text-xs text-destructive">{stakeCheck.message}</p>
           ) : null}
           <label
             className="mt-4 block text-xs uppercase tracking-widest text-muted-foreground"

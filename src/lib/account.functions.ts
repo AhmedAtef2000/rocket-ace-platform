@@ -17,6 +17,12 @@ export const provisionAccount = createServerFn({ method: "POST" })
     };
     const dateOfBirth = str("date_of_birth");
     const phone = str("phone");
+    const primaryCurrency = (() => {
+      const value = str("primary_currency");
+      return value && ["USD", "EUR", "EGP"].includes(value.toUpperCase())
+        ? value.toUpperCase()
+        : "USD";
+    })();
 
     const { error: userError } = await supabaseAdmin.from("users").upsert(
       {
@@ -75,6 +81,23 @@ export const provisionAccount = createServerFn({ method: "POST" })
         user_id: userId,
         currency: "DEMO",
         kind: "DEMO",
+        status: "ACTIVE",
+      });
+      if (error) throw new Error(error.message);
+    }
+
+    // Primary fiat wallet chosen at registration (USD/EUR/EGP).
+    const { data: fiatWallet } = await supabaseAdmin
+      .from("wallets")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("kind", "REAL")
+      .maybeSingle();
+    if (!fiatWallet) {
+      const { error } = await supabaseAdmin.from("wallets").insert({
+        user_id: userId,
+        currency: primaryCurrency,
+        kind: "REAL",
         status: "ACTIVE",
       });
       if (error) throw new Error(error.message);
