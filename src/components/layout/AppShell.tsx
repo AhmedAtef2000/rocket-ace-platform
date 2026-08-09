@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Rocket } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { InboxMenu } from "@/components/layout/InboxMenu";
 
 /** Shared AstroBet chrome: aurora backdrop + brand bar around every signed-in page. */
 export function AppShell({ children }: { children: ReactNode }) {
@@ -26,6 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               Play
             </Link>
+            <InboxMenu />
             <button
               type="button"
               onClick={() => void supabase.auth.signOut()}
