@@ -139,10 +139,23 @@ export const placeBet = createServerFn({ method: "POST" })
       throw new Error("Betting is closed for this round — wait for the next one.");
     }
 
+    // Config-driven limits, so the API and the form reject the same values.
+    const { validateStake } = await import("@/lib/stake");
+    const { data: config } = await supabaseAdmin
+      .from("game_configurations")
+      .select("min_bet, max_bet")
+      .eq("active", true)
+      .maybeSingle();
+    const stake = validateStake(data.amount, {
+      minBet: Number(config?.min_bet ?? 5),
+      maxBet: config?.max_bet == null ? null : Number(config.max_bet),
+    });
+    if (!stake.ok) throw new Error(stake.message);
+
     const args = {
       _user_id: userId,
       _round_id: round.id,
-      _amount: data.amount,
+      _amount: stake.amount,
       ...(data.autoCashout === null ? {} : { _auto_cashout: data.autoCashout }),
     };
     const { data: betId, error } = await supabaseAdmin.rpc("game_place_bet", args);
