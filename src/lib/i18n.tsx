@@ -415,6 +415,8 @@ type I18nValue = {
   setLang: (lang: Lang) => void;
   currency: CurrencyCode;
   setCurrency: (currency: CurrencyCode) => void;
+  /** ISO-3166 alpha-2 detected from the visitor's connection (null until resolved). */
+  country: string | null;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   formatMoney: (amount: number | string, currency?: string) => string;
 };
@@ -428,6 +430,7 @@ function isLang(value: string | null): value is Lang {
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
   const [currency, setCurrencyState] = useState<CurrencyCode>("USD");
+  const [country, setCountry] = useState<string | null>(null);
 
   // Read the stored preference after hydration so SSR markup stays stable.
   useEffect(() => {
@@ -437,6 +440,37 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (storedCurrency && (CURRENCIES as readonly string[]).includes(storedCurrency)) {
       setCurrencyState(storedCurrency as CurrencyCode);
     }
+
+    // Detect the visitor's country and apply its currency when they have no preference yet.
+    let cancelled = false;
+    void (async () => {
+      try {
+        const stored2 = window.localStorage.getItem(COUNTRY_KEY);
+        let iso = stored2;
+        if (!iso) {
+          const res = await fetch("/api/public/geo");
+          const body = (await res.json()) as { country?: string | null };
+          iso = body.country ?? null;
+          if (!iso) {
+            const region = new Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+            iso = region.startsWith("Africa/Cairo") ? "EG" : null;
+          }
+          if (iso) window.localStorage.setItem(COUNTRY_KEY, iso);
+        }
+        if (cancelled || !iso) return;
+        setCountry(iso);
+        if (!storedCurrency) {
+          const { countryByIso } = await import("@/lib/countries");
+          const detected = countryByIso(iso)?.currency;
+          if (detected && !cancelled) setCurrencyState(detected);
+        }
+      } catch {
+        /* detection is best-effort */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const dir = LANGUAGES.find((l) => l.code === lang)?.dir ?? "ltr";
@@ -496,8 +530,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<I18nValue>(
-    () => ({ lang, dir, locale, setLang, currency, setCurrency, t, formatMoney }),
-    [lang, dir, locale, setLang, currency, setCurrency, t, formatMoney],
+    () => ({ lang, dir, locale, setLang, currency, setCurrency, country, t, formatMoney }),
+    [lang, dir, locale, setLang, currency, setCurrency, country, t, formatMoney],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
