@@ -158,8 +158,7 @@ function AuthPage() {
                 Create account
               </Button>
               <p className="text-xs text-muted-foreground">
-                You must be of legal age in your jurisdiction. Accounts are demo-only until
-                licensing and payment providers are configured.
+                You must be of legal age in your jurisdiction to open an AstroBet account.
               </p>
             </form>
           </TabsContent>
