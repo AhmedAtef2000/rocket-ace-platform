@@ -7,13 +7,14 @@ import { toast } from "sonner";
 import { AccountNav } from "@/components/account/AccountNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RocketStage } from "@/components/game/RocketStage";
 import { cashOut, getGameState, placeBet } from "@/lib/game.functions";
-import { formatMultiplier, multiplierAt } from "@/lib/game-math";
+import { multiplierAt } from "@/lib/game-math";
 import { useGameRealtime } from "@/hooks/useGameRealtime";
 
-const title = "Crash Game — Rocket Flight";
+const title = "AstroBet — Crash Game";
 const description =
-  "Play the Rocket Flight demo crash game: server-authoritative rounds, provably fair crash points and instant cash-outs.";
+  "Play the AstroBet demo crash game: cinematic rocket launches, server-authoritative rounds, provably fair crash points and instant cash-outs.";
 
 export const Route = createFileRoute("/_authenticated/game")({
   head: () => ({
@@ -99,37 +100,33 @@ function GamePage() {
   const crashed = status === "CRASHED" || status === "SETTLING" || status === "SETTLED";
   const canBet = status === "BETTING" && !myBet;
   const canCash = status === "RUNNING" && myBet?.status === "ACTIVE";
+  const phase = crashed ? "crashed" : status === "RUNNING" ? "running" : status === "BETTING" ? "betting" : "idle";
+  const shown = crashed ? (round?.crash ?? display) : display;
+  const potential = myBet ? Number(myBet.amount) * shown : 0;
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">Crash game</h1>
+    <main className="mx-auto w-full max-w-5xl px-4 py-10">
+      <h1 className="font-display text-3xl font-extrabold tracking-tight">
+        Rocket <span className="text-thrust">launch</span>
+      </h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Demo credits only. Every round is server-authoritative and provably fair.
       </p>
       <AccountNav />
 
-      <section className="mt-8 rounded-2xl border border-border bg-card/60 p-8 text-center">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          {status === "BETTING"
-            ? "Betting open"
-            : status === "RUNNING"
-              ? "In flight"
-              : crashed
-                ? "Crashed"
-                : "Preparing next round"}
+      <section className="mt-8">
+        <RocketStage
+          phase={phase}
+          multiplier={shown}
+          countdownLabel={canBet ? "Betting open" : "Boarding"}
+        />
+        <p className="mt-3 text-center text-xs uppercase tracking-[0.3em] text-muted-foreground">
+          Round {round?.number ?? "—"}
         </p>
-        <p
-          className={`mt-3 font-mono text-6xl font-semibold tabular-nums ${
-            crashed ? "text-destructive" : "text-primary"
-          }`}
-        >
-          {formatMultiplier(crashed ? (round?.crash ?? display) : display)}
-        </p>
-        <p className="mt-2 text-xs text-muted-foreground">Round {round?.number ?? "—"}</p>
       </section>
 
       <section className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-border p-4">
+        <div className="rounded-3xl border border-border bg-card/60 p-5">
           <label className="text-xs uppercase tracking-widest text-muted-foreground" htmlFor="stake">
             Stake
           </label>
@@ -156,24 +153,24 @@ function GamePage() {
           />
           <div className="mt-4 flex gap-2">
             <Button
-              className="flex-1"
+              className="h-11 flex-1 rounded-full bg-thrust font-semibold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.02]"
               disabled={!canBet || betMutation.isPending}
               onClick={() => betMutation.mutate()}
             >
               {myBet ? "Bet placed" : "Place bet"}
             </Button>
             <Button
-              className="flex-1"
+              className="h-11 flex-1 rounded-full font-semibold"
               variant="secondary"
               disabled={!canCash || cashMutation.isPending}
               onClick={() => myBet && cashMutation.mutate(myBet.id)}
             >
-              Cash out
+              {canCash ? `Cash out ${potential.toFixed(2)}` : "Cash out"}
             </Button>
           </div>
         </div>
 
-        <div className="rounded-xl border border-border p-4">
+        <div className="rounded-3xl border border-border bg-card/60 p-5">
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Demo wallet</p>
           <p className="mt-2 font-mono text-2xl tabular-nums">
             {(wallet?.available ?? 0).toFixed(2)}

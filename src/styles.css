@@ -19,6 +19,8 @@
  */
 
 @theme inline {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -64,42 +66,48 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.16 0.03 264);
-  --foreground: oklch(0.96 0.01 250);
-  --card: oklch(0.21 0.035 264);
-  --card-foreground: oklch(0.96 0.01 250);
-  --popover: oklch(0.21 0.035 264);
-  --popover-foreground: oklch(0.96 0.01 250);
-  --primary: oklch(0.72 0.19 45);
-  --primary-foreground: oklch(0.17 0.03 264);
-  --secondary: oklch(0.27 0.04 264);
-  --secondary-foreground: oklch(0.96 0.01 250);
-  --muted: oklch(0.25 0.035 264);
-  --muted-foreground: oklch(0.68 0.03 258);
-  --accent: oklch(0.68 0.16 195);
-  --accent-foreground: oklch(0.17 0.03 264);
-  --destructive: oklch(0.62 0.23 25);
-  --destructive-foreground: oklch(0.98 0.005 250);
-  --border: oklch(0.3 0.04 264);
-  --input: oklch(0.3 0.04 264);
-  --ring: oklch(0.72 0.19 45);
-  --success: oklch(0.72 0.17 155);
-  --warning: oklch(0.79 0.16 85);
-  --surface-glow: radial-gradient(circle at 50% 0%, oklch(0.72 0.19 45 / 0.18), transparent 65%);
+  --radius: 1rem;
+  /* AstroBet — deep-space violet cockpit, aurora accents. */
+  --background: oklch(0.14 0.045 286);
+  --foreground: oklch(0.97 0.008 280);
+  --card: oklch(0.19 0.05 286);
+  --card-foreground: oklch(0.97 0.008 280);
+  --popover: oklch(0.18 0.05 286);
+  --popover-foreground: oklch(0.97 0.008 280);
+  --primary: oklch(0.68 0.22 296);
+  --primary-foreground: oklch(0.14 0.045 286);
+  --primary-glow: oklch(0.8 0.17 320);
+  --secondary: oklch(0.26 0.055 288);
+  --secondary-foreground: oklch(0.97 0.008 280);
+  --muted: oklch(0.24 0.045 288);
+  --muted-foreground: oklch(0.73 0.03 285);
+  --accent: oklch(0.83 0.16 190);
+  --accent-foreground: oklch(0.14 0.045 286);
+  --destructive: oklch(0.64 0.24 20);
+  --destructive-foreground: oklch(0.98 0.005 280);
+  --border: oklch(0.31 0.05 288);
+  --input: oklch(0.29 0.05 288);
+  --ring: oklch(0.68 0.22 296);
+  --success: oklch(0.79 0.18 158);
+  --warning: oklch(0.84 0.16 82);
+  --surface-glow:
+    radial-gradient(ellipse 80% 60% at 50% -10%, oklch(0.68 0.22 296 / 0.35), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 85% 20%, oklch(0.83 0.16 190 / 0.18), transparent 70%);
+  --gradient-thrust: linear-gradient(135deg, var(--primary), var(--primary-glow) 55%, var(--accent));
+  --shadow-orbit: 0 24px 70px -24px oklch(0.68 0.22 296 / 0.65);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.19 0.03 264);
-  --sidebar-foreground: oklch(0.96 0.01 250);
-  --sidebar-primary: oklch(0.72 0.19 45);
-  --sidebar-primary-foreground: oklch(0.17 0.03 264);
-  --sidebar-accent: oklch(0.27 0.04 264);
-  --sidebar-accent-foreground: oklch(0.96 0.01 250);
-  --sidebar-border: oklch(0.3 0.04 264);
-  --sidebar-ring: oklch(0.72 0.19 45);
+  --sidebar: oklch(0.17 0.05 286);
+  --sidebar-foreground: oklch(0.97 0.008 280);
+  --sidebar-primary: oklch(0.68 0.22 296);
+  --sidebar-primary-foreground: oklch(0.14 0.045 286);
+  --sidebar-accent: oklch(0.26 0.055 288);
+  --sidebar-accent-foreground: oklch(0.97 0.008 280);
+  --sidebar-border: oklch(0.31 0.05 288);
+  --sidebar-ring: oklch(0.68 0.22 296);
 }
 
 .dark {
@@ -145,5 +153,42 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
   }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+@utility text-thrust {
+  background-image: var(--gradient-thrust);
+  background-clip: text;
+  color: transparent;
+}
+
+@utility bg-thrust {
+  background-image: var(--gradient-thrust);
+}
+
+@utility shadow-orbit {
+  box-shadow: var(--shadow-orbit);
+}
+
+@keyframes astro-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes astro-drift {
+  from { background-position: 0 0; }
+  to { background-position: 0 -1200px; }
+}
+
+@utility animate-float {
+  animation: astro-float 5s ease-in-out infinite;
 }
