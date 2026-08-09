@@ -83,7 +83,7 @@ function SideNav({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () =>
             className:
               "flex items-center gap-3 rounded-xl border-s-2 border-primary bg-primary/12 px-3 py-2.5 text-sm font-bold text-primary",
           }}
-          activeOptions={{ exact: item.to === "/" }}
+          activeOptions={{ exact: false }}
         >
           <item.icon className="size-4 shrink-0" aria-hidden />
           <span className="truncate">{item.label}</span>
