@@ -85,7 +85,7 @@ function WalletPage() {
               ) : (
                 <ul className="mt-4 space-y-3">
                   {rows.map((wallet) => (
-                    <li key={wallet.id} className="rounded-md border border-border/60 p-3">
+                    <li key={wallet.id} className="rounded-xl border border-border/60 bg-card/40 p-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-medium text-foreground">
                           {wallet.currency}

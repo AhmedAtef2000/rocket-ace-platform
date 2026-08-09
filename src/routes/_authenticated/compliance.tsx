@@ -94,7 +94,7 @@ function CompliancePage() {
 
         <ul className="mt-6 space-y-3">
           {(data?.gates ?? []).map((gate) => (
-            <li key={gate.key} className="flex gap-3 rounded-lg border border-border p-3 text-sm">
+            <li key={gate.key} className="flex gap-3 rounded-xl border border-border bg-card/50 p-3 text-sm">
               <span
                 className={`mt-1.5 inline-block size-2 shrink-0 rounded-full ${
                   gate.passed ? "bg-success" : "bg-warning"

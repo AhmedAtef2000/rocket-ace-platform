@@ -461,7 +461,7 @@ function AuditSection() {
       <h2 className="text-lg font-medium">Audit trail</h2>
       <ul className="mt-4 space-y-2 text-sm">
         {(logs.data ?? []).map((log) => (
-          <li key={log.id} className="rounded-lg border border-border px-3 py-2">
+          <li key={log.id} className="rounded-xl border border-border bg-card/50 px-3 py-2">
             <span className="font-medium">{log.action}</span>{" "}
             <span className="text-xs text-muted-foreground">
               {log.actor_role ?? "SYSTEM"} · {log.resource_type ?? "—"} ·{" "}

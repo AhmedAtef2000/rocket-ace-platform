@@ -211,7 +211,7 @@ function PaymentsPage() {
               ) : (
                 <ul className="mt-3 space-y-3 text-sm">
                   {(overview.data?.deposits ?? []).map((d) => (
-                    <li key={d.id} className="rounded-md border border-border/60 p-3">
+                    <li key={d.id} className="rounded-xl border border-border/60 bg-card/40 p-3">
                       <div className="flex items-center justify-between">
                         <span className="text-foreground">
                           {d.currency} · {d.network}
@@ -304,7 +304,7 @@ function PaymentsPage() {
               ) : (
                 <ul className="mt-3 space-y-3 text-sm">
                   {(overview.data?.withdrawals ?? []).map((w) => (
-                    <li key={w.id} className="rounded-md border border-border/60 p-3">
+                    <li key={w.id} className="rounded-xl border border-border/60 bg-card/40 p-3">
                       <div className="flex items-center justify-between">
                         <span className="font-mono text-foreground">
                           {num(w.amount, 8)} {w.currency}
