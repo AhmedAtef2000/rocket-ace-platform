@@ -4,9 +4,12 @@ import { Rocket } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { InboxMenu } from "@/components/layout/InboxMenu";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { useI18n } from "@/lib/i18n";
 
 /** Shared AstroBet chrome: aurora backdrop + brand bar around every signed-in page. */
 export function AppShell({ children }: { children: ReactNode }) {
+  const { t } = useI18n();
   return (
     <div
       className="relative min-h-screen bg-background bg-fixed bg-no-repeat text-foreground"
@@ -25,15 +28,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               to="/game"
               className="rounded-full bg-thrust px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-orbit transition-transform hover:scale-[1.03]"
             >
-              Play
+              {t("nav.play")}
             </Link>
+            <LanguageSwitcher />
             <InboxMenu />
             <button
               type="button"
               onClick={() => void supabase.auth.signOut()}
               className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
-              Sign out
+              {t("nav.signOut")}
             </button>
           </div>
         </div>
@@ -53,12 +57,15 @@ export function AuthShell({ children }: { children: ReactNode }) {
         style={{ backgroundImage: "var(--surface-glow)" }}
       />
       <div className="relative w-full max-w-md rounded-3xl border border-border bg-card/70 p-6 shadow-orbit backdrop-blur">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-thrust">
-            <Rocket className="size-5 text-primary-foreground" aria-hidden />
-          </span>
-          <span className="font-display text-lg font-extrabold tracking-tight">AstroBet</span>
-        </Link>
+        <div className="flex items-center justify-between gap-2">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-thrust">
+              <Rocket className="size-5 text-primary-foreground" aria-hidden />
+            </span>
+            <span className="font-display text-lg font-extrabold tracking-tight">AstroBet</span>
+          </Link>
+          <LanguageSwitcher />
+        </div>
         {children}
       </div>
     </main>

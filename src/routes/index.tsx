@@ -4,6 +4,8 @@ import { Rocket } from "lucide-react";
 
 import { RocketStage } from "@/components/game/RocketStage";
 import { LiveActivityFeed } from "@/components/home/LiveActivityFeed";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { useI18n } from "@/lib/i18n";
 
 const title = "AstroBet — Launch. Climb. Cash Out.";
 const description =
@@ -91,6 +93,7 @@ function HeroStage() {
 }
 
 function Index() {
+  const { t } = useI18n();
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6">
@@ -101,19 +104,20 @@ function Index() {
           <span className="font-display text-lg font-extrabold tracking-tight">AstroBet</span>
         </div>
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           <Link
             to="/auth"
             search={{ mode: "signin" }}
             className="rounded-full border border-border px-4 py-2 text-sm font-medium transition-all duration-150 hover:bg-secondary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            Sign in
+            {t("nav.signIn")}
           </Link>
           <Link
             to="/auth"
             search={{ mode: "signup" }}
             className="rounded-full bg-thrust px-4 py-2 text-sm font-semibold text-primary-foreground shadow-orbit transition-all duration-150 hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            Register
+            {t("nav.register")}
           </Link>
         </div>
       </header>
