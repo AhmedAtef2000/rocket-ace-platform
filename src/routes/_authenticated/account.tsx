@@ -83,7 +83,6 @@ function AccountPage() {
               <dl className="mt-3 space-y-2 text-sm">
                 <Row label="Email" value={user?.email ?? "—"} />
                 <Row label="Status" value={user?.status ?? "—"} />
-                <Row label="Mode" value={user?.demo_mode ? "Demo" : "Real money"} />
                 <Row label="MFA" value={user?.mfa_enabled ? "Enabled" : "Not enabled"} />
               </dl>
             </section>
@@ -105,7 +104,7 @@ function AccountPage() {
                 </ul>
               )}
               <p className="mt-3 text-xs text-muted-foreground">
-                Balances are ledger projections. Funding arrives with the wallet and ledger phases.
+                Balances are ledger projections updated after every settled round.
               </p>
             </section>
           </div>
