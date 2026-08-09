@@ -81,7 +81,10 @@ function GamePage() {
   const maxBet = Number(state.data?.config?.maxBet ?? 1000);
   const bettingMs = Number(state.data?.config?.bettingDurationMs ?? 10000);
   const stakeValue = Number(stake);
-  const stakeValid = Number.isFinite(stakeValue) && stakeValue >= minBet && stakeValue <= maxBet;
+  const stakeValid = Number.isFinite(stakeValue) && stakeValue >= minBet;
+  const lastResult = state.data?.lastResult ?? null;
+  const walletAvailable = state.data?.wallet?.available ?? 0;
+  const presets = [minBet, minBet * 2, minBet * 10, minBet * 20];
 
   // Ticking clock for the betting countdown.
   useEffect(() => {
@@ -98,7 +101,7 @@ function GamePage() {
   const betMutation = useMutation({
     mutationFn: async () => {
       if (!stakeValid) {
-        throw new Error(`Stake must be between ${minBet} and ${maxBet} credits.`);
+        throw new Error(`Bet amount must be at least ${minBet.toFixed(2)}.`);
       }
       const autoValue = auto.trim() === "" ? null : Number(auto);
       if (autoValue !== null && (!Number.isFinite(autoValue) || autoValue <= 1)) {
