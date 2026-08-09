@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { BadgeCheck, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
