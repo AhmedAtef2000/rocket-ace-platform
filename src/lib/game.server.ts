@@ -2,13 +2,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { EngineRound } from "@/lib/game-engine.server";
+import { validateStake } from "@/lib/stake";
 
 type Admin = SupabaseClient<Database>;
 
 export function betInput(data: unknown): { amount: number; autoCashout: number | null } {
   const d = (data ?? {}) as { amount?: unknown; autoCashout?: unknown };
-  const amount = Number(d.amount);
-  if (!Number.isFinite(amount) || amount <= 0) throw new Error("Enter a valid stake.");
+  // Structural check only; the min/max rules come from the active config later.
+  const stake = validateStake(d.amount, { minBet: 0.01 });
+  if (!stake.ok) throw new Error(stake.message);
 
   let autoCashout: number | null = null;
   if (d.autoCashout !== null && d.autoCashout !== undefined && d.autoCashout !== "") {
@@ -17,7 +19,7 @@ export function betInput(data: unknown): { amount: number; autoCashout: number |
     autoCashout = Math.floor(value * 100) / 100;
   }
 
-  return { amount: Math.floor(amount * 100) / 100, autoCashout };
+  return { amount: stake.amount, autoCashout };
 }
 
 export function cashOutInput(data: unknown): { betId: string } {
