@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { checkRegistration, resolveLoginIdentifier } from "@/lib/registration.functions";
 import { passwordProblems } from "@/lib/password";
+import { COUNTRIES, DEFAULT_COUNTRY, composePhone, countryByIso, stripDial } from "@/lib/countries";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,8 +49,10 @@ function AuthPage() {
   const search = useSearch({ from: "/auth" });
   const navigate = useNavigate();
   const destination = safePath(search.redirect);
+  const { t, country } = useI18n();
 
   const [identifier, setIdentifier] = useState("");
+  const [signInCountry, setSignInCountry] = useState(DEFAULT_COUNTRY);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [pendingVerification, setPendingVerification] = useState<string | null>(null);
@@ -63,9 +67,23 @@ function AuthPage() {
     password: "",
     confirm: "",
   });
+  const [signUpCountry, setSignUpCountry] = useState(DEFAULT_COUNTRY);
   const setField = (key: keyof typeof form) => (value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
   const problems = passwordProblems(form.password);
+  const signUpDial = countryByIso(signUpCountry)?.dial ?? "+1";
+  const signInDial = countryByIso(signInCountry)?.dial ?? "+1";
+  // Anything that is not email-like is treated as a phone number.
+  const identifierIsPhone = identifier.trim() !== "" && !identifier.includes("@");
+
+  // Apply the detected country (dial code + account currency) once geo resolves.
+  useEffect(() => {
+    const detected = countryByIso(country);
+    if (!detected) return;
+    setSignUpCountry(detected.iso);
+    setSignInCountry(detected.iso);
+    setForm((current) => ({ ...current, currency: detected.currency }));
+  }, [country]);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -81,12 +99,13 @@ function AuthPage() {
     event.preventDefault();
     setBusy(true);
     try {
-      const { email } = await resolveLoginIdentifier({ data: { identifier } });
+      const value = identifierIsPhone ? composePhone(signInDial, identifier) : identifier;
+      const { email } = await resolveLoginIdentifier({ data: { identifier: value } });
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw new Error(error.message);
-      toast.success("Signed in");
+      toast.success(t("auth.signedIn"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign you in.");
+      toast.error(error instanceof Error ? error.message : t("auth.signInFailed"));
     } finally {
       setBusy(false);
     }
@@ -95,11 +114,11 @@ function AuthPage() {
   async function handleSignUp(event: React.FormEvent) {
     event.preventDefault();
     if (problems.length > 0) {
-      toast.error(`Password needs ${problems.join(", ")}.`);
+      toast.error(t("auth.passwordNeeds", { p: problems.join(", ") }));
       return;
     }
     if (form.password !== form.confirm) {
-      toast.error("Passwords do not match.");
+      toast.error(t("auth.passwordsMismatch"));
       return;
     }
     setBusy(true);
@@ -110,7 +129,7 @@ function AuthPage() {
           lastName: form.lastName,
           dateOfBirth: form.dateOfBirth,
           email: form.email,
-          phone: form.phone,
+          phone: composePhone(signUpDial, form.phone),
           currency: form.currency,
         },
       });
@@ -133,12 +152,12 @@ function AuthPage() {
       if (error) throw new Error(error.message);
       if (!data.session) {
         setPendingVerification(check.email);
-        toast.success("Verification code sent — check your email.");
+        toast.success(t("auth.verificationSent"));
       } else {
-        toast.success("Account created");
+        toast.success(t("auth.accountCreated"));
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not create your account.");
+      toast.error(error instanceof Error ? error.message : t("auth.signUpFailed"));
     } finally {
       setBusy(false);
     }
@@ -155,26 +174,27 @@ function AuthPage() {
 
   async function handleReset() {
     if (!identifier.includes("@")) {
-      toast.error("Enter your email address to reset your password.");
+      toast.error(t("auth.resetNeedsEmail"));
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(identifier.trim(), {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) toast.error(error.message);
-    else toast.success("Password reset email sent");
+    else toast.success(t("auth.resetSent"));
   }
 
   if (pendingVerification) {
     return (
       <AuthShell>
-        <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">Verify your account</h1>
+        <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">
+          {t("auth.verifyTitle")}
+        </h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          We sent a verification link to <span className="text-foreground">{pendingVerification}</span>.
-          Open it to activate your AstroBet account, then come back here to sign in.
+          {t("auth.verifyBody", { email: pendingVerification })}
         </p>
         <Button className="mt-6 w-full" variant="outline" onClick={() => setPendingVerification(null)}>
-          Back to sign in
+          {t("auth.backToSignIn")}
         </Button>
       </AuthShell>
     );
@@ -182,42 +202,53 @@ function AuthPage() {
 
   return (
     <AuthShell>
-        <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">Account access</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Sign in to your AstroBet account, or create one in under a minute.
-        </p>
+        <h1 className="mt-5 font-display text-3xl font-extrabold tracking-tight">{t("auth.title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("auth.subtitle")}</p>
 
         <Tabs defaultValue={search.mode === "signup" ? "signup" : "signin"} className="mt-6">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign in</TabsTrigger>
-            <TabsTrigger value="signup">Create account</TabsTrigger>
+            <TabsTrigger value="signin">{t("auth.signIn")}</TabsTrigger>
+            <TabsTrigger value="signup">{t("auth.createAccount")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="signin">
             <form onSubmit={handleSignIn} className="space-y-4">
-              <Field
-                id="signin-identifier"
-                label="Email or phone number"
-                type="text"
-                autoComplete="username"
-                value={identifier}
-                onChange={setIdentifier}
-              />
+              {identifierIsPhone ? (
+                <PhoneField
+                  id="signin-identifier"
+                  label={t("auth.identifier")}
+                  countryLabel={t("auth.countryCode")}
+                  iso={signInCountry}
+                  onIso={setSignInCountry}
+                  value={identifier}
+                  onChange={setIdentifier}
+                  autoComplete="username"
+                />
+              ) : (
+                <Field
+                  id="signin-identifier"
+                  label={t("auth.identifier")}
+                  type="text"
+                  autoComplete="username"
+                  value={identifier}
+                  onChange={setIdentifier}
+                />
+              )}
               <PasswordField
                 id="signin-password"
-                label="Password"
+                label={t("auth.password")}
                 value={password}
                 onChange={setPassword}
               />
               <Button type="submit" className="w-full" disabled={busy}>
-                Sign in
+                {t("auth.signIn")}
               </Button>
               <button
                 type="button"
                 onClick={handleReset}
                 className="text-xs text-muted-foreground underline-offset-4 hover:underline"
               >
-                Forgot password?
+                {t("auth.forgot")}
               </button>
             </form>
           </TabsContent>
@@ -227,7 +258,7 @@ function AuthPage() {
               <div className="grid grid-cols-2 gap-3">
                 <Field
                   id="signup-first"
-                  label="First name"
+                  label={t("auth.firstName")}
                   type="text"
                   autoComplete="given-name"
                   value={form.firstName}
@@ -235,7 +266,7 @@ function AuthPage() {
                 />
                 <Field
                   id="signup-last"
-                  label="Last name"
+                  label={t("auth.lastName")}
                   type="text"
                   autoComplete="family-name"
                   value={form.lastName}
@@ -244,7 +275,7 @@ function AuthPage() {
               </div>
               <Field
                 id="signup-dob"
-                label="Date of birth"
+                label={t("auth.dob")}
                 type="date"
                 autoComplete="bday"
                 value={form.dateOfBirth}
@@ -252,27 +283,28 @@ function AuthPage() {
               />
               <Field
                 id="signup-email"
-                label="Email"
+                label={t("auth.email")}
                 type="email"
                 autoComplete="email"
                 value={form.email}
                 onChange={setField("email")}
               />
-              <Field
+              <PhoneField
                 id="signup-phone"
-                label="Phone number"
-                type="tel"
-                autoComplete="tel"
-                placeholder="+20 100 000 0000"
+                label={t("auth.phone")}
+                countryLabel={t("auth.countryCode")}
+                iso={signUpCountry}
+                onIso={setSignUpCountry}
                 value={form.phone}
                 onChange={setField("phone")}
+                autoComplete="tel"
               />
               <div className="space-y-1.5">
                 <label
                   htmlFor="signup-currency"
                   className="text-xs font-medium text-muted-foreground"
                 >
-                  Account currency
+                  {t("auth.currency")}
                 </label>
                 <select
                   id="signup-currency"
@@ -284,55 +316,109 @@ function AuthPage() {
                   <option value="EUR">EUR — Euro (€)</option>
                   <option value="EGP">EGP — Egyptian Pound</option>
                 </select>
-                <p className="text-xs text-muted-foreground">
-                  Your balances, bets and payouts are held in this currency.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("auth.currencyHint")}</p>
               </div>
               <PasswordField
                 id="signup-password"
-                label="Password"
+                label={t("auth.password")}
                 autoComplete="new-password"
                 value={form.password}
                 onChange={setField("password")}
               />
               {form.password && problems.length > 0 ? (
-                <p className="text-xs text-destructive">Password needs {problems.join(", ")}.</p>
+                <p className="text-xs text-destructive">
+                  {t("auth.passwordNeeds", { p: problems.join(", ") })}
+                </p>
               ) : null}
               <PasswordField
                 id="signup-confirm"
-                label="Confirm password"
+                label={t("auth.confirmPassword")}
                 autoComplete="new-password"
                 value={form.confirm}
                 onChange={setField("confirm")}
               />
               {form.confirm && form.confirm !== form.password ? (
-                <p className="text-xs text-destructive">Passwords do not match.</p>
+                <p className="text-xs text-destructive">{t("auth.passwordsMismatch")}</p>
               ) : null}
               <Button type="submit" className="w-full" disabled={busy}>
-                Create account
+                {t("auth.createAccount")}
               </Button>
-              <p className="text-xs text-muted-foreground">
-                You must be of legal age in your jurisdiction to open an AstroBet account.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("auth.ageNotice")}</p>
             </form>
           </TabsContent>
         </Tabs>
 
         <div className="my-6 flex items-center gap-3">
           <span className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground">or</span>
+          <span className="text-xs text-muted-foreground">{t("auth.or")}</span>
           <span className="h-px flex-1 bg-border" />
         </div>
 
         <div className="grid gap-3">
           <Button variant="outline" className="w-full" onClick={() => handleOAuth("google")} disabled={busy}>
-            Continue with Google
+            {t("auth.google")}
           </Button>
           <Button variant="outline" className="w-full" onClick={() => handleOAuth("apple")} disabled={busy}>
-            Continue with Apple
+            {t("auth.apple")}
           </Button>
         </div>
     </AuthShell>
+  );
+}
+
+/** Country-code select + local number box; the dial code can never be typed twice. */
+function PhoneField({
+  id,
+  label,
+  countryLabel,
+  iso,
+  onIso,
+  value,
+  onChange,
+  autoComplete,
+}: {
+  id: string;
+  label: string;
+  countryLabel: string;
+  iso: string;
+  onIso: (iso: string) => void;
+  value: string;
+  onChange: (value: string) => void;
+  autoComplete?: string;
+}) {
+  const dial = countryByIso(iso)?.dial ?? "+1";
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="flex gap-2" dir="ltr">
+        <select
+          aria-label={countryLabel}
+          value={iso}
+          onChange={(event) => {
+            const next = event.target.value;
+            onChange(stripDial(value, dial));
+            onIso(next);
+          }}
+          className="h-10 w-32 shrink-0 rounded-md border border-input bg-background px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          {COUNTRIES.map((c) => (
+            <option key={c.iso} value={c.iso}>
+              {c.iso} {c.dial}
+            </option>
+          ))}
+        </select>
+        <Input
+          id={id}
+          type="tel"
+          inputMode="numeric"
+          value={value}
+          autoComplete={autoComplete ?? "tel"}
+          placeholder="100 000 0000"
+          required
+          onChange={(event) => onChange(stripDial(event.target.value, dial))}
+        />
+      </div>
+    </div>
   );
 }
 
