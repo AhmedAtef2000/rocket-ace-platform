@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import {
   Rocket,
   ShieldCheck,
@@ -16,7 +14,6 @@ import {
 import { RocketStage } from "@/components/game/RocketStage";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/hooks/useAuth";
-import { listVerifiableRounds } from "@/lib/fairness.functions";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
 
 const title = "AstroBet — Launch. Climb. Cash Out.";
