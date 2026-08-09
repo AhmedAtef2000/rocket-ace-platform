@@ -1598,6 +1598,7 @@ export type Database = {
       }
       users: {
         Row: {
+          account_number: string | null
           country_code: string | null
           created_at: string
           date_of_birth: string | null
@@ -1612,6 +1613,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_number?: string | null
           country_code?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1626,6 +1628,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_number?: string | null
           country_code?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1858,6 +1861,7 @@ export type Database = {
         Returns: string
       }
       game_settle_round: { Args: { _round_id: string }; Returns: Json }
+      generate_account_number: { Args: never; Returns: string }
       get_public_game_config: {
         Args: never
         Returns: {

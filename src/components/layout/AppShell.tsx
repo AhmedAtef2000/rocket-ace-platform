@@ -237,9 +237,6 @@ export function AppShell({
             <span className="hidden md:block">
               <LanguageSwitcher />
             </span>
-            <span className="hidden md:block">
-              <CurrencySwitcher />
-            </span>
             {publicView && !username ? (
               <>
                 <Link

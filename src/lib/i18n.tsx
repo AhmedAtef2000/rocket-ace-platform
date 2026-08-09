@@ -18,6 +18,7 @@ export type Lang = (typeof LANGUAGES)[number]["code"];
 
 const STORAGE_KEY = "astrobet.lang";
 const CURRENCY_KEY = "astrobet.currency";
+const COUNTRY_KEY = "astrobet.country";
 
 export const CURRENCIES = ["USD", "EUR", "EGP"] as const;
 export type CurrencyCode = (typeof CURRENCIES)[number];
@@ -115,6 +116,40 @@ const dictionary = {
     "game.crashed": "Crashed",
     "game.launchingIn": "Launching in {s}s",
     "game.boarding": "Boarding",
+    "auth.title": "Account access",
+    "auth.subtitle": "Sign in to your AstroBet account, or create one in under a minute.",
+    "auth.signIn": "Sign in",
+    "auth.createAccount": "Create account",
+    "auth.identifier": "Email or phone number",
+    "auth.password": "Password",
+    "auth.forgot": "Forgot password?",
+    "auth.firstName": "First name",
+    "auth.lastName": "Last name",
+    "auth.dob": "Date of birth",
+    "auth.email": "Email",
+    "auth.phone": "Phone number",
+    "auth.countryCode": "Country code",
+    "auth.currency": "Account currency",
+    "auth.currencyHint": "Your balances, bets and payouts are held in this currency.",
+    "auth.confirmPassword": "Confirm password",
+    "auth.passwordsMismatch": "Passwords do not match.",
+    "auth.passwordNeeds": "Password needs {p}.",
+    "auth.ageNotice": "You must be of legal age in your jurisdiction to open an AstroBet account.",
+    "auth.or": "or",
+    "auth.google": "Continue with Google",
+    "auth.apple": "Continue with Apple",
+    "auth.verifyTitle": "Verify your account",
+    "auth.verifyBody": "We sent a verification link to {email}. Open it to activate your AstroBet account, then come back here to sign in.",
+    "auth.backToSignIn": "Back to sign in",
+    "auth.signedIn": "Signed in",
+    "auth.accountCreated": "Account created",
+    "auth.verificationSent": "Verification code sent — check your email.",
+    "auth.signInFailed": "Could not sign you in.",
+    "auth.signUpFailed": "Could not create your account.",
+    "auth.resetNeedsEmail": "Enter your email address to reset your password.",
+    "auth.resetSent": "Password reset email sent",
+    "auth.showPassword": "Show password",
+    "auth.hidePassword": "Hide password",
   },
   ar: {
     "nav.play": "العب",
@@ -207,6 +242,40 @@ const dictionary = {
     "game.crashed": "انفجر",
     "game.launchingIn": "الانطلاق خلال {s} ث",
     "game.boarding": "الاستعداد",
+    "auth.title": "الدخول إلى الحساب",
+    "auth.subtitle": "سجّل الدخول إلى حسابك في أسترو بيت أو أنشئ حسابًا في أقل من دقيقة.",
+    "auth.signIn": "تسجيل الدخول",
+    "auth.createAccount": "إنشاء حساب",
+    "auth.identifier": "البريد الإلكتروني أو رقم الهاتف",
+    "auth.password": "كلمة المرور",
+    "auth.forgot": "نسيت كلمة المرور؟",
+    "auth.firstName": "الاسم الأول",
+    "auth.lastName": "اسم العائلة",
+    "auth.dob": "تاريخ الميلاد",
+    "auth.email": "البريد الإلكتروني",
+    "auth.phone": "رقم الهاتف",
+    "auth.countryCode": "رمز الدولة",
+    "auth.currency": "عملة الحساب",
+    "auth.currencyHint": "أرصدتك ورهاناتك وأرباحك تُحفظ بهذه العملة.",
+    "auth.confirmPassword": "تأكيد كلمة المرور",
+    "auth.passwordsMismatch": "كلمتا المرور غير متطابقتين.",
+    "auth.passwordNeeds": "كلمة المرور تحتاج {p}.",
+    "auth.ageNotice": "يجب أن تكون في السن القانوني في بلدك لفتح حساب في أسترو بيت.",
+    "auth.or": "أو",
+    "auth.google": "المتابعة عبر جوجل",
+    "auth.apple": "المتابعة عبر آبل",
+    "auth.verifyTitle": "فعّل حسابك",
+    "auth.verifyBody": "أرسلنا رابط تفعيل إلى {email}. افتحه لتفعيل حسابك ثم عد لتسجيل الدخول.",
+    "auth.backToSignIn": "العودة لتسجيل الدخول",
+    "auth.signedIn": "تم تسجيل الدخول",
+    "auth.accountCreated": "تم إنشاء الحساب",
+    "auth.verificationSent": "تم إرسال رسالة التفعيل — تحقق من بريدك.",
+    "auth.signInFailed": "تعذّر تسجيل دخولك.",
+    "auth.signUpFailed": "تعذّر إنشاء حسابك.",
+    "auth.resetNeedsEmail": "أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور.",
+    "auth.resetSent": "تم إرسال رسالة إعادة التعيين",
+    "auth.showPassword": "إظهار كلمة المرور",
+    "auth.hidePassword": "إخفاء كلمة المرور",
   },
   de: {
     "nav.play": "Spielen",
@@ -299,6 +368,40 @@ const dictionary = {
     "game.crashed": "Abgestürzt",
     "game.launchingIn": "Start in {s}s",
     "game.boarding": "Boarding",
+    "auth.title": "Kontozugang",
+    "auth.subtitle": "Melde dich bei AstroBet an oder erstelle in einer Minute ein Konto.",
+    "auth.signIn": "Anmelden",
+    "auth.createAccount": "Konto erstellen",
+    "auth.identifier": "E-Mail oder Telefonnummer",
+    "auth.password": "Passwort",
+    "auth.forgot": "Passwort vergessen?",
+    "auth.firstName": "Vorname",
+    "auth.lastName": "Nachname",
+    "auth.dob": "Geburtsdatum",
+    "auth.email": "E-Mail",
+    "auth.phone": "Telefonnummer",
+    "auth.countryCode": "Ländervorwahl",
+    "auth.currency": "Kontowährung",
+    "auth.currencyHint": "Guthaben, Einsätze und Auszahlungen laufen in dieser Währung.",
+    "auth.confirmPassword": "Passwort bestätigen",
+    "auth.passwordsMismatch": "Passwörter stimmen nicht überein.",
+    "auth.passwordNeeds": "Passwort benötigt {p}.",
+    "auth.ageNotice": "Du musst in deiner Jurisdiktion volljährig sein, um ein AstroBet-Konto zu eröffnen.",
+    "auth.or": "oder",
+    "auth.google": "Weiter mit Google",
+    "auth.apple": "Weiter mit Apple",
+    "auth.verifyTitle": "Konto bestätigen",
+    "auth.verifyBody": "Wir haben einen Bestätigungslink an {email} gesendet. Öffne ihn und melde dich danach an.",
+    "auth.backToSignIn": "Zurück zur Anmeldung",
+    "auth.signedIn": "Angemeldet",
+    "auth.accountCreated": "Konto erstellt",
+    "auth.verificationSent": "Bestätigungsmail gesendet — prüfe dein Postfach.",
+    "auth.signInFailed": "Anmeldung nicht möglich.",
+    "auth.signUpFailed": "Konto konnte nicht erstellt werden.",
+    "auth.resetNeedsEmail": "Gib deine E-Mail-Adresse ein, um das Passwort zurückzusetzen.",
+    "auth.resetSent": "E-Mail zum Zurücksetzen gesendet",
+    "auth.showPassword": "Passwort anzeigen",
+    "auth.hidePassword": "Passwort verbergen",
   },
 } satisfies Record<Lang, Record<string, string>>;
 
@@ -313,6 +416,8 @@ type I18nValue = {
   setLang: (lang: Lang) => void;
   currency: CurrencyCode;
   setCurrency: (currency: CurrencyCode) => void;
+  /** ISO-3166 alpha-2 detected from the visitor's connection (null until resolved). */
+  country: string | null;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   formatMoney: (amount: number | string, currency?: string) => string;
 };
@@ -326,6 +431,7 @@ function isLang(value: string | null): value is Lang {
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
   const [currency, setCurrencyState] = useState<CurrencyCode>("USD");
+  const [country, setCountry] = useState<string | null>(null);
 
   // Read the stored preference after hydration so SSR markup stays stable.
   useEffect(() => {
@@ -335,6 +441,37 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (storedCurrency && (CURRENCIES as readonly string[]).includes(storedCurrency)) {
       setCurrencyState(storedCurrency as CurrencyCode);
     }
+
+    // Detect the visitor's country and apply its currency when they have no preference yet.
+    let cancelled = false;
+    void (async () => {
+      try {
+        const stored2 = window.localStorage.getItem(COUNTRY_KEY);
+        let iso = stored2;
+        if (!iso) {
+          const res = await fetch("/api/public/geo");
+          const body = (await res.json()) as { country?: string | null };
+          iso = body.country ?? null;
+          if (!iso) {
+            const region = new Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+            iso = region.startsWith("Africa/Cairo") ? "EG" : null;
+          }
+          if (iso) window.localStorage.setItem(COUNTRY_KEY, iso);
+        }
+        if (cancelled || !iso) return;
+        setCountry(iso);
+        if (!storedCurrency) {
+          const { countryByIso } = await import("@/lib/countries");
+          const detected = countryByIso(iso)?.currency;
+          if (detected && !cancelled) setCurrencyState(detected);
+        }
+      } catch {
+        /* detection is best-effort */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const dir = LANGUAGES.find((l) => l.code === lang)?.dir ?? "ltr";
@@ -394,8 +531,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<I18nValue>(
-    () => ({ lang, dir, locale, setLang, currency, setCurrency, t, formatMoney }),
-    [lang, dir, locale, setLang, currency, setCurrency, t, formatMoney],
+    () => ({ lang, dir, locale, setLang, currency, setCurrency, country, t, formatMoney }),
+    [lang, dir, locale, setLang, currency, setCurrency, country, t, formatMoney],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
