@@ -384,9 +384,12 @@ function AuthPage() {
               {form.confirm && form.confirm !== form.password ? (
                 <p className="text-xs text-destructive">{t("auth.passwordsMismatch")}</p>
               ) : null}
-              <Button type="submit" className="w-full" disabled={busy || !phoneValid}>
+              <Button type="submit" className="w-full" disabled={busy || !signUpReady}>
                 {t("auth.createAccount")}
               </Button>
+              {missingFields.length > 0 ? (
+                <p className="text-xs text-muted-foreground">{t("auth.fillAll")}</p>
+              ) : null}
               <p className="text-xs text-muted-foreground">{t("auth.ageNotice")}</p>
             </form>
           </TabsContent>
