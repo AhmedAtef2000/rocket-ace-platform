@@ -122,7 +122,8 @@ function BetPanelPreview() {
             inputMode="decimal"
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
-            className="w-28 rounded-xl border border-border bg-background/70 px-3 py-2 text-sm font-bold tabular-nums outline-none focus:border-primary"
+            dir="ltr"
+            className="w-28 rounded-xl border border-border bg-background/70 px-3 py-2 text-start text-sm font-bold tabular-nums outline-none focus:border-primary"
           />
           {presets.map((preset) => (
             <button
@@ -155,7 +156,8 @@ function BetPanelPreview() {
           inputMode="decimal"
           value={auto}
           onChange={(event) => setAuto(event.target.value)}
-          className="mt-1.5 w-full rounded-xl border border-border bg-background/70 px-3 py-2 text-sm font-bold tabular-nums outline-none focus:border-primary"
+          dir="ltr"
+          className="mt-1.5 w-full rounded-xl border border-border bg-background/70 px-3 py-2 text-start text-sm font-bold tabular-nums outline-none focus:border-primary"
         />
       </div>
       <Link
@@ -213,7 +215,7 @@ function RecentRoundsPanel() {
         <h2 className="font-display text-base font-black">{t("home.recentRounds")}</h2>
         <span className="chip text-primary">{t("home.live")}</span>
       </div>
-      <div className="max-h-[420px] overflow-y-auto pr-1">
+      <div className="max-h-[420px] overflow-y-auto pe-1">
       <table className="w-full text-sm">
         <thead className="text-[10px] uppercase tracking-widest text-muted-foreground">
           <tr>
@@ -225,11 +227,12 @@ function RecentRoundsPanel() {
         <tbody>
           {rows.map((row) => (
             <tr key={row.id} className="border-t border-border/60">
-              <td className="py-2 font-semibold">{row.user}</td>
-              <td className="py-2 text-end font-bold tabular-nums text-muted-foreground">
+              <td dir="ltr" className="py-2 text-start font-semibold">{row.user}</td>
+              <td dir="ltr" className="py-2 text-end font-bold tabular-nums text-muted-foreground">
                 {row.crash.toFixed(2)}x
               </td>
               <td
+                dir="ltr"
                 className={`py-2 text-end font-bold tabular-nums ${
                   row.amount >= 0 ? "text-primary" : "text-destructive"
                 }`}
@@ -341,7 +344,7 @@ function Index() {
           ] as { k: TranslationKey; v: string }[]).map((s) => (
             <div key={s.k} className="panel px-4 py-3">
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t(s.k)}</p>
-              <p className="mt-1 font-display text-lg font-black text-primary">{s.v}</p>
+              <p dir="ltr" className="mt-1 font-display text-lg font-black text-primary rtl:text-end">{s.v}</p>
             </div>
           ))}
         </section>

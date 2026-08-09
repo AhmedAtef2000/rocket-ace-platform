@@ -297,15 +297,16 @@ export function RocketStage({
 
       {/* Countdown dial — top-left, like the reference launch console. */}
       {phase === "betting" ? (
-        <div className="pointer-events-none absolute left-4 top-4 w-[168px] rounded-2xl border border-border/70 bg-background/70 p-4 text-center backdrop-blur-md sm:left-6 sm:top-6">
+        <div className="pointer-events-none absolute start-4 top-4 w-[168px] rounded-2xl border border-border/70 bg-background/70 p-4 text-center backdrop-blur-md sm:start-6 sm:top-6">
           <CountdownRing seconds={secondsLeft ?? null} />
           <p className="mt-2 text-xs font-bold text-primary">Place your bet</p>
         </div>
       ) : null}
 
       {/* Multiplier — right side, big and legible over the plume. */}
-      <div className="pointer-events-none absolute inset-y-0 right-4 flex flex-col items-end justify-center text-right sm:right-10">
+      <div className="pointer-events-none absolute inset-y-0 end-4 flex flex-col items-end justify-center text-end sm:end-10">
         <p
+          dir="ltr"
           className={`font-display text-5xl font-black tabular-nums drop-shadow-[0_0_32px_rgba(40,230,120,0.45)] sm:text-7xl ${
             crashed ? "text-destructive" : "text-foreground"
           }`}
