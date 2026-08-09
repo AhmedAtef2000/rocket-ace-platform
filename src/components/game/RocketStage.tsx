@@ -299,7 +299,7 @@ export function RocketStage({
       {phase === "betting" ? (
         <div className="pointer-events-none absolute start-4 top-4 w-[168px] rounded-2xl border border-border/70 bg-background/70 p-4 text-center backdrop-blur-md sm:start-6 sm:top-6">
           <CountdownRing seconds={secondsLeft ?? null} />
-          <p className="mt-2 text-xs font-bold text-primary">Place your bet</p>
+          <p className="mt-2 text-xs font-bold text-primary">{t("game.placeBet")}</p>
         </div>
       ) : null}
 
@@ -315,10 +315,10 @@ export function RocketStage({
         </p>
         <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
           {phase === "running"
-            ? "Current multiplier"
+            ? t("game.currentMultiplier")
             : crashed
-              ? "Crashed"
-              : (countdownLabel ?? "Current multiplier")}
+              ? t("game.crashed")
+              : (countdownLabel ?? t("game.currentMultiplier"))}
         </p>
       </div>
     </div>
@@ -355,9 +355,9 @@ function CountdownRing({ seconds }: { seconds: number | null }) {
         })}
       </svg>
       <div className="text-center leading-none">
-        <p className="text-[10px] font-semibold text-muted-foreground">Next round in</p>
+        <p className="text-[10px] font-semibold text-muted-foreground">{t("game.nextRoundIn")}</p>
         <p className="font-display text-3xl font-black tabular-nums text-foreground">{value}</p>
-        <p className="text-[10px] font-bold tracking-widest text-muted-foreground">SEC</p>
+        <p className="text-[10px] font-bold tracking-widest text-muted-foreground">{t("game.sec")}</p>
       </div>
     </div>
   );
