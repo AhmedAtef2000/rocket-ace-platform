@@ -195,7 +195,7 @@ export async function tickEngine(
     if (round.status === "RUNNING") {
       const crash = await committedCrash(admin, round.id, cfg);
       const startedAt = round.started_at ? new Date(round.started_at).getTime() : now();
-      const runFor = msToReach(crash, cfg.crash_growth_rate);
+      const runFor = Math.min(msToReach(crash, cfg.crash_growth_rate), MAX_FLIGHT_MS);
       if (now() - startedAt < runFor) break;
       await admin
         .from("game_rounds")
