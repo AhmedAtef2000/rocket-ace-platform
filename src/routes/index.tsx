@@ -189,7 +189,7 @@ function RecentRoundsPanel() {
   const [rows, setRows] = useState<FeedRow[]>([]);
 
   useEffect(() => {
-    const refresh = () => setRows(Array.from({ length: 9 }, makeFeedRow));
+    const refresh = () => setRows(Array.from({ length: 120 }, makeFeedRow));
     refresh();
     const id = setInterval(refresh, 10000);
     return () => clearInterval(id);
@@ -201,6 +201,7 @@ function RecentRoundsPanel() {
         <h2 className="font-display text-base font-black">Recent rounds</h2>
         <span className="chip text-primary">Live</span>
       </div>
+      <div className="max-h-[420px] overflow-y-auto pr-1">
       <table className="w-full text-sm">
         <thead className="text-[10px] uppercase tracking-widest text-muted-foreground">
           <tr>
@@ -228,6 +229,7 @@ function RecentRoundsPanel() {
           ))}
         </tbody>
       </table>
+      </div>
       <Link
         to="/fairness"
         className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-secondary"
