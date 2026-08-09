@@ -218,17 +218,19 @@ export function AppShell({
           </div>
 
           <nav className="hidden min-w-0 items-center gap-1 xl:flex" aria-label="Primary">
-            {topNav.map((item) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                className="nav-pill hover:text-foreground"
-                activeProps={{ className: "nav-pill nav-pill-active" }}
-                activeOptions={{ exact: item.to === "/" }}
-              >
-                {t(item.key)}
-              </Link>
-            ))}
+            {topNav
+              .filter((item) => !(publicView && gatedTopNavKeys.has(item.key)))
+              .map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  className="nav-pill hover:text-foreground"
+                  activeProps={{ className: "nav-pill nav-pill-active" }}
+                  activeOptions={{ exact: item.to === "/" }}
+                >
+                  {t(item.key)}
+                </Link>
+              ))}
           </nav>
 
           <div className="flex items-center justify-end gap-2">
