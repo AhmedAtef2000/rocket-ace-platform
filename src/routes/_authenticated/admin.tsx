@@ -680,6 +680,7 @@ function SettingsSection() {
 const STATUSES = ["ACTIVE", "RESTRICTED", "SUSPENDED", "CLOSED"] as const;
 
 function UsersSection({ canManage }: { canManage: boolean }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const search = useServerFn(searchUsers);
   const dossier = useServerFn(getUserDossier);
@@ -706,7 +707,7 @@ function UsersSection({ canManage }: { canManage: boolean }) {
   const statusMutation = useMutation({
     mutationFn: async (status: string) => setStatus({ data: { userId: selected, status, note } }),
     onSuccess: () => {
-      toast.success("Status updated");
+      toast.success(t("admin.users.statusUpdated"));
       void queryClient.invalidateQueries({ queryKey: ["admin", "user"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -715,7 +716,7 @@ function UsersSection({ canManage }: { canManage: boolean }) {
   const profileMutation = useMutation({
     mutationFn: async () => updateProfile({ data: { userId: selected, ...edit } }),
     onSuccess: () => {
-      toast.success("Profile updated");
+      toast.success(t("admin.users.profileUpdated"));
       void queryClient.invalidateQueries({ queryKey: ["admin", "user"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -725,7 +726,7 @@ function UsersSection({ canManage }: { canManage: boolean }) {
     mutationFn: async (input: { id: string; decision: "APPROVED" | "REJECTED" }) =>
       reviewDoc({ data: input }),
     onSuccess: () => {
-      toast.success("Document reviewed");
+      toast.success(t("admin.users.documentReviewed"));
       void queryClient.invalidateQueries({ queryKey: ["admin", "user"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -735,16 +736,16 @@ function UsersSection({ canManage }: { canManage: boolean }) {
 
   return (
     <section>
-      <h2 className="text-lg font-medium">User management</h2>
+      <h2 className="text-lg font-medium">{t("admin.users.title")}</h2>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <input
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          placeholder="Search by user ID, email, phone or name"
+          placeholder={t("admin.users.searchPlaceholder")}
           className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
         />
         <Button disabled={results.isPending} onClick={() => results.mutate()}>
-          Search
+          {t("admin.users.search")}
         </Button>
       </div>
 
@@ -760,15 +761,18 @@ function UsersSection({ canManage }: { canManage: boolean }) {
             >
               <span className="font-medium">{u.email}</span>
               <span className="ml-2 text-xs text-muted-foreground">
-                {[u.firstName, u.lastName].filter(Boolean).join(" ") || "No name"} · {u.phone ?? "no phone"} ·{" "}
-                {u.status}
+                {t("admin.users.metaLine", {
+                  name: [u.firstName, u.lastName].filter(Boolean).join(" ") || t("admin.users.noName"),
+                  phone: u.phone ?? t("admin.users.noPhone"),
+                  status: u.status,
+                })}
               </span>
               <span className="block font-mono text-[11px] text-muted-foreground">{u.id}</span>
             </button>
           </li>
         ))}
         {results.data && results.data.length === 0 ? (
-          <li className="text-sm text-muted-foreground">No accounts matched.</li>
+          <li className="text-sm text-muted-foreground">{t("admin.users.noMatches")}</li>
         ) : null}
       </ul>
 
@@ -777,55 +781,72 @@ function UsersSection({ canManage }: { canManage: boolean }) {
           <div>
             <p className="font-medium">{d.user.email}</p>
             <p className="text-xs text-muted-foreground">
-              {d.user.status} · joined {new Date(d.user.created_at).toLocaleDateString()} · last login{" "}
-              {d.user.last_login_at ? new Date(d.user.last_login_at).toLocaleString() : "never"}
+              {d.user.status} ·{" "}
+              {t("admin.users.joined", {
+                date: new Date(d.user.created_at).toLocaleDateString(),
+                lastLogin: d.user.last_login_at
+                  ? new Date(d.user.last_login_at).toLocaleString()
+                  : t("admin.users.neverLoggedIn"),
+              })}
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-4">
-            <Metric label="Bets" value={d.stats.bets} />
-            <Metric label="Wagered" value={fmt(d.stats.wagered)} />
-            <Metric label="Returned" value={fmt(d.stats.returned)} />
-            <Metric label="Net" value={fmt(d.stats.net)} />
+            <Metric label={t("admin.users.statsBets")} value={d.stats.bets} />
+            <Metric label={t("admin.users.statsWagered")} value={fmt(d.stats.wagered)} />
+            <Metric label={t("admin.users.statsReturned")} value={fmt(d.stats.returned)} />
+            <Metric label={t("admin.users.statsNet")} value={fmt(d.stats.net)} />
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Wallets</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("admin.users.walletsTitle")}</p>
             <ul className="mt-2 space-y-1">
               {d.wallets.map((w) => (
                 <li key={w.id}>
-                  {w.currency} {w.kind} · available {fmt(Number(w.available_amount))} · locked{" "}
-                  {fmt(Number(w.locked_amount))} · {w.status}
+                  {t("admin.users.walletLine", {
+                    currency: w.currency,
+                    kind: w.kind,
+                    available: fmt(Number(w.available_amount)),
+                    locked: fmt(Number(w.locked_amount)),
+                    status: w.status,
+                  })}
                 </li>
               ))}
-              {d.wallets.length === 0 ? <li className="text-muted-foreground">No wallets.</li> : null}
+              {d.wallets.length === 0 ? <li className="text-muted-foreground">{t("admin.users.noWallets")}</li> : null}
             </ul>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Recent bets</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("admin.users.recentBetsTitle")}</p>
               <ul className="mt-2 space-y-1">
                 {d.bets.slice(0, 8).map((b) => (
                   <li key={b.id}>
-                    {fmt(Number(b.amount))} → {fmt(Number(b.payout_amount ?? 0))} · {b.status}
+                    {t("admin.users.betLine", {
+                      amount: fmt(Number(b.amount)),
+                      payout: fmt(Number(b.payout_amount ?? 0)),
+                      status: b.status,
+                    })}
                   </li>
                 ))}
-                {d.bets.length === 0 ? <li className="text-muted-foreground">No bets.</li> : null}
+                {d.bets.length === 0 ? <li className="text-muted-foreground">{t("admin.users.noBets")}</li> : null}
               </ul>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Money movement</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("admin.users.moneyMovementTitle")}</p>
               <ul className="mt-2 space-y-1">
                 {d.deposits.slice(0, 5).map((x) => (
                   <li key={x.id}>
-                    Deposit {fmt(Number(x.confirmed_amount ?? x.requested_amount ?? 0))} {x.currency} ·{" "}
-                    {x.status}
+                    {t("admin.users.depositLine", {
+                      amount: fmt(Number(x.confirmed_amount ?? x.requested_amount ?? 0)),
+                      currency: x.currency,
+                      status: x.status,
+                    })}
                   </li>
                 ))}
                 {d.withdrawals.slice(0, 5).map((x) => (
                   <li key={x.id}>
-                    Payout {fmt(Number(x.amount))} {x.currency} · {x.status}
+                    {t("admin.users.payoutLine", { amount: fmt(Number(x.amount)), currency: x.currency, status: x.status })}
                   </li>
                 ))}
               </ul>
@@ -833,12 +854,12 @@ function UsersSection({ canManage }: { canManage: boolean }) {
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">KYC documents</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("admin.users.kycDocumentsTitle")}</p>
             <ul className="mt-2 space-y-2">
               {d.documents.map((doc) => (
                 <li key={doc.id} className="flex flex-wrap items-center gap-2">
                   <span>
-                    {doc.docType} · {doc.status}
+                    {t("admin.users.docLine", { docType: doc.docType, status: doc.status })}
                   </span>
                   {doc.url ? (
                     <a
@@ -847,26 +868,26 @@ function UsersSection({ canManage }: { canManage: boolean }) {
                       rel="noreferrer"
                       className="text-primary underline"
                     >
-                      View file
+                      {t("admin.users.viewFile")}
                     </a>
                   ) : null}
                   <Button
                     size="sm"
                     onClick={() => docMutation.mutate({ id: doc.id, decision: "APPROVED" })}
                   >
-                    Approve
+                    {t("admin.users.docApprove")}
                   </Button>
                   <Button
                     size="sm"
                     variant="destructive"
                     onClick={() => docMutation.mutate({ id: doc.id, decision: "REJECTED" })}
                   >
-                    Reject
+                    {t("admin.users.docReject")}
                   </Button>
                 </li>
               ))}
               {d.documents.length === 0 ? (
-                <li className="text-muted-foreground">No documents uploaded.</li>
+                <li className="text-muted-foreground">{t("admin.users.noDocuments")}</li>
               ) : null}
             </ul>
           </div>
