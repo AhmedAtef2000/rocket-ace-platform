@@ -340,8 +340,8 @@ export const setGlobalRealMoneyLive = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => parseGlobalFlagToggle(data))
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { requireRole, auditAdmin } = await import("@/lib/admin.server");
-    const identity = await requireRole(supabaseAdmin, context.userId, "SUPER_ADMIN");
+    const { requirePermission, auditAdmin } = await import("@/lib/admin.server");
+    const identity = await requirePermission(supabaseAdmin, context.userId, "admin.manage");
 
     const { error } = await supabaseAdmin
       .from("platform_settings")
