@@ -148,6 +148,8 @@ export async function userHeader(admin: Admin, userId: string) {
     emailVerified: !!user.data.email_verified_at,
     phoneVerified: !!user.data.phone_verified_at,
     mfaEnabled: user.data.mfa_enabled,
+    realMoneyEnabled: user.data.real_money_enabled,
+    playMode: user.data.play_mode,
   };
 }
 
