@@ -8,6 +8,7 @@ import {
   BadgeCheck,
   Ban,
   ChevronDown,
+  Coins,
   FileText,
   Loader2,
   LockKeyhole,
