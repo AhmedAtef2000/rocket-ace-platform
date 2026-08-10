@@ -97,6 +97,19 @@ export function AdminDashboard({ can }: { can: (permission: string) => boolean }
     queryFn: async () => fetchLogs({ data: undefined }),
     enabled: can("audit.view"),
   });
+  const settings = useQuery({
+    queryKey: ["admin", "settings"],
+    queryFn: async () => fetchSettings({ data: undefined }),
+    enabled: can("admin.manage"),
+  });
+  const toggleLive = useMutation({
+    mutationFn: async (value: boolean) => toggleLiveFn({ data: { flag: "is_real_money_live", value } }),
+    onSuccess: () => {
+      toast.success(t("admin.dashboard.realMoneyToggled"));
+      void queryClient.invalidateQueries({ queryKey: ["admin", "settings"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const o = overview.data;
   const a = analytics.data;
