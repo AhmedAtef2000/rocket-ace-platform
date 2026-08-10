@@ -123,6 +123,10 @@ function CompliancePage() {
   const submitMutation = useMutation({
     mutationFn: async () => submit({ data: { sourceOfFunds: "EMPLOYMENT", declaredPep: false } }),
     onSuccess: (result) => {
+      if (result.error === "MISSING_PROFILE" || !result.status) {
+        toast.error(t("comp.error.missingProfile"));
+        return;
+      }
       toast.success(`${t("kyc.heading")} — ${t(`comp.status.${result.status}`)}`);
       void queryClient.invalidateQueries({ queryKey: ["compliance"] });
     },

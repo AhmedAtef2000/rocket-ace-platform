@@ -130,5 +130,5 @@ export const submitKyc = createServerFn({ method: "POST" })
       },
     });
 
-    return { status: decision.status, reason: decision.reason };
+    return { status: decision.status, reason: decision.reason, error: null };
   });
