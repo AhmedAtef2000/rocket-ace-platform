@@ -34,6 +34,9 @@ const pack: Pack = {
     "game.colCashOut": "Cash-out",
     "game.colPayout": "Payout",
     "game.you": "You",
+    "game.modeDemo": "Demo",
+    "game.modeReal": "Real",
+    "game.realMoneyLocked": "Real-money play requires a verified profile and approved KYC. Complete verification first.",
   },
   ar: {
     "game.placeYourBet": "ضع رهانك",
@@ -67,6 +70,9 @@ const pack: Pack = {
     "game.colCashOut": "السحب",
     "game.colPayout": "العائد",
     "game.you": "أنت",
+    "game.modeDemo": "تجريبي",
+    "game.modeReal": "حقيقي",
+    "game.realMoneyLocked": "اللعب بالمال الحقيقي يتطلب ملفًا شخصيًا موثقًا وKYC معتمد. أكمل التحقق أولاً.",
   },
   de: {
     "game.placeYourBet": "Setze deinen Einsatz",
@@ -100,6 +106,9 @@ const pack: Pack = {
     "game.colCashOut": "Cashout",
     "game.colPayout": "Auszahlung",
     "game.you": "Du",
+    "game.modeDemo": "Demo",
+    "game.modeReal": "Echt",
+    "game.realMoneyLocked": "Echtgeld-Spielen erfordert ein verifiziertes Profil und genehmigte KYC. Schließe die Verifizierung ab.",
   },
 };
 

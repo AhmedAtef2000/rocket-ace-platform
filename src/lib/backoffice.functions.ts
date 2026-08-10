@@ -2,7 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   parseAdminProfileInput,
+  parseGlobalFlagToggle,
   parseManualDecision,
+  parseRealMoneyToggle,
   parseSettingsInput,
   parseStatusInput,
   parseUserSearch,
@@ -16,7 +18,7 @@ export const getPlatformSettings = createServerFn({ method: "GET" })
     await requirePermission(supabaseAdmin, context.userId, "analytics.view");
     const { data, error } = await supabaseAdmin
       .from("platform_settings")
-      .select("site_name, tagline, logo_url, support_email, house_edge_note, maintenance_mode, updated_at")
+      .select("site_name, tagline, logo_url, support_email, house_edge_note, maintenance_mode, is_real_money_live, updated_at")
       .maybeSingle();
     if (error) throw new Error(error.message);
     return data;
@@ -297,6 +299,65 @@ export const adminUpdateUserProfile = createServerFn({ method: "POST" })
       metadata: { ...data.profile },
     });
     return { ok: true };
+  });
+
+export const setUserRealMoneyEnabled = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => parseRealMoneyToggle(data))
+  .handler(async ({ context, data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { requirePermission, auditAdmin } = await import("@/lib/admin.server");
+    const { notify } = await import("@/lib/support.server");
+    const identity = await requirePermission(supabaseAdmin, context.userId, "user.suspend");
+    if (data.userId === context.userId) throw new Error("You cannot change your own real-money flag.");
+
+    const { error } = await supabaseAdmin
+      .from("users")
+      .update({ real_money_enabled: data.enabled })
+      .eq("id", data.userId);
+    if (error) throw new Error(error.message);
+
+    await notify(
+      supabaseAdmin,
+      data.userId,
+      "account.real_money",
+      data.enabled ? "Real-money play enabled" : "Real-money play disabled",
+      data.note ?? `Real-money play is now ${data.enabled ? "enabled" : "disabled"} for your account.`,
+    );
+    await auditAdmin(supabaseAdmin, {
+      actorId: context.userId,
+      actorRole: identity.roleKey,
+      action: "user.real_money_toggled",
+      resourceType: "users",
+      resourceId: data.userId,
+      metadata: { enabled: data.enabled, note: data.note },
+    });
+    return { ok: true, enabled: data.enabled };
+  });
+
+export const setGlobalRealMoneyLive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => parseGlobalFlagToggle(data))
+  .handler(async ({ context, data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { requirePermission, auditAdmin } = await import("@/lib/admin.server");
+    const identity = await requirePermission(supabaseAdmin, context.userId, "admin.manage");
+
+    const { error } = await supabaseAdmin
+      .from("platform_settings")
+      .update({ is_real_money_live: data.value })
+      .eq("id", true);
+    if (error) throw new Error(error.message);
+
+    await auditAdmin(supabaseAdmin, {
+      actorId: context.userId,
+      actorRole: identity.roleKey,
+      action: "platform.real_money_live_toggled",
+      resourceType: "platform_settings",
+      resourceId: "global",
+      metadata: { is_real_money_live: data.value },
+    });
+    return { ok: true, value: data.value };
   });
 
 export const listManualDeposits = createServerFn({ method: "GET" })

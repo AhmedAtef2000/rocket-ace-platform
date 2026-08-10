@@ -18,7 +18,7 @@ export const getGameState = createServerFn({ method: "GET" })
 
     const { config, round, serverTime } = await tickEngine(supabaseAdmin);
 
-    const [bet, wallet, history] = await Promise.all([
+    const [bet, demoWallet, realWallets, userRow, history] = await Promise.all([
       round
         ? supabaseAdmin
             .from("bets")
@@ -32,6 +32,16 @@ export const getGameState = createServerFn({ method: "GET" })
         .select("id, available_amount, locked_amount, currency")
         .eq("user_id", userId)
         .eq("kind", "DEMO")
+        .maybeSingle(),
+      supabaseAdmin
+        .from("wallets")
+        .select("id, available_amount, locked_amount, currency")
+        .eq("user_id", userId)
+        .eq("kind", "REAL"),
+      supabaseAdmin
+        .from("users")
+        .select("play_mode, preferred_currency, real_money_enabled")
+        .eq("id", userId)
         .maybeSingle(),
       supabaseAdmin
         .from("game_results")
@@ -85,6 +95,9 @@ export const getGameState = createServerFn({ method: "GET" })
         )
       : [];
 
+    const preferredCurrency = userRow.data?.preferred_currency ?? "USD";
+    const realWallet = (realWallets.data ?? []).find((w) => w.currency === preferredCurrency) ?? (realWallets.data ?? [])[0] ?? null;
+
     return {
       serverTime,
       config: {
@@ -108,11 +121,21 @@ export const getGameState = createServerFn({ method: "GET" })
                 : Number(lastSettled.data.cashout_multiplier),
           }
         : null,
-      wallet: wallet.data
+      mode: (userRow.data?.play_mode as "DEMO" | "REAL") ?? "DEMO",
+      realMoneyEnabled: userRow.data?.real_money_enabled ?? false,
+      preferredCurrency,
+      demoWallet: demoWallet.data
         ? {
-            available: Number(wallet.data.available_amount),
-            locked: Number(wallet.data.locked_amount),
-            currency: wallet.data.currency,
+            available: Number(demoWallet.data.available_amount),
+            locked: Number(demoWallet.data.locked_amount),
+            currency: demoWallet.data.currency,
+          }
+        : null,
+      realWallet: realWallet
+        ? {
+            available: Number(realWallet.available_amount),
+            locked: Number(realWallet.locked_amount),
+            currency: realWallet.currency,
           }
         : null,
       history: (history.data ?? []).map((h) => ({
@@ -142,7 +165,7 @@ export const placeBet = createServerFn({ method: "POST" })
 
     try {
       await enforceRateLimit(supabaseAdmin, "bet.place", userId);
-      await assertCanPlay(supabaseAdmin, userId);
+      await assertCanPlay(supabaseAdmin, userId, data.mode);
     } catch (error) {
       return { ok: false, message: (error as Error).message };
     }
@@ -168,6 +191,7 @@ export const placeBet = createServerFn({ method: "POST" })
       _user_id: userId,
       _round_id: round.id,
       _amount: stake.amount,
+      _mode: data.mode,
       ...(data.autoCashout === null ? {} : { _auto_cashout: data.autoCashout }),
     };
     const { data: betId, error } = await supabaseAdmin.rpc("game_place_bet", args);

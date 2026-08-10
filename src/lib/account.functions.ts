@@ -30,6 +30,9 @@ export const provisionAccount = createServerFn({ method: "POST" })
         email,
         status: "ACTIVE",
         demo_mode: true,
+        play_mode: "DEMO",
+        preferred_currency: primaryCurrency,
+        real_money_enabled: false,
         last_login_at: now,
         email_verified_at: now,
         ...(dateOfBirth ? { date_of_birth: dateOfBirth } : {}),
@@ -116,7 +119,7 @@ export const getAccount = createServerFn({ method: "GET" })
       supabase
         .from("users")
         .select(
-          "id, email, account_number, status, demo_mode, mfa_enabled, created_at, last_login_at",
+          "id, email, account_number, status, demo_mode, play_mode, preferred_currency, real_money_enabled, mfa_enabled, created_at, last_login_at",
         )
         .eq("id", userId)
         .maybeSingle(),

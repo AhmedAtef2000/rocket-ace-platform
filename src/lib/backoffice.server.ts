@@ -80,6 +80,20 @@ export function parseAdminProfileInput(raw: unknown) {
   };
 }
 
+export function parseRealMoneyToggle(raw: unknown): { userId: string; enabled: boolean; note: string | null } {
+  const d = (raw ?? {}) as Record<string, unknown>;
+  const userId = str(d["userId"], 60);
+  if (!userId) throw new Error("Missing user.");
+  return { userId, enabled: d["enabled"] === true, note: str(d["note"], 400) };
+}
+
+export function parseGlobalFlagToggle(raw: unknown): { flag: "is_real_money_live"; value: boolean } {
+  const d = (raw ?? {}) as Record<string, unknown>;
+  const flag = str(d["flag"], 40);
+  if (flag !== "is_real_money_live") throw new Error("Unsupported flag.");
+  return { flag, value: d["value"] === true };
+}
+
 export function parseManualDecision(raw: unknown): {
   id: string;
   decision: "APPROVED" | "REJECTED";

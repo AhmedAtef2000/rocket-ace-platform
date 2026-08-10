@@ -6,8 +6,8 @@ import { validateStake } from "@/lib/stake";
 
 type Admin = SupabaseClient<Database>;
 
-export function betInput(data: unknown): { amount: number; autoCashout: number | null } {
-  const d = (data ?? {}) as { amount?: unknown; autoCashout?: unknown };
+export function betInput(data: unknown): { amount: number; autoCashout: number | null; mode: "DEMO" | "REAL" } {
+  const d = (data ?? {}) as { amount?: unknown; autoCashout?: unknown; mode?: unknown };
   // Structural check only; the min/max rules come from the active config later.
   const stake = validateStake(d.amount, { minBet: 0.01 });
   if (!stake.ok) throw new Error(stake.message);
@@ -19,7 +19,9 @@ export function betInput(data: unknown): { amount: number; autoCashout: number |
     autoCashout = Math.floor(value * 100) / 100;
   }
 
-  return { amount: stake.amount, autoCashout };
+  const mode = d.mode === "REAL" ? "REAL" : "DEMO";
+
+  return { amount: stake.amount, autoCashout, mode };
 }
 
 export function cashOutInput(data: unknown): { betId: string } {
@@ -30,15 +32,20 @@ export function cashOutInput(data: unknown): { betId: string } {
   return { betId };
 }
 
-/** Account status plus responsible-gambling gates, checked before every stake. */
-export async function assertCanPlay(admin: Admin, userId: string): Promise<void> {
-  const [{ data: user }, { data: rg }] = await Promise.all([
-    admin.from("users").select("status").eq("id", userId).maybeSingle(),
+/** Account status plus responsible-gambling and real-money gates, checked before every stake. */
+export async function assertCanPlay(
+  admin: Admin,
+  userId: string,
+  mode: "DEMO" | "REAL" = "DEMO",
+): Promise<void> {
+  const [{ data: user }, { data: rg }, { data: platform }] = await Promise.all([
+    admin.from("users").select("status, real_money_enabled, play_mode").eq("id", userId).maybeSingle(),
     admin
       .from("responsible_gambling_limits")
       .select("cooling_off_until, self_exclusion_until")
       .eq("user_id", userId)
       .maybeSingle(),
+    admin.from("platform_settings").select("is_real_money_live").maybeSingle(),
   ]);
 
   if (!user || user.status !== "ACTIVE") throw new Error("Your account is not active.");
@@ -48,6 +55,17 @@ export async function assertCanPlay(admin: Admin, userId: string): Promise<void>
   }
   if (rg?.cooling_off_until && new Date(rg.cooling_off_until).getTime() > now) {
     throw new Error("Play is blocked while your cooling-off period is active.");
+  }
+
+  if (mode === "REAL") {
+    if (!platform?.is_real_money_live) {
+      throw new Error("Real-money play is not live yet.");
+    }
+    if (!user.real_money_enabled) {
+      throw new Error("Real-money play is not enabled for your account.");
+    }
+    const { assertRealMoneyEligible } = await import("@/lib/compliance.server");
+    await assertRealMoneyEligible(admin, userId);
   }
 }
 

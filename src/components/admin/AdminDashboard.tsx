@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
   BadgeCheck,
   Coins,
   LineChart,
+  Loader2,
   Rocket,
   ShieldAlert,
   TrendingUp,
@@ -14,7 +16,9 @@ import {
 } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
 import { getAdminAnalytics, getAdminOverview, listAuditLogs } from "@/lib/admin.functions";
+import { getPlatformSettings, setGlobalRealMoneyLive } from "@/lib/backoffice.functions";
 
 function fmt(value: number): string {
   return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -71,9 +75,12 @@ function Row({ label, value, tone }: { label: string; value: string | number; to
 
 export function AdminDashboard({ can }: { can: (permission: string) => boolean }) {
   const { t } = useI18n();
+  const queryClient = useQueryClient();
   const fetchOverview = useServerFn(getAdminOverview);
   const fetchAnalytics = useServerFn(getAdminAnalytics);
   const fetchLogs = useServerFn(listAuditLogs);
+  const fetchSettings = useServerFn(getPlatformSettings);
+  const toggleLiveFn = useServerFn(setGlobalRealMoneyLive);
 
   const overview = useQuery({
     queryKey: ["admin", "overview"],
@@ -89,6 +96,19 @@ export function AdminDashboard({ can }: { can: (permission: string) => boolean }
     queryKey: ["admin", "audit"],
     queryFn: async () => fetchLogs({ data: undefined }),
     enabled: can("audit.view"),
+  });
+  const settings = useQuery({
+    queryKey: ["admin", "settings"],
+    queryFn: async () => fetchSettings({ data: undefined }),
+    enabled: can("admin.manage"),
+  });
+  const toggleLive = useMutation({
+    mutationFn: async (value: boolean) => toggleLiveFn({ data: { flag: "is_real_money_live", value } }),
+    onSuccess: () => {
+      toast.success(t("admin.dashboard.realMoneyToggled"));
+      void queryClient.invalidateQueries({ queryKey: ["admin", "settings"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const o = overview.data;
@@ -215,6 +235,18 @@ export function AdminDashboard({ can }: { can: (permission: string) => boolean }
             >
               {t("admin.nav.settings")}
             </Link>
+            {can("admin.manage") ? (
+              <Button
+                size="sm"
+                variant={settings.data?.is_real_money_live ? "default" : "outline"}
+                disabled={settings.isLoading || toggleLive.isPending}
+                onClick={() => toggleLive.mutate(!settings.data?.is_real_money_live)}
+                className="w-full justify-start gap-2"
+              >
+                {toggleLive.isPending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+                {settings.data?.is_real_money_live ? t("admin.dashboard.disableRealMoney") : t("admin.dashboard.enableRealMoney")}
+              </Button>
+            ) : null}
           </div>
         </Panel>
       </div>

@@ -8,6 +8,7 @@ import {
   BadgeCheck,
   Ban,
   ChevronDown,
+  Coins,
   FileText,
   Loader2,
   LockKeyhole,
@@ -35,6 +36,7 @@ import {
   runUser360Action,
   saveUser360Note,
 } from "@/lib/user360.functions";
+import { setUserRealMoneyEnabled } from "@/lib/backoffice.functions";
 
 type Tab =
   | "overview"
@@ -1029,6 +1031,7 @@ export function User360Workspace({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
   const headerFn = useServerFn(getUser360Header);
   const actionFn = useServerFn(runUser360Action);
+  const realMoneyFn = useServerFn(setUserRealMoneyEnabled);
   const [tab, setTab] = useState<Tab>("overview");
   const [pending, setPending] = useState<{ action: string; label: string } | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -1044,6 +1047,16 @@ export function User360Workspace({ userId }: { userId: string }) {
     onSuccess: () => {
       toast.success(t("u360.actionDone"));
       setPending(null);
+      void queryClient.invalidateQueries({ queryKey: ["u360"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const realMoney = useMutation({
+    mutationFn: async (enabled: boolean) =>
+      realMoneyFn({ data: { userId, enabled, note: `Toggled by admin` } }),
+    onSuccess: () => {
+      toast.success(t("u360.realMoneyToggled"));
       void queryClient.invalidateQueries({ queryKey: ["u360"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -1133,6 +1146,17 @@ export function User360Workspace({ userId }: { userId: string }) {
           {can("support.reply") ? (
             <Button size="sm" variant="outline" onClick={() => ask("message", t("u360.message"))}>
               <MessageSquare className="size-4" aria-hidden /> {t("u360.message")}
+            </Button>
+          ) : null}
+          {can("user.suspend") ? (
+            <Button
+              size="sm"
+              variant={h.realMoneyEnabled ? "default" : "outline"}
+              disabled={realMoney.isPending}
+              onClick={() => realMoney.mutate(!h.realMoneyEnabled)}
+            >
+              <Coins className="size-4" aria-hidden />
+              {h.realMoneyEnabled ? t("u360.disableRealMoney") : t("u360.enableRealMoney")}
             </Button>
           ) : null}
 
