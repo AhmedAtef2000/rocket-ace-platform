@@ -12,7 +12,7 @@ export const uploadKycDocument = createServerFn({ method: "POST" })
 
     const bytes = Buffer.from(data.contentBase64, "base64");
     if (bytes.byteLength === 0) throw new Error("The file is empty.");
-    if (bytes.byteLength > 5 * 1024 * 1024) throw new Error("Files must be 5 MB or smaller.");
+    if (bytes.byteLength > 10 * 1024 * 1024) throw new Error("Files must be 10 MB or smaller.");
 
     const ext = (data.fileName.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
     const path = `${userId}/${Date.now()}-${data.docType.toLowerCase()}.${ext || "bin"}`;

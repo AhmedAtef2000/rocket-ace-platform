@@ -44,7 +44,7 @@ export const KYC_DOC_TYPES = [
   { value: "PROOF_OF_ADDRESS", label: "Proof of address" },
 ] as const;
 
-export const KYC_DOC_MAX_BYTES = 5 * 1024 * 1024;
+export const KYC_DOC_MAX_BYTES = 10 * 1024 * 1024;
 const KYC_DOC_MIME = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
 export type KycDocumentInput = {
@@ -69,7 +69,7 @@ export function parseKycDocumentInput(data: unknown): KycDocumentInput {
   if (!contentBase64) throw new Error("The file could not be read. Try again.");
   // base64 expands by ~4/3
   if (contentBase64.length * 0.75 > KYC_DOC_MAX_BYTES) {
-    throw new Error("Files must be 5 MB or smaller.");
+    throw new Error("Files must be 10 MB or smaller.");
   }
   return { docType, fileName, mimeType, contentBase64 };
 }
@@ -86,6 +86,13 @@ export type KycDocument = {
 export type ComplianceSnapshot = {
   countryCode: string | null;
   dateOfBirth: string | null;
+  personal: {
+    firstName: string | null;
+    lastName: string | null;
+    phone: string | null;
+    email: string | null;
+    currency: string | null;
+  };
   jurisdiction: {
     country_code: string;
     name: string;
@@ -112,7 +119,7 @@ export async function complianceSnapshot(
 ): Promise<ComplianceSnapshot> {
   const { data: user, error } = await admin
     .from("users")
-    .select("country_code, date_of_birth, email_verified_at, status")
+    .select("country_code, date_of_birth, email, email_verified_at, status")
     .eq("id", userId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -120,7 +127,8 @@ export async function complianceSnapshot(
   const countryCode = user?.country_code ?? null;
   const dateOfBirth = user?.date_of_birth ?? null;
 
-  const [{ data: jurisdiction }, { data: kyc }, { data: documents }] = await Promise.all([
+  const [{ data: jurisdiction }, { data: kyc }, { data: documents }, { data: profile }, { data: wallets }] =
+    await Promise.all([
     countryCode
       ? admin
           .from("jurisdictions")
@@ -141,7 +149,18 @@ export async function complianceSnapshot(
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(20),
+    admin
+      .from("user_profiles")
+      .select("first_name, last_name, phone")
+      .eq("user_id", userId)
+      .maybeSingle(),
+    admin
+      .from("wallets")
+      .select("currency, kind")
+      .eq("user_id", userId),
   ]);
+
+  const realWallet = (wallets ?? []).find((w) => w.kind !== "DEMO") ?? (wallets ?? [])[0] ?? null;
 
   const minAge = jurisdiction?.min_age ?? 18;
   const age = dateOfBirth ? ageOn(dateOfBirth) : null;
@@ -185,6 +204,13 @@ export async function complianceSnapshot(
   return {
     countryCode,
     dateOfBirth,
+    personal: {
+      firstName: profile?.first_name ?? null,
+      lastName: profile?.last_name ?? null,
+      phone: profile?.phone ?? null,
+      email: user?.email ?? null,
+      currency: realWallet?.currency ?? null,
+    },
     jurisdiction: jurisdiction ?? null,
     kyc: kyc ?? null,
     gates,
