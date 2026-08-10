@@ -1031,6 +1031,7 @@ export function User360Workspace({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
   const headerFn = useServerFn(getUser360Header);
   const actionFn = useServerFn(runUser360Action);
+  const realMoneyFn = useServerFn(setUserRealMoneyEnabled);
   const [tab, setTab] = useState<Tab>("overview");
   const [pending, setPending] = useState<{ action: string; label: string } | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
