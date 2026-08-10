@@ -94,7 +94,7 @@ export async function userHeader(admin: Admin, userId: string) {
     admin
       .from("users")
       .select(
-        "id, account_number, email, status, country_code, date_of_birth, created_at, last_login_at, email_verified_at, phone_verified_at, mfa_enabled",
+        "id, account_number, email, status, country_code, date_of_birth, created_at, last_login_at, email_verified_at, phone_verified_at, mfa_enabled, real_money_enabled, play_mode",
       )
       .eq("id", userId)
       .maybeSingle(),
