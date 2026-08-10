@@ -1148,6 +1148,17 @@ export function User360Workspace({ userId }: { userId: string }) {
               <MessageSquare className="size-4" aria-hidden /> {t("u360.message")}
             </Button>
           ) : null}
+          {can("user.suspend") ? (
+            <Button
+              size="sm"
+              variant={h.realMoneyEnabled ? "default" : "outline"}
+              disabled={realMoney.isPending}
+              onClick={() => realMoney.mutate(!h.realMoneyEnabled)}
+            >
+              <Coins className="size-4" aria-hidden />
+              {h.realMoneyEnabled ? t("u360.disableRealMoney") : t("u360.enableRealMoney")}
+            </Button>
+          ) : null}
 
           {moreActions.length ? (
             <div className="relative">
