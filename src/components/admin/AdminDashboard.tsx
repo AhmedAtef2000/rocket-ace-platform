@@ -235,6 +235,18 @@ export function AdminDashboard({ can }: { can: (permission: string) => boolean }
             >
               {t("admin.nav.settings")}
             </Link>
+            {can("admin.manage") ? (
+              <Button
+                size="sm"
+                variant={settings.data?.is_real_money_live ? "default" : "outline"}
+                disabled={settings.isLoading || toggleLive.isPending}
+                onClick={() => toggleLive.mutate(!settings.data?.is_real_money_live)}
+                className="w-full justify-start gap-2"
+              >
+                {toggleLive.isPending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+                {settings.data?.is_real_money_live ? t("admin.dashboard.disableRealMoney") : t("admin.dashboard.enableRealMoney")}
+              </Button>
+            ) : null}
           </div>
         </Panel>
       </div>
