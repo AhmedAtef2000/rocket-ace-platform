@@ -73,10 +73,14 @@ export const submitKyc = createServerFn({ method: "POST" })
 
     const snapshot = await complianceSnapshot(supabaseAdmin, userId);
     if (!snapshot.countryCode || !snapshot.dateOfBirth) {
-      throw new Error("Add your country and date of birth on the profile page first.");
+      return {
+        status: null,
+        reason: null as string | null,
+        error: "MISSING_PROFILE" as const,
+      };
     }
     if (snapshot.kyc?.status === "APPROVED") {
-      return { status: snapshot.kyc.status, reason: null as string | null };
+      return { status: snapshot.kyc.status, reason: null as string | null, error: null };
     }
 
     const decision = decideCase(snapshot, { declaredPep: data.declaredPep });
