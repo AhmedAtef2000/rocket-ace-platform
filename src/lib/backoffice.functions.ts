@@ -18,7 +18,7 @@ export const getPlatformSettings = createServerFn({ method: "GET" })
     await requirePermission(supabaseAdmin, context.userId, "analytics.view");
     const { data, error } = await supabaseAdmin
       .from("platform_settings")
-      .select("site_name, tagline, logo_url, support_email, house_edge_note, maintenance_mode, updated_at")
+      .select("site_name, tagline, logo_url, support_email, house_edge_note, maintenance_mode, is_real_money_live, updated_at")
       .maybeSingle();
     if (error) throw new Error(error.message);
     return data;
