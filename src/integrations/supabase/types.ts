@@ -1169,6 +1169,7 @@ export type Database = {
         Row: {
           house_edge_note: string
           id: boolean
+          is_real_money_live: boolean
           logo_url: string | null
           maintenance_mode: boolean
           site_name: string
@@ -1179,6 +1180,7 @@ export type Database = {
         Insert: {
           house_edge_note?: string
           id?: boolean
+          is_real_money_live?: boolean
           logo_url?: string | null
           maintenance_mode?: boolean
           site_name?: string
@@ -1189,6 +1191,7 @@ export type Database = {
         Update: {
           house_edge_note?: string
           id?: boolean
+          is_real_money_live?: boolean
           logo_url?: string | null
           maintenance_mode?: boolean
           site_name?: string
@@ -1647,6 +1650,9 @@ export type Database = {
           last_login_at: string | null
           mfa_enabled: boolean
           phone_verified_at: string | null
+          play_mode: string
+          preferred_currency: string
+          real_money_enabled: boolean
           status: Database["public"]["Enums"]["user_status"]
           updated_at: string
         }
@@ -1662,6 +1668,9 @@ export type Database = {
           last_login_at?: string | null
           mfa_enabled?: boolean
           phone_verified_at?: string | null
+          play_mode?: string
+          preferred_currency?: string
+          real_money_enabled?: boolean
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
         }
@@ -1677,10 +1686,21 @@ export type Database = {
           last_login_at?: string | null
           mfa_enabled?: boolean
           phone_verified_at?: string | null
+          play_mode?: string
+          preferred_currency?: string
+          real_money_enabled?: boolean
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_preferred_currency_fkey"
+            columns: ["preferred_currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       wallets: {
         Row: {
@@ -1874,6 +1894,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      assert_real_money_play: { Args: { _user_id: string }; Returns: undefined }
       ensure_ledger_account: {
         Args: {
           _account_type: Database["public"]["Enums"]["ledger_account_type"]
@@ -1889,15 +1910,26 @@ export type Database = {
         Args: { _bet_id: string; _multiplier: number; _user_id: string }
         Returns: Json
       }
-      game_place_bet: {
-        Args: {
-          _amount: number
-          _auto_cashout?: number
-          _round_id: string
-          _user_id: string
-        }
-        Returns: string
-      }
+      game_place_bet:
+        | {
+            Args: {
+              _amount: number
+              _auto_cashout?: number
+              _round_id: string
+              _user_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _amount: number
+              _auto_cashout?: number
+              _mode?: string
+              _round_id: string
+              _user_id: string
+            }
+            Returns: string
+          }
       game_settle_round: { Args: { _round_id: string }; Returns: Json }
       generate_account_number: { Args: never; Returns: string }
       get_public_game_config: {

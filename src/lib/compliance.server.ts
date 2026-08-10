@@ -119,7 +119,7 @@ export async function complianceSnapshot(
 ): Promise<ComplianceSnapshot> {
   const { data: user, error } = await admin
     .from("users")
-    .select("country_code, date_of_birth, email, email_verified_at, status")
+    .select("country_code, date_of_birth, email, email_verified_at, status, real_money_enabled")
     .eq("id", userId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -198,6 +198,12 @@ export async function complianceSnapshot(
       label: "Identity verification approved",
       passed: kyc?.status === "APPROVED",
       detail: kyc ? `Case ${kyc.status.toLowerCase().replace(/_/g, " ")}.` : "Not submitted yet.",
+    },
+    {
+      key: "real_money_enabled",
+      label: "Real-money play enabled",
+      passed: user?.real_money_enabled === true,
+      detail: user?.real_money_enabled ? "Enabled." : "Real-money play is disabled for your account.",
     },
   ];
 

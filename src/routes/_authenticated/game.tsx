@@ -78,15 +78,19 @@ function GamePage() {
     };
   }, [status, startedAt, growth, round?.crash]);
 
+  const [mode, setMode] = useState<"DEMO" | "REAL">(state.data?.mode ?? "DEMO");
   const myBet = state.data?.bet ?? null;
-  const wallet = state.data?.wallet ?? null;
+  const demoWallet = state.data?.demoWallet ?? null;
+  const realWallet = state.data?.realWallet ?? null;
+  const realMoneyEnabled = state.data?.realMoneyEnabled ?? false;
+  const activeWallet = mode === "REAL" ? realWallet : demoWallet;
   const minBet = Number(state.data?.config?.minBet ?? 5);
   const bettingMs = Number(state.data?.config?.bettingDurationMs ?? 10000);
   const maxBet = state.data?.config?.maxBet == null ? null : Number(state.data.config.maxBet);
   const stakeCheck = validateStake(stake, { minBet, maxBet });
   const stakeValid = stakeCheck.ok;
   const lastResult = state.data?.lastResult ?? null;
-  const walletAvailable = state.data?.wallet?.available ?? 0;
+  const walletAvailable = activeWallet?.available ?? 0;
   const presets = [minBet, minBet * 2, minBet * 10, minBet * 20];
 
   // Ticking clock for the betting countdown.
@@ -108,7 +112,7 @@ function GamePage() {
       if (autoValue !== null && (!Number.isFinite(autoValue) || autoValue <= 1)) {
         throw new Error(t("game.autoCashoutMinError"));
       }
-      return bet({ data: { amount: stakeCheck.amount, autoCashout: autoValue } });
+      return bet({ data: { amount: stakeCheck.amount, autoCashout: autoValue, mode } });
     },
     onSuccess: (result) => {
       if (!result.ok) {
@@ -160,14 +164,44 @@ function GamePage() {
             <h1 className="font-display text-lg font-extrabold tracking-tight">{t("game.placeYourBet")}</h1>
             <span className="chip">{status.toLowerCase()}</span>
           </div>
+          <div className="mb-3 flex rounded-xl border border-border p-1">
+            <button
+              type="button"
+              onClick={() => setMode("DEMO")}
+              className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+                mode === "DEMO" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t("game.modeDemo")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("REAL")}
+              disabled={!realMoneyEnabled}
+              className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+                mode === "REAL"
+                  ? "bg-thrust text-primary-foreground"
+                  : realMoneyEnabled
+                    ? "text-muted-foreground hover:text-foreground"
+                    : "cursor-not-allowed text-muted-foreground/50"
+              }`}
+            >
+              {t("game.modeReal")}
+            </button>
+          </div>
+          {mode === "REAL" && !realMoneyEnabled ? (
+            <p className="mb-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              {t("game.realMoneyLocked")}
+            </p>
+          ) : null}
           <div className="panel-inset mb-3 grid grid-cols-2 gap-2 p-3 text-center">
             <div>
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("game.balance")}</p>
-              <p className="font-mono text-sm tabular-nums">{(wallet?.available ?? 0).toFixed(2)}</p>
+              <p className="font-mono text-sm tabular-nums">{(activeWallet?.available ?? 0).toFixed(2)}</p>
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("game.inPlay")}</p>
-              <p className="font-mono text-sm tabular-nums">{(wallet?.locked ?? 0).toFixed(2)}</p>
+              <p className="font-mono text-sm tabular-nums">{(activeWallet?.locked ?? 0).toFixed(2)}</p>
             </div>
           </div>
           <label className="text-xs uppercase tracking-widest text-muted-foreground" htmlFor="stake">
