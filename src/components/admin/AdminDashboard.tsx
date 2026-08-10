@@ -75,9 +75,12 @@ function Row({ label, value, tone }: { label: string; value: string | number; to
 
 export function AdminDashboard({ can }: { can: (permission: string) => boolean }) {
   const { t } = useI18n();
+  const queryClient = useQueryClient();
   const fetchOverview = useServerFn(getAdminOverview);
   const fetchAnalytics = useServerFn(getAdminAnalytics);
   const fetchLogs = useServerFn(listAuditLogs);
+  const fetchSettings = useServerFn(getPlatformSettings);
+  const toggleLiveFn = useServerFn(setGlobalRealMoneyLive);
 
   const overview = useQuery({
     queryKey: ["admin", "overview"],
