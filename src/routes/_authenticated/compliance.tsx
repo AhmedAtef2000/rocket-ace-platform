@@ -100,8 +100,8 @@ function CompliancePage() {
     data?.kyc?.risk_level === "REVIEW_REQUIRED" ||
     kycStatus === "REQUIRES_INFORMATION";
 
-  const personalDone = Boolean(data?.countryCode && data?.dateOfBirth);
-  const identityDone = has("ID_FRONT");
+  const personalDone = verified || Boolean(data?.countryCode && data?.dateOfBirth);
+  const identityDone = verified || has("ID_FRONT");
   const submitted = Boolean(data?.kyc?.submitted_at);
 
   const uploadMutation = useMutation({
