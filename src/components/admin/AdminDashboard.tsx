@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
   BadgeCheck,
   Coins,
   LineChart,
+  Loader2,
   Rocket,
   ShieldAlert,
   TrendingUp,
@@ -14,7 +16,9 @@ import {
 } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
 import { getAdminAnalytics, getAdminOverview, listAuditLogs } from "@/lib/admin.functions";
+import { getPlatformSettings, setGlobalRealMoneyLive } from "@/lib/backoffice.functions";
 
 function fmt(value: number): string {
   return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
