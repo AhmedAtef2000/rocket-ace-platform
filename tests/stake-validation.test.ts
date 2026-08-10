@@ -61,8 +61,9 @@ describe("betInput (server function validator)", () => {
     expect(betInput({ amount: "7.25", autoCashout: "2.5" })).toEqual({
       amount: 7.25,
       autoCashout: 2.5,
+      mode: "DEMO",
     });
-    expect(betInput({ amount: 7 })).toEqual({ amount: 7, autoCashout: null });
+    expect(betInput({ amount: 7 })).toEqual({ amount: 7, autoCashout: null, mode: "DEMO" });
   });
 
   it("throws the standardized message for non-numeric stakes", () => {
