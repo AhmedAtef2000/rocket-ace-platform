@@ -1052,6 +1052,16 @@ export function User360Workspace({ userId }: { userId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const realMoney = useMutation({
+    mutationFn: async (enabled: boolean) =>
+      realMoneyFn({ data: { userId, enabled, note: `Toggled by admin` } }),
+    onSuccess: () => {
+      toast.success(t("u360.realMoneyToggled"));
+      void queryClient.invalidateQueries({ queryKey: ["u360"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (header.isLoading) return <Loading />;
   if (header.error) return <ErrorNote error={header.error} />;
   const h = header.data?.header;
