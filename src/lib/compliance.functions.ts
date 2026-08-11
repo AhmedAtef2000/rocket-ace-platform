@@ -123,13 +123,18 @@ export const submitKyc = createServerFn({ method: "POST" })
       actorId: userId,
       action: "kyc.submitted",
       resourceType: "kyc_cases",
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       metadata: {
         decision: decision.status,
         source_of_funds: data.sourceOfFunds,
         declared_pep: data.declaredPep,
       },
     });
+
+    // Approval is what unlocks real-money deposits, play and withdrawals.
+    await supabaseAdmin
+      .from("users")
+      .update({ real_money_enabled: decision.status === "APPROVED" })
+      .eq("id", userId);
 
     return { status: decision.status, reason: decision.reason, error: null };
   });
