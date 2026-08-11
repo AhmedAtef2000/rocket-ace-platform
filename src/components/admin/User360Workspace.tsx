@@ -495,10 +495,36 @@ function WalletTab({ userId }: { userId: string }) {
   const f = useFormat();
   const fn = useServerFn(getUser360Summary);
   const q = useQuery({ queryKey: ["u360", "summary", userId], queryFn: () => fn({ data: { userId } }) });
+  const walletsFn = useServerFn(getUser360Wallets);
+  const adjustFn = useServerFn(adjustUser360Balance);
+  const queryClient = useQueryClient();
+  const accounts = useQuery({
+    queryKey: ["u360", "walletAccounts", userId],
+    queryFn: () => walletsFn({ data: { userId } }),
+  });
+  const [walletId, setWalletId] = useState("");
+  const [direction, setDirection] = useState<"CREDIT" | "DEBIT">("CREDIT");
+  const [amount, setAmount] = useState("");
+  const [reason, setReason] = useState("");
+  const adjust = useMutation({
+    mutationFn: async () =>
+      adjustFn({ data: { userId, walletId, direction, amount: Number(amount), reason } }),
+    onSuccess: () => {
+      toast.success(t("u360.balance.done"));
+      setAmount("");
+      setReason("");
+      void queryClient.invalidateQueries({ queryKey: ["u360"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const walletRows = accounts.data?.wallets ?? [];
+  const selected = walletId || walletRows[0]?.id || "";
+
   if (q.isLoading) return <Loading />;
   if (q.error) return <ErrorNote error={q.error} />;
   const wallets = q.data?.wallets ?? [];
   return (
+    <div className="space-y-4">
     <Card>
       <p className="mb-3 text-xs text-muted-foreground">{t("u360.wallet.ledgerNote")}</p>
       <DataTable
@@ -518,6 +544,68 @@ function WalletTab({ userId }: { userId: string }) {
         ])}
       />
     </Card>
+
+    {accounts.data?.canAdjust ? (
+      <Card title={t("u360.balance.title")}>
+        <p className="mb-3 text-xs text-muted-foreground">{t("u360.balance.note")}</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="text-xs font-medium text-muted-foreground">
+            {t("u360.balance.wallet")}
+            <select
+              value={selected}
+              onChange={(e) => setWalletId(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-border bg-background p-2 text-sm text-foreground"
+            >
+              {walletRows.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.kind} · {w.currency} — {f.money(w.available)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-medium text-muted-foreground">
+            {t("u360.balance.direction")}
+            <select
+              value={direction}
+              onChange={(e) => setDirection(e.target.value === "DEBIT" ? "DEBIT" : "CREDIT")}
+              className="mt-1 w-full rounded-lg border border-border bg-background p-2 text-sm text-foreground"
+            >
+              <option value="CREDIT">{t("u360.balance.credit")}</option>
+              <option value="DEBIT">{t("u360.balance.debit")}</option>
+            </select>
+          </label>
+          <label className="text-xs font-medium text-muted-foreground">
+            {t("u360.balance.amount")}
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-border bg-background p-2 text-sm text-foreground"
+            />
+          </label>
+          <label className="text-xs font-medium text-muted-foreground">
+            {t("u360.reason")}
+            <input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder={t("u360.reasonPlaceholder")}
+              className="mt-1 w-full rounded-lg border border-border bg-background p-2 text-sm text-foreground"
+            />
+          </label>
+        </div>
+        <Button
+          className="mt-3"
+          size="sm"
+          disabled={adjust.isPending || !selected || !reason.trim() || !(Number(amount) > 0)}
+          onClick={() => adjust.mutate()}
+        >
+          <Coins className="size-4" aria-hidden /> {t("u360.balance.apply")}
+        </Button>
+      </Card>
+    ) : null}
+    </div>
   );
 }
 
