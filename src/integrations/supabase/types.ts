@@ -478,6 +478,54 @@ export type Database = {
           },
         ]
       }
+      deposit_destinations: {
+        Row: {
+          active: boolean
+          address: string
+          channel: string
+          created_at: string
+          currency: string
+          id: string
+          instructions: string | null
+          kind: string
+          label: string
+          memo: string | null
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active?: boolean
+          address: string
+          channel: string
+          created_at?: string
+          currency: string
+          id?: string
+          instructions?: string | null
+          kind: string
+          label?: string
+          memo?: string | null
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active?: boolean
+          address?: string
+          channel?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          instructions?: string | null
+          kind?: string
+          label?: string
+          memo?: string | null
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       deposits: {
         Row: {
           confirmations: number
