@@ -170,11 +170,25 @@ export const createDeposit = createServerFn({ method: "POST" })
     const wallet = await ensureRealWallet(supabaseAdmin, userId, data.currency);
     if (wallet.status !== "ACTIVE") throw new Error("That wallet is not active.");
 
-    const address = await MockCryptoProvider.createDepositAddress({
+    // Prefer the address the operator configured in Settings; fall back to the
+    // provider adapter when none is set for this currency/network.
+    const { data: configuredAddress } = await supabaseAdmin
+      .from("deposit_destinations")
+      .select("address, memo")
+      .eq("kind", "CRYPTO")
+      .eq("currency", data.currency)
+      .eq("channel", data.network)
+      .eq("active", true)
+      .maybeSingle();
+
+    const generated = await MockCryptoProvider.createDepositAddress({
       userId,
       currency: data.currency,
       network: data.network,
     });
+    const address = configuredAddress?.address
+      ? { address: configuredAddress.address, providerTransactionId: generated.providerTransactionId }
+      : generated;
 
     const { data: deposit, error } = await supabaseAdmin
       .from("deposits")
@@ -188,7 +202,10 @@ export const createDeposit = createServerFn({ method: "POST" })
         deposit_address: address.address,
         status: "PENDING",
         required_confirmations: network.requiredConfirmations,
-        metadata: { min_deposit: network.minDeposit } as never,
+        metadata: {
+          min_deposit: network.minDeposit,
+          memo: configuredAddress?.memo ?? null,
+        } as never,
       })
       .select("id, deposit_address, required_confirmations")
       .single();
