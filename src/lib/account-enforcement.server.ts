@@ -49,6 +49,8 @@ export async function setAuthBan(admin: Admin, userId: string, banned: boolean):
 }
 
 export async function forceLogout(admin: Admin, userId: string): Promise<void> {
+  // Force logout is not a ban: make sure the account can sign back in.
+  await setAuthBan(admin, userId, false);
   await revokeAppSessions(admin, userId);
   await revokeAuthSessions(userId);
 }
@@ -83,7 +85,8 @@ export async function enforceAction(
         withdrawals_blocked: true,
       });
       await setAuthBan(admin, userId, true);
-      await forceLogout(admin, userId);
+      await revokeAppSessions(admin, userId);
+      await revokeAuthSessions(userId);
       break;
     case "close":
       await applyAccountFlags(admin, userId, {
@@ -93,7 +96,8 @@ export async function enforceAction(
         real_money_enabled: false,
       });
       await setAuthBan(admin, userId, true);
-      await forceLogout(admin, userId);
+      await revokeAppSessions(admin, userId);
+      await revokeAuthSessions(userId);
       break;
     case "restrict":
       await applyAccountFlags(admin, userId, {
