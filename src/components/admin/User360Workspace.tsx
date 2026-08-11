@@ -1081,6 +1081,7 @@ export function User360Workspace({ userId }: { userId: string }) {
     { key: "force_logout", label: t("u360.forceLogout"), show: can("user.suspend") || can("risk.resolve") },
     { key: "security_review", label: t("u360.securityReview"), show: can("risk.resolve") || can("user.suspend") },
     { key: "close", label: t("u360.closeAccount"), show: can("user.suspend") },
+    { key: "unsuspend", label: t("u360.unban"), show: can("user.suspend") },
   ].filter((a) => a.show);
 
   return (
@@ -1128,9 +1129,9 @@ export function User360Workspace({ userId }: { userId: string }) {
 
         <div className="mt-3 flex flex-wrap gap-2">
           {can("user.suspend") ? (
-            h.status === "SUSPENDED" ? (
-              <Button size="sm" onClick={() => ask("unsuspend", t("u360.unsuspend"))}>
-                <BadgeCheck className="size-4" aria-hidden /> {t("u360.unsuspend")}
+            h.status !== "ACTIVE" ? (
+              <Button size="sm" onClick={() => ask("unsuspend", t("u360.unban"))}>
+                <BadgeCheck className="size-4" aria-hidden /> {t("u360.unban")}
               </Button>
             ) : (
               <Button size="sm" variant="destructive" onClick={() => ask("suspend", t("u360.suspend"))}>
