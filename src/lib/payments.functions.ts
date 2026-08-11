@@ -181,14 +181,23 @@ export const createDeposit = createServerFn({ method: "POST" })
       .eq("active", true)
       .maybeSingle();
 
+    if (!configuredAddress?.address) {
+      // Real money: never hand a player a synthetic address — funds sent there
+      // would be lost. The operator must configure the receiving wallet first.
+      throw new Error(
+        `${data.currency} deposits on ${data.network} are temporarily unavailable. Please choose another network or contact support.`,
+      );
+    }
+
     const generated = await MockCryptoProvider.createDepositAddress({
       userId,
       currency: data.currency,
       network: data.network,
     });
-    const address = configuredAddress?.address
-      ? { address: configuredAddress.address, providerTransactionId: generated.providerTransactionId }
-      : generated;
+    const address = {
+      address: configuredAddress.address,
+      providerTransactionId: generated.providerTransactionId,
+    };
 
     const { data: deposit, error } = await supabaseAdmin
       .from("deposits")

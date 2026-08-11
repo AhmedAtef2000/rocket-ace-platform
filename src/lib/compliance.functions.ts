@@ -130,5 +130,11 @@ export const submitKyc = createServerFn({ method: "POST" })
       },
     });
 
+    // Approval is what unlocks real-money deposits, play and withdrawals.
+    await supabaseAdmin
+      .from("users")
+      .update({ real_money_enabled: decision.status === "APPROVED" })
+      .eq("id", userId);
+
     return { status: decision.status, reason: decision.reason, error: null };
   });
