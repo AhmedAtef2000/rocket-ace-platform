@@ -15,7 +15,7 @@ export const getPaymentsOverview = createServerFn({ method: "GET" })
     const { complianceSnapshot } = await import("@/lib/compliance.server");
     const userId = context.userId;
 
-    const [networks, compliance, wallets, deposits, withdrawals, playthrough, manual] =
+    const [networks, compliance, wallets, deposits, withdrawals, playthrough, manual, destinations] =
       await Promise.all([
       listNetworks(supabaseAdmin),
       complianceSnapshot(supabaseAdmin, userId),
@@ -47,11 +47,27 @@ export const getPaymentsOverview = createServerFn({ method: "GET" })
           .eq("user_id", userId)
           .order("created_at", { ascending: false })
           .limit(20),
+        supabaseAdmin
+          .from("deposit_destinations")
+          .select("kind, channel, label, address, instructions, active, sort_order")
+          .eq("kind", "MANUAL")
+          .eq("active", true)
+          .order("sort_order", { ascending: true }),
       ]);
+
+    // Admin-managed cash numbers win over the built-in defaults.
+    const configuredManual = (destinations.data ?? []).map((d) => ({
+      id: d.channel,
+      label: d.label || d.channel.replace(/_/g, " "),
+      payTo: d.address,
+      instructions: d.instructions,
+    }));
 
     return {
       networks,
-      manualMethods: MANUAL_METHODS.map((m) => ({ ...m })),
+      manualMethods: configuredManual.length
+        ? configuredManual
+        : MANUAL_METHODS.map((m) => ({ ...m, instructions: null as string | null })),
       minDeposit: MIN_DEPOSIT_AMOUNT,
       withdrawalNoticeHours: WITHDRAWAL_NOTICE_HOURS,
       playthrough,
