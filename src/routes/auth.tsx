@@ -118,7 +118,9 @@ function AuthPage() {
     setBusy(true);
     try {
       const value = identifierIsPhone ? composePhone(signInDial, identifier) : identifier;
-      const { email } = await resolveLoginIdentifier({ data: { identifier: value } });
+      const resolved = await resolveLoginIdentifier({ data: { identifier: value } });
+      if (!resolved.email) throw new Error(resolved.error ?? t("auth.signInFailed"));
+      const email = resolved.email;
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw new Error(error.message);
       toast.success(t("auth.signedIn"));
