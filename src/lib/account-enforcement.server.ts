@@ -85,7 +85,8 @@ export async function enforceAction(
         withdrawals_blocked: true,
       });
       await setAuthBan(admin, userId, true);
-      await forceLogout(admin, userId);
+      await revokeAppSessions(admin, userId);
+      await revokeAuthSessions(userId);
       break;
     case "close":
       await applyAccountFlags(admin, userId, {
@@ -95,7 +96,8 @@ export async function enforceAction(
         real_money_enabled: false,
       });
       await setAuthBan(admin, userId, true);
-      await forceLogout(admin, userId);
+      await revokeAppSessions(admin, userId);
+      await revokeAuthSessions(userId);
       break;
     case "restrict":
       await applyAccountFlags(admin, userId, {
