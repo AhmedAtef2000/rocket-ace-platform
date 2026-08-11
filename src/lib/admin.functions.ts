@@ -304,6 +304,13 @@ export const decideKyc = createServerFn({ method: "POST" })
       .eq("id", kycCase.id);
     if (updateError) throw new Error(updateError.message);
 
+    // Approving verification is what turns real-money deposits, play and
+    // withdrawals on for the player; rejecting turns them off again.
+    await supabaseAdmin
+      .from("users")
+      .update({ real_money_enabled: data.decision === "APPROVED" })
+      .eq("id", kycCase.user_id);
+
     await notify(
       supabaseAdmin,
       kycCase.user_id,
