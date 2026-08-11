@@ -334,12 +334,26 @@ export const registerSession = createServerFn({ method: "POST" })
       .eq("id", data.deviceId)
       .maybeSingle();
 
+    // A revoked device row only invalidates sessions that were issued BEFORE the
+    // revocation. A fresh sign-in afterwards is legitimate (force logout is not a
+    // ban), so the stale row is replaced with a new device id instead of kicking
+    // the player out on every login.
+    const issuedAtMs = typeof context.claims?.iat === "number" ? context.claims.iat * 1000 : Date.now();
+    const revokedAtMs = existing?.revoked_at ? Date.parse(existing.revoked_at) : null;
+    const revokedThisSession =
+      existing != null &&
+      existing.user_id === userId &&
+      revokedAtMs != null &&
+      revokedAtMs > issuedAtMs;
+
     // The device id lives in browser storage, so a second account signing in on
     // the same browser will collide with it. Issue a fresh id instead of failing.
     const sessionId =
-      existing && existing.user_id !== userId ? crypto.randomUUID() : data.deviceId;
+      existing && (existing.user_id !== userId || (revokedAtMs != null && !revokedThisSession))
+        ? crypto.randomUUID()
+        : data.deviceId;
 
-    if (existing && existing.user_id === userId && existing.revoked_at) {
+    if (revokedThisSession) {
       return { revoked: true as const, deviceId: sessionId };
     }
 
