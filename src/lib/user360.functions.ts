@@ -236,6 +236,9 @@ export const runUser360Action = createServerFn({ method: "POST" })
     const { auditAdmin } = await import("@/lib/admin.server");
     const { requireAny } = await import("@/lib/user360.server");
     const { notify } = await import("@/lib/support.server");
+    const { enforceAction, forceLogout, applyAccountFlags } = await import(
+      "@/lib/account-enforcement.server"
+    );
 
     if (data.userId === context.userId) throw new Error("You cannot action your own account.");
     const now = new Date().toISOString();
@@ -255,11 +258,7 @@ export const runUser360Action = createServerFn({ method: "POST" })
 
     if (data.action in STATUS_ACTIONS) {
       const status = STATUS_ACTIONS[data.action]!;
-      const { error } = await supabaseAdmin
-        .from("users")
-        .update({ status: status as never })
-        .eq("id", data.userId);
-      if (error) throw new Error(error.message);
+      await enforceAction(supabaseAdmin, data.userId, data.action);
       await notify(
         supabaseAdmin,
         data.userId,
@@ -268,12 +267,14 @@ export const runUser360Action = createServerFn({ method: "POST" })
         data.reason ?? `Your account status is now ${status.toLowerCase()}.`,
       );
     } else if (data.action === "force_logout") {
-      const { error } = await supabaseAdmin
-        .from("user_sessions")
-        .update({ revoked_at: now })
-        .eq("user_id", data.userId)
-        .is("revoked_at", null);
-      if (error) throw new Error(error.message);
+      await forceLogout(supabaseAdmin, data.userId);
+      await notify(
+        supabaseAdmin,
+        data.userId,
+        "account.security",
+        "You were signed out",
+        data.reason ?? "Your sessions were ended by our security team.",
+      );
     } else if (data.action === "require_kyc" || data.action === "require_verification") {
       const { data: kycCase } = await supabaseAdmin
         .from("kyc_cases")
@@ -293,6 +294,11 @@ export const runUser360Action = createServerFn({ method: "POST" })
           })
           .eq("id", kycCase.id);
       }
+      // Verification is a hard gate: block real-money play until it clears.
+      await applyAccountFlags(supabaseAdmin, data.userId, {
+        real_money_enabled: false,
+        withdrawals_blocked: true,
+      });
       await notify(
         supabaseAdmin,
         data.userId,
@@ -311,6 +317,16 @@ export const runUser360Action = createServerFn({ method: "POST" })
         description: data.reason ?? "Manual security review requested by staff.",
       });
       if (error) throw new Error(error.message);
+      // A security review freezes payouts and ends live sessions.
+      await applyAccountFlags(supabaseAdmin, data.userId, { withdrawals_blocked: true });
+      await forceLogout(supabaseAdmin, data.userId);
+      await notify(
+        supabaseAdmin,
+        data.userId,
+        "account.security",
+        "Security review opened",
+        data.reason ?? "Withdrawals are paused while our team reviews your account.",
+      );
     } else if (data.action === "message") {
       if (!data.reason) throw new Error("Write a message first.");
       await notify(supabaseAdmin, data.userId, "support.message", "Message from support", data.reason);
