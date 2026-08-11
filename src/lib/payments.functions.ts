@@ -95,6 +95,18 @@ export const submitManualDeposit = createServerFn({ method: "POST" })
     await assertRealMoneyEligible(supabaseAdmin, userId);
     await assertNotRestricted(supabaseAdmin, userId);
 
+    const { MANUAL_METHODS } = await import("@/lib/payments.server");
+    const { data: configured } = await supabaseAdmin
+      .from("deposit_destinations")
+      .select("channel")
+      .eq("kind", "MANUAL")
+      .eq("active", true);
+    const allowed = new Set<string>([
+      ...MANUAL_METHODS.map((m) => m.id as string),
+      ...(configured ?? []).map((d) => d.channel),
+    ]);
+    if (!allowed.has(data.method)) throw new Error("Choose a payment method.");
+
     const bytes = Buffer.from(data.contentBase64, "base64");
     if (bytes.byteLength === 0) throw new Error("The attached file is empty.");
     if (bytes.byteLength > 5 * 1024 * 1024) throw new Error("Files must be 5 MB or smaller.");
