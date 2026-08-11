@@ -950,3 +950,62 @@ export async function userActivity(admin: Admin, userId: string) {
 
   return rows.sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 150);
 }
+/* --------------------------- balance adjustment ------------------------- */
+
+/** Raw wallet rows (with ids) so an operator can pick which balance to adjust. */
+export async function userWalletAccounts(admin: Admin, userId: string) {
+  const { data, error } = await admin
+    .from("wallets")
+    .select("id, currency, kind, available_amount, locked_amount, status")
+    .eq("user_id", userId)
+    .order("kind", { ascending: true })
+    .order("currency", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((w) => ({
+    id: w.id,
+    currency: w.currency,
+    kind: w.kind,
+    available: num(w.available_amount),
+    locked: num(w.locked_amount),
+    status: w.status,
+  }));
+}
+
+export type AdjustInput = {
+  userId: string;
+  walletId: string;
+  direction: "CREDIT" | "DEBIT";
+  amount: number;
+  reason: string;
+};
+
+/**
+ * Posts a balanced manual adjustment through the ledger function so the
+ * wallet and the double-entry ledger can never drift apart.
+ */
+export async function adjustWalletBalance(admin: Admin, actorId: string, input: AdjustInput) {
+  const { data: wallet, error: walletError } = await admin
+    .from("wallets")
+    .select("id, user_id, currency, kind, available_amount")
+    .eq("id", input.walletId)
+    .maybeSingle();
+  if (walletError) throw new Error(walletError.message);
+  if (!wallet || wallet.user_id !== input.userId) throw new Error("Wallet not found for this player.");
+  if (input.direction === "DEBIT" && num(wallet.available_amount) < input.amount) {
+    throw new Error("The player does not have enough available balance for this deduction.");
+  }
+
+  const { error } = await admin.rpc("post_wallet_transaction", {
+    _wallet_id: input.walletId,
+    _direction: input.direction,
+    _amount: input.amount,
+    _entry_type: input.direction === "CREDIT" ? "ADMIN_CREDIT" : "ADMIN_DEBIT",
+    _counter_account_type: "HOUSE",
+    _reference_type: "admin_adjustment",
+    _reference_id: actorId,
+    _metadata: { reason: input.reason, actor_id: actorId },
+  });
+  if (error) throw new Error(error.message);
+
+  return { currency: wallet.currency, kind: wallet.kind };
+}
