@@ -15,7 +15,7 @@ export const getPaymentsOverview = createServerFn({ method: "GET" })
     const { complianceSnapshot } = await import("@/lib/compliance.server");
     const userId = context.userId;
 
-    const [networks, compliance, wallets, deposits, withdrawals, playthrough, manual] =
+    const [networks, compliance, wallets, deposits, withdrawals, playthrough, manual, destinations] =
       await Promise.all([
       listNetworks(supabaseAdmin),
       complianceSnapshot(supabaseAdmin, userId),
@@ -47,11 +47,27 @@ export const getPaymentsOverview = createServerFn({ method: "GET" })
           .eq("user_id", userId)
           .order("created_at", { ascending: false })
           .limit(20),
+        supabaseAdmin
+          .from("deposit_destinations")
+          .select("kind, channel, label, address, instructions, active, sort_order")
+          .eq("kind", "MANUAL")
+          .eq("active", true)
+          .order("sort_order", { ascending: true }),
       ]);
+
+    // Admin-managed cash numbers win over the built-in defaults.
+    const configuredManual = (destinations.data ?? []).map((d) => ({
+      id: d.channel,
+      label: d.label || d.channel.replace(/_/g, " "),
+      payTo: d.address,
+      instructions: d.instructions,
+    }));
 
     return {
       networks,
-      manualMethods: MANUAL_METHODS.map((m) => ({ ...m })),
+      manualMethods: configuredManual.length
+        ? configuredManual
+        : MANUAL_METHODS.map((m) => ({ ...m, instructions: null as string | null })),
       minDeposit: MIN_DEPOSIT_AMOUNT,
       withdrawalNoticeHours: WITHDRAWAL_NOTICE_HOURS,
       playthrough,
@@ -78,6 +94,18 @@ export const submitManualDeposit = createServerFn({ method: "POST" })
     await enforceRateLimit(supabaseAdmin, "deposit.create", userId);
     await assertRealMoneyEligible(supabaseAdmin, userId);
     await assertNotRestricted(supabaseAdmin, userId);
+
+    const { MANUAL_METHODS } = await import("@/lib/payments.server");
+    const { data: configured } = await supabaseAdmin
+      .from("deposit_destinations")
+      .select("channel")
+      .eq("kind", "MANUAL")
+      .eq("active", true);
+    const allowed = new Set<string>([
+      ...MANUAL_METHODS.map((m) => m.id as string),
+      ...(configured ?? []).map((d) => d.channel),
+    ]);
+    if (!allowed.has(data.method)) throw new Error("Choose a payment method.");
 
     const bytes = Buffer.from(data.contentBase64, "base64");
     if (bytes.byteLength === 0) throw new Error("The attached file is empty.");
@@ -142,11 +170,25 @@ export const createDeposit = createServerFn({ method: "POST" })
     const wallet = await ensureRealWallet(supabaseAdmin, userId, data.currency);
     if (wallet.status !== "ACTIVE") throw new Error("That wallet is not active.");
 
-    const address = await MockCryptoProvider.createDepositAddress({
+    // Prefer the address the operator configured in Settings; fall back to the
+    // provider adapter when none is set for this currency/network.
+    const { data: configuredAddress } = await supabaseAdmin
+      .from("deposit_destinations")
+      .select("address, memo")
+      .eq("kind", "CRYPTO")
+      .eq("currency", data.currency)
+      .eq("channel", data.network)
+      .eq("active", true)
+      .maybeSingle();
+
+    const generated = await MockCryptoProvider.createDepositAddress({
       userId,
       currency: data.currency,
       network: data.network,
     });
+    const address = configuredAddress?.address
+      ? { address: configuredAddress.address, providerTransactionId: generated.providerTransactionId }
+      : generated;
 
     const { data: deposit, error } = await supabaseAdmin
       .from("deposits")
@@ -160,7 +202,10 @@ export const createDeposit = createServerFn({ method: "POST" })
         deposit_address: address.address,
         status: "PENDING",
         required_confirmations: network.requiredConfirmations,
-        metadata: { min_deposit: network.minDeposit } as never,
+        metadata: {
+          min_deposit: network.minDeposit,
+          memo: configuredAddress?.memo ?? null,
+        } as never,
       })
       .select("id, deposit_address, required_confirmations")
       .single();
