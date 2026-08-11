@@ -270,6 +270,20 @@ export async function assertNotRestricted(admin: Admin, userId: string): Promise
 }
 
 /** Deposit limits are enforced on credited value, per rolling window. */
+export async function assertWithdrawalsAllowed(admin: Admin, userId: string): Promise<void> {
+  const { data: account } = await admin
+    .from("users")
+    .select("status, withdrawals_blocked")
+    .eq("id", userId)
+    .maybeSingle();
+  if (!account || account.status === "SUSPENDED" || account.status === "CLOSED") {
+    throw new Error("Your account is not active.");
+  }
+  if (account.withdrawals_blocked) {
+    throw new Error("Withdrawals are restricted on your account. Contact support.");
+  }
+}
+
 export async function assertDepositLimits(
   admin: Admin,
   userId: string,

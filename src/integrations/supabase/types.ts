@@ -1688,6 +1688,7 @@ export type Database = {
       users: {
         Row: {
           account_number: string | null
+          betting_blocked: boolean
           country_code: string | null
           created_at: string
           date_of_birth: string | null
@@ -1703,9 +1704,11 @@ export type Database = {
           real_money_enabled: boolean
           status: Database["public"]["Enums"]["user_status"]
           updated_at: string
+          withdrawals_blocked: boolean
         }
         Insert: {
           account_number?: string | null
+          betting_blocked?: boolean
           country_code?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1721,9 +1724,11 @@ export type Database = {
           real_money_enabled?: boolean
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
+          withdrawals_blocked?: boolean
         }
         Update: {
           account_number?: string | null
+          betting_blocked?: boolean
           country_code?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1739,6 +1744,7 @@ export type Database = {
           real_money_enabled?: boolean
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
+          withdrawals_blocked?: boolean
         }
         Relationships: [
           {

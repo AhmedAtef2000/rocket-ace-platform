@@ -292,6 +292,7 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       PROVIDER_ID,
       WITHDRAWAL_FEE_RATE,
       assertNotRestricted,
+      assertWithdrawalsAllowed,
       assertPlaythrough,
       auditPayments,
       ensureRealWallet,
@@ -304,6 +305,7 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
     await enforceRateLimit(supabaseAdmin, "withdrawal.request", userId);
     await assertRealMoneyEligible(supabaseAdmin, userId);
     await assertNotRestricted(supabaseAdmin, userId);
+    await assertWithdrawalsAllowed(supabaseAdmin, userId);
     await assertPlaythrough(supabaseAdmin, userId);
     const network = await requireNetwork(supabaseAdmin, data.currency, data.network);
     if (data.amount < network.minWithdrawal) {
