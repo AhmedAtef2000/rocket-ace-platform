@@ -405,3 +405,68 @@ export const decideUser360Kyc = createServerFn({ method: "POST" })
     });
     return { ok: true as const };
   });
+/* -------------------------- balance adjustment ------------------------- */
+
+const BALANCE_PERMISSIONS = ["admin.manage", "withdrawal.approve"];
+
+export const getUser360Wallets = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => parseUserId(data))
+  .handler(async ({ context, data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { requirePermission } = await import("@/lib/admin.server");
+    const { userWalletAccounts } = await import("@/lib/user360.server");
+    const identity = await requirePermission(supabaseAdmin, context.userId, "finance.view");
+    return {
+      wallets: await userWalletAccounts(supabaseAdmin, data.userId),
+      canAdjust: BALANCE_PERMISSIONS.some((p) => identity.permissions.includes(p)),
+    };
+  });
+
+export const adjustUser360Balance = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => {
+    const d = (data ?? {}) as Record<string, unknown>;
+    const walletId = typeof d["walletId"] === "string" ? d["walletId"] : "";
+    if (!walletId) throw new Error("Pick a wallet to adjust.");
+    const direction = d["direction"] === "DEBIT" ? "DEBIT" : "CREDIT";
+    const amount = Math.round(Number(d["amount"]) * 1e8) / 1e8;
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error("Enter an amount greater than zero.");
+    if (amount > 1_000_000) throw new Error("That adjustment is too large.");
+    const reason = typeof d["reason"] === "string" ? d["reason"].trim().slice(0, 500) : "";
+    if (!reason) throw new Error("A reason is required for balance adjustments.");
+    return { ...parseUserId(d), walletId, direction: direction as "CREDIT" | "DEBIT", amount, reason };
+  })
+  .handler(async ({ context, data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { auditAdmin } = await import("@/lib/admin.server");
+    const { requireAny, adjustWalletBalance } = await import("@/lib/user360.server");
+    const { notify } = await import("@/lib/support.server");
+    const identity = await requireAny(supabaseAdmin, context.userId, BALANCE_PERMISSIONS);
+
+    const wallet = await adjustWalletBalance(supabaseAdmin, context.userId, data);
+
+    await notify(
+      supabaseAdmin,
+      data.userId,
+      "wallet.adjustment",
+      data.direction === "CREDIT" ? "Balance credited" : "Balance adjusted",
+      `${data.direction === "CREDIT" ? "+" : "-"}${data.amount} ${wallet.currency} — ${data.reason}`,
+    );
+    await auditAdmin(supabaseAdmin, {
+      actorId: context.userId,
+      actorRole: identity.roleKey,
+      action: "wallet.balance_adjusted",
+      resourceType: "wallets",
+      resourceId: data.walletId,
+      metadata: {
+        userId: data.userId,
+        direction: data.direction,
+        amount: data.amount,
+        currency: wallet.currency,
+        kind: wallet.kind,
+        reason: data.reason,
+      },
+    });
+    return { ok: true as const };
+  });
