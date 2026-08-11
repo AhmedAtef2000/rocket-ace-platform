@@ -255,6 +255,17 @@ export async function ensureRealWallet(
 
 /** Cooling-off and self-exclusion block all funding and payouts. */
 export async function assertNotRestricted(admin: Admin, userId: string): Promise<void> {
+  const { data: account } = await admin
+    .from("users")
+    .select("status, withdrawals_blocked")
+    .eq("id", userId)
+    .maybeSingle();
+  if (!account || account.status === "SUSPENDED" || account.status === "CLOSED") {
+    throw new Error("Your account is not active.");
+  }
+  if (account.withdrawals_blocked) {
+    throw new Error("Withdrawals are restricted on your account. Contact support.");
+  }
   const { data } = await admin
     .from("responsible_gambling_limits")
     .select("cooling_off_until, self_exclusion_until")
