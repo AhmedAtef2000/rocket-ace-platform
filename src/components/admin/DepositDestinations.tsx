@@ -76,6 +76,16 @@ export function DepositDestinations() {
     queryFn: async () => fetchAll({ data: undefined }),
   });
 
+  const destinations = rows.data?.destinations ?? [];
+  const cryptoPairs = rows.data?.cryptoPairs ?? [];
+  const cryptoCurrencies = Array.from(new Set(cryptoPairs.map((p) => p.currency)));
+  const networksFor = (currency: string) =>
+    cryptoPairs.filter((p) => p.currency === currency).map((p) => p.network);
+  const configured = new Set(
+    destinations.filter((d) => d.kind === "CRYPTO").map((d) => `${d.currency}:${d.channel}`),
+  );
+  const missingPairs = cryptoPairs.filter((p) => !configured.has(`${p.currency}:${p.network}`));
+
   const invalidate = () =>
     void queryClient.invalidateQueries({ queryKey: ["admin", "deposit-destinations"] });
 
@@ -127,14 +137,14 @@ export function DepositDestinations() {
             </tr>
           </thead>
           <tbody>
-            {(rows.data ?? []).length === 0 ? (
+            {destinations.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
                   {t("admin.dest.empty")}
                 </td>
               </tr>
             ) : (
-              (rows.data ?? []).map((row) => (
+              destinations.map((row) => (
                 <tr key={row.id} className="border-t border-border/70">
                   <td className="px-3 py-2">
                     {row.kind === "CRYPTO" ? t("admin.dest.kind.crypto") : t("admin.dest.kind.manual")}
@@ -191,6 +201,30 @@ export function DepositDestinations() {
         </table>
       </div>
 
+      {missingPairs.length ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-border p-3">
+          <span className="text-xs text-muted-foreground">{t("admin.dest.missing")}</span>
+          {missingPairs.map((p) => (
+            <Button
+              key={`${p.currency}:${p.network}`}
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                setDraft({
+                  ...blank,
+                  kind: "CRYPTO",
+                  currency: p.currency,
+                  channel: p.network,
+                  label: `${p.currency} · ${p.network}`,
+                })
+              }
+            >
+              {p.currency} · {p.network}
+            </Button>
+          ))}
+        </div>
+      ) : null}
+
       {draft ? (
         <div className="mt-4 grid gap-3 rounded-xl border border-border p-5 sm:grid-cols-2">
           <label className="block text-sm">
@@ -206,18 +240,64 @@ export function DepositDestinations() {
               <option value="MANUAL">{t("admin.dest.kind.manual")}</option>
             </select>
           </label>
-          <Input
-            label={t("admin.dest.currency")}
-            value={draft.currency}
-            onChange={set("currency")}
-            placeholder={draft.kind === "CRYPTO" ? "USDT" : "EGP"}
-          />
-          <Input
-            label={t("admin.dest.channel")}
-            value={draft.channel}
-            onChange={set("channel")}
-            placeholder={draft.kind === "CRYPTO" ? "TRON" : "VODAFONE_CASH"}
-          />
+          {draft.kind === "CRYPTO" && cryptoCurrencies.length ? (
+            <>
+              <label className="block text-sm">
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                  {t("admin.dest.currency")}
+                </span>
+                <select
+                  value={draft.currency}
+                  onChange={(e) => {
+                    const currency = e.target.value;
+                    setDraft((prev) =>
+                      prev
+                        ? { ...prev, currency, channel: networksFor(currency)[0] ?? prev.channel }
+                        : prev,
+                    );
+                  }}
+                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                >
+                  {cryptoCurrencies.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm">
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                  {t("admin.dest.channel")}
+                </span>
+                <select
+                  value={draft.channel}
+                  onChange={(e) => set("channel")(e.target.value)}
+                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                >
+                  {networksFor(draft.currency).map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          ) : (
+            <>
+              <Input
+                label={t("admin.dest.currency")}
+                value={draft.currency}
+                onChange={set("currency")}
+                placeholder={draft.kind === "CRYPTO" ? "USDT" : "EGP"}
+              />
+              <Input
+                label={t("admin.dest.channel")}
+                value={draft.channel}
+                onChange={set("channel")}
+                placeholder={draft.kind === "CRYPTO" ? "TRON" : "VODAFONE_CASH"}
+              />
+            </>
+          )}
           <Input label={t("admin.dest.label")} value={draft.label} onChange={set("label")} />
           <Input
             label={draft.kind === "CRYPTO" ? t("admin.dest.address") : t("admin.dest.phone")}

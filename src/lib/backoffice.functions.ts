@@ -509,13 +509,23 @@ export const listDepositDestinations = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { requirePermission } = await import("@/lib/admin.server");
     await requirePermission(supabaseAdmin, context.userId, "admin.manage");
-    const { data, error } = await supabaseAdmin
-      .from("deposit_destinations")
-      .select("id, kind, currency, channel, label, address, memo, instructions, active, sort_order, updated_at")
-      .order("kind", { ascending: true })
-      .order("sort_order", { ascending: true });
+    const [{ data, error }, { data: nets }] = await Promise.all([
+      supabaseAdmin
+        .from("deposit_destinations")
+        .select("id, kind, currency, channel, label, address, memo, instructions, active, sort_order, updated_at")
+        .order("kind", { ascending: true })
+        .order("sort_order", { ascending: true }),
+      supabaseAdmin
+        .from("currency_networks")
+        .select("currency_code, network, enabled")
+        .eq("enabled", true)
+        .order("currency_code", { ascending: true }),
+    ]);
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return {
+      destinations: data ?? [],
+      cryptoPairs: (nets ?? []).map((n) => ({ currency: n.currency_code, network: n.network })),
+    };
   });
 
 export const saveDepositDestination = createServerFn({ method: "POST" })

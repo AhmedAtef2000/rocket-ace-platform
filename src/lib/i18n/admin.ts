@@ -201,6 +201,7 @@ const pack: Pack = {
     "admin.dest.confirmRemove": "Remove this deposit destination?",
     "admin.dest.empty": "No deposit destinations yet.",
     "admin.dest.inactive": "Disabled",
+    "admin.dest.missing": "Missing wallet address for:",
 
     "admin.users.title": "User management",
     "admin.users.searchPlaceholder": "Search by user ID, email, phone or name",
@@ -453,6 +454,7 @@ const pack: Pack = {
     "admin.dest.confirmRemove": "هل تريد حذف وجهة الإيداع هذه؟",
     "admin.dest.empty": "لا توجد وجهات إيداع بعد.",
     "admin.dest.inactive": "معطل",
+    "admin.dest.missing": "لا يوجد عنوان محفظة لـ:",
 
     "admin.users.title": "إدارة المستخدمين",
     "admin.users.searchPlaceholder": "بحث بمعرف المستخدم أو البريد أو الهاتف أو الاسم",
@@ -705,6 +707,7 @@ const pack: Pack = {
     "admin.dest.confirmRemove": "Dieses Einzahlungsziel entfernen?",
     "admin.dest.empty": "Noch keine Einzahlungsziele.",
     "admin.dest.inactive": "Deaktiviert",
+    "admin.dest.missing": "Fehlende Wallet-Adresse für:",
 
     "admin.users.title": "Benutzerverwaltung",
     "admin.users.searchPlaceholder": "Suche nach Benutzer-ID, E-Mail, Telefon oder Name",
