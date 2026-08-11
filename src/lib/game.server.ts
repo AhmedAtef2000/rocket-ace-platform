@@ -39,7 +39,11 @@ export async function assertCanPlay(
   mode: "DEMO" | "REAL" = "DEMO",
 ): Promise<void> {
   const [{ data: user }, { data: rg }, { data: platform }] = await Promise.all([
-    admin.from("users").select("status, real_money_enabled, play_mode").eq("id", userId).maybeSingle(),
+    admin
+      .from("users")
+      .select("status, real_money_enabled, play_mode, betting_blocked")
+      .eq("id", userId)
+      .maybeSingle(),
     admin
       .from("responsible_gambling_limits")
       .select("cooling_off_until, self_exclusion_until")
@@ -48,7 +52,12 @@ export async function assertCanPlay(
     admin.from("platform_settings").select("is_real_money_live").maybeSingle(),
   ]);
 
-  if (!user || user.status !== "ACTIVE") throw new Error("Your account is not active.");
+  if (!user || (user.status !== "ACTIVE" && user.status !== "RESTRICTED")) {
+    throw new Error("Your account is not active.");
+  }
+  if (user.betting_blocked) {
+    throw new Error("Betting is restricted on your account. Contact support.");
+  }
   const now = Date.now();
   if (rg?.self_exclusion_until && new Date(rg.self_exclusion_until).getTime() > now) {
     throw new Error("Play is blocked while your self-exclusion is active.");
