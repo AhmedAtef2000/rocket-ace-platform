@@ -49,7 +49,7 @@ export const resolveLoginIdentifier = createServerFn({ method: "POST" })
       : { kind: "phone" as const, value: normalizePhone(raw) };
   })
   .handler(async ({ data }) => {
-    if (data.kind === "email") return { email: data.value };
+    if (data.kind === "email") return { email: data.value, error: null as string | null };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { enforceRateLimit } = await import("@/lib/rate-limit.server");
@@ -60,13 +60,13 @@ export const resolveLoginIdentifier = createServerFn({ method: "POST" })
       .select("user_id")
       .eq("phone", data.value)
       .maybeSingle();
-    if (!profile) throw new Error("Incorrect phone number or password.");
+    if (!profile) return { email: null, error: "Incorrect phone number or password." };
 
     const { data: user } = await supabaseAdmin
       .from("users")
       .select("email")
       .eq("id", profile.user_id)
       .maybeSingle();
-    if (!user?.email) throw new Error("Incorrect phone number or password.");
-    return { email: user.email };
+    if (!user?.email) return { email: null, error: "Incorrect phone number or password." };
+    return { email: user.email, error: null as string | null };
   });
