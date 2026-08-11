@@ -498,3 +498,90 @@ export const decideKycDocument = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+/* ---------------------------------------------------------------------------
+ * Deposit destinations (crypto addresses + local cash phone numbers)
+ * ------------------------------------------------------------------------ */
+
+export const listDepositDestinations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { requirePermission } = await import("@/lib/admin.server");
+    await requirePermission(supabaseAdmin, context.userId, "admin.manage");
+    const { data, error } = await supabaseAdmin
+      .from("deposit_destinations")
+      .select("id, kind, currency, channel, label, address, memo, instructions, active, sort_order, updated_at")
+      .order("kind", { ascending: true })
+      .order("sort_order", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const saveDepositDestination = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(async (data: unknown) => {
+    const { parseDestinationInput } = await import("@/lib/deposit-destinations.server");
+    return parseDestinationInput(data);
+  })
+  .handler(async ({ context, data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { requirePermission, auditAdmin } = await import("@/lib/admin.server");
+    const identity = await requirePermission(supabaseAdmin, context.userId, "admin.manage");
+
+    const row = {
+      kind: data.kind,
+      currency: data.currency,
+      channel: data.channel,
+      label: data.label,
+      address: data.address,
+      memo: data.memo,
+      instructions: data.instructions,
+      active: data.active,
+      sort_order: data.sortOrder,
+      updated_by: context.userId,
+    };
+
+    const query = data.id
+      ? supabaseAdmin.from("deposit_destinations").update(row).eq("id", data.id).select("id").single()
+      : supabaseAdmin
+          .from("deposit_destinations")
+          .upsert(row, { onConflict: "kind,currency,channel" })
+          .select("id")
+          .single();
+    const { data: saved, error } = await query;
+    if (error) throw new Error(error.message);
+
+    await auditAdmin(supabaseAdmin, {
+      actorId: context.userId,
+      actorRole: identity.roleKey,
+      action: "settings.deposit_destination_saved",
+      resourceType: "deposit_destinations",
+      resourceId: saved.id,
+      metadata: { kind: data.kind, currency: data.currency, channel: data.channel },
+    });
+    return { ok: true, id: saved.id };
+  });
+
+export const deleteDepositDestination = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(async (data: unknown) => {
+    const { parseDestinationId } = await import("@/lib/deposit-destinations.server");
+    return { id: parseDestinationId(data) };
+  })
+  .handler(async ({ context, data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { requirePermission, auditAdmin } = await import("@/lib/admin.server");
+    const identity = await requirePermission(supabaseAdmin, context.userId, "admin.manage");
+    const { error } = await supabaseAdmin.from("deposit_destinations").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await auditAdmin(supabaseAdmin, {
+      actorId: context.userId,
+      actorRole: identity.roleKey,
+      action: "settings.deposit_destination_removed",
+      resourceType: "deposit_destinations",
+      resourceId: data.id,
+      metadata: {},
+    });
+    return { ok: true };
+  });
