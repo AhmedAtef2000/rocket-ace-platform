@@ -95,11 +95,6 @@ function CompliancePage() {
   const rejected = kycStatus === "REJECTED";
   const documents = useMemo(() => data?.documents ?? [], [data]);
   const has = (type: string) => documents.some((d) => d.doc_type === type);
-  const needsAddress =
-    data?.kyc?.risk_level === "HIGH" ||
-    data?.kyc?.risk_level === "REVIEW_REQUIRED" ||
-    kycStatus === "REQUIRES_INFORMATION";
-
   const personalDone = verified || Boolean(data?.countryCode && data?.dateOfBirth);
   const identityDone = verified || has("ID_FRONT");
   const submitted = Boolean(data?.kyc?.submitted_at);
@@ -332,16 +327,6 @@ function CompliancePage() {
             <div className="mt-4">{uploadSlot("SELFIE", t("kyc.face.slot"))}</div>
           </section>
 
-          {/* Proof of address — only when required */}
-          {needsAddress ? (
-            <section className="rounded-2xl border border-border p-5">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                {t("kyc.address.title")}
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">{t("kyc.address.body")}</p>
-              <div className="mt-4">{uploadSlot("PROOF_OF_ADDRESS", t("kyc.address.slot"))}</div>
-            </section>
-          ) : null}
         </div>
       </div>
 
