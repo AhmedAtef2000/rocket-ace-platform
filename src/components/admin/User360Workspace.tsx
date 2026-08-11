@@ -20,6 +20,7 @@ import {
 import { useI18n, type TranslationKey } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import {
+  adjustUser360Balance,
   decideUser360Kyc,
   deleteUser360Note,
   getUser360Activity,
@@ -32,6 +33,7 @@ import {
   getUser360Summary,
   getUser360Support,
   getUser360Transactions,
+  getUser360Wallets,
   listUser360Notes,
   runUser360Action,
   saveUser360Note,
