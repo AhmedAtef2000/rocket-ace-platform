@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AdminShell, type AdminSection } from "@/components/admin/AdminShell";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdminResourceTable } from "@/components/admin/AdminResourceTable";
+import { DepositDestinations } from "@/components/admin/DepositDestinations";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -802,6 +803,7 @@ function SettingsSection() {
           </Button>
         </div>
       </div>
+      <DepositDestinations />
     </section>
   );
 }
