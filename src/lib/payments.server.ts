@@ -122,7 +122,7 @@ export function parseManualDepositInput(data: unknown): {
 } {
   const d = (data ?? {}) as Record<string, unknown>;
   const method = String(d["method"] ?? "").toUpperCase() as ManualMethodId;
-  if (!MANUAL_METHODS.some((m) => m.id === method)) throw new Error("Choose a payment method.");
+  if (!/^[A-Z0-9_]{2,40}$/.test(method)) throw new Error("Choose a payment method.");
   const currency = String(d["currency"] ?? "").toUpperCase();
   if (!currency) throw new Error("Choose a currency.");
   const amount = Number(d["amount"]);
