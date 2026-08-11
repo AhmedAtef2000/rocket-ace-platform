@@ -49,6 +49,8 @@ export async function setAuthBan(admin: Admin, userId: string, banned: boolean):
 }
 
 export async function forceLogout(admin: Admin, userId: string): Promise<void> {
+  // Force logout is not a ban: make sure the account can sign back in.
+  await setAuthBan(admin, userId, false);
   await revokeAppSessions(admin, userId);
   await revokeAuthSessions(userId);
 }
