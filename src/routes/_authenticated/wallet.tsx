@@ -255,8 +255,25 @@ function WalletPage() {
   const wdFee = wdValue > 0 ? wdValue * feeRate : 0;
   const wdNet = Math.max(wdValue - wdFee, 0);
   const addressValid = wdAddress.trim() !== "" && isValidAddress(network, wdAddress);
-  const amountValid =
-    wdValue > 0 && wdValue >= (selected?.minWithdrawal ?? 0) && wdValue <= activeBalance.available;
+  // Tell the player exactly why the button will not move forward instead of
+  // leaving a silently disabled control.
+  const withdrawBlock = !eligible
+    ? t("wallet.withdraw.blocked.verify")
+    : wdAddress.trim() === ""
+      ? t("wallet.withdraw.blocked.address")
+      : !addressValid
+        ? t("wallet.withdraw.invalidAddress", { network: networkLabel(network) })
+        : wdValue <= 0
+          ? t("wallet.withdraw.blocked.amount")
+          : wdValue < (selected?.minWithdrawal ?? 0)
+            ? t("wallet.withdraw.blocked.min", {
+                amount: `${formatAmount(selected?.minWithdrawal ?? 0, 8)} ${currency}`,
+              })
+            : wdValue > activeBalance.available
+              ? t("wallet.withdraw.blocked.balance", {
+                  amount: `${formatAmount(activeBalance.available, 8)} ${currency}`,
+                })
+              : null;
 
   const submitWithdrawal = () => {
     if (submitting.current || withdrawMutation.isPending) return;
@@ -592,9 +609,21 @@ function WalletPage() {
                         </p>
                       )}
 
+                      {withdrawBlock && (
+                        <p className="rounded-xl border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive">
+                          {withdrawBlock}
+                        </p>
+                      )}
+
                       <Button
-                        disabled={!eligible || !addressValid || !amountValid || withdrawMutation.isPending}
-                        onClick={() => setReviewOpen(true)}
+                        disabled={withdrawMutation.isPending}
+                        onClick={() => {
+                          if (withdrawBlock) {
+                            toast.error(withdrawBlock);
+                            return;
+                          }
+                          setReviewOpen(true);
+                        }}
                       >
                         {t("wallet.withdraw.continue")}
                       </Button>
