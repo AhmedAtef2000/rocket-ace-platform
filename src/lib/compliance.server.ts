@@ -162,6 +162,10 @@ export async function complianceSnapshot(
 
   const realWallet = (wallets ?? []).find((w) => w.kind !== "DEMO") ?? (wallets ?? [])[0] ?? null;
 
+  // An approved KYC case is what unlocks real money; the stored flag is only an
+  // operator override, so it must never hold back an already-approved player.
+  const realMoneyEnabled = user?.real_money_enabled === true || kyc?.status === "APPROVED";
+
   const minAge = jurisdiction?.min_age ?? 18;
   const age = dateOfBirth ? ageOn(dateOfBirth) : null;
 
@@ -202,8 +206,8 @@ export async function complianceSnapshot(
     {
       key: "real_money_enabled",
       label: "Real-money play enabled",
-      passed: user?.real_money_enabled === true,
-      detail: user?.real_money_enabled ? "Enabled." : "Real-money play is disabled for your account.",
+      passed: realMoneyEnabled,
+      detail: realMoneyEnabled ? "Enabled." : "Real-money play is disabled for your account.",
     },
   ];
 
