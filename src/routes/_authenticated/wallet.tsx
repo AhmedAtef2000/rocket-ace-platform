@@ -255,9 +255,6 @@ function WalletPage() {
   const wdFee = wdValue > 0 ? wdValue * feeRate : 0;
   const wdNet = Math.max(wdValue - wdFee, 0);
   const addressValid = wdAddress.trim() !== "" && isValidAddress(network, wdAddress);
-  const amountValid =
-    wdValue > 0 && wdValue >= (selected?.minWithdrawal ?? 0) && wdValue <= activeBalance.available;
-
   // Tell the player exactly why the button will not move forward instead of
   // leaving a silently disabled control.
   const withdrawBlock = !eligible
