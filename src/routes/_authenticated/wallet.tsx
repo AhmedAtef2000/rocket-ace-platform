@@ -26,6 +26,7 @@ import {
   getPaymentsOverview,
   requestWithdrawal,
 } from "@/lib/payments.functions";
+import { getCryptoRates } from "@/lib/rates.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -117,6 +118,25 @@ function WalletPage() {
     queryFn: async () => fetchOverview({ data: undefined }),
   });
 
+  const fetchRates = useServerFn(getCryptoRates);
+  const ratesQuery = useQuery({
+    queryKey: ["payments", "rates"],
+    queryFn: async () => fetchRates({ data: undefined }),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+  const rates = ratesQuery.data?.rates ?? { USDT: 1, USDC: 1, USD: 1 };
+  /** USD value of an amount held in `code`, using the live rate when we have one. */
+  const usdOf = (code: string, amount: number) => {
+    const rate = rates[code] ?? fiatEquivalent(code, 1);
+    return rate ? amount * rate : null;
+  };
+  /** How much of `code` a USD amount buys — used to mirror the balance across assets. */
+  const inAsset = (code: string, usd: number) => {
+    const rate = rates[code];
+    return rate && rate > 0 ? usd / rate : null;
+  };
+
   const networks = overview.data?.networks ?? [];
   const currencies = useMemo(() => {
     const available = new Set(networks.map((n) => n.currency));
@@ -162,8 +182,8 @@ function WalletPage() {
 
   const totals = wallets.reduce(
     (acc, w) => {
-      const fiat = fiatEquivalent(w.currency, Number(w.available_amount ?? 0));
-      const fiatLocked = fiatEquivalent(w.currency, Number(w.locked_amount ?? 0));
+      const fiat = usdOf(w.currency, Number(w.available_amount ?? 0));
+      const fiatLocked = usdOf(w.currency, Number(w.locked_amount ?? 0));
       return {
         available: acc.available + (fiat ?? 0),
         pending: acc.pending + (fiatLocked ?? 0),
@@ -336,20 +356,23 @@ function WalletPage() {
                 {currencies.map((code) => {
                   const nets = networks.filter((n) => n.currency === code);
                   const bal = balanceOf(code);
-                  const fiat = fiatEquivalent(code, bal.available);
+                  const fiat = usdOf(code, bal.available);
+                  const mirrored = inAsset(code, totals.available);
                   const active = code === currency;
                   return (
-                    <button
+                    <div
                       key={code}
-                      type="button"
-                      onClick={() => setCurrency(code)}
                       className={`w-full rounded-2xl border p-3 text-start transition-colors ${
                         active
                           ? "border-primary/60 bg-primary/10 shadow-[0_0_24px_-12px_var(--color-primary)]"
                           : "border-border bg-card/60 hover:border-primary/30"
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setCurrency(code)}
+                        className="flex w-full items-center gap-2 text-start"
+                      >
                         <span
                           className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border/60 bg-background/60 text-[9px] font-bold tracking-tight ${
                             CRYPTO_META[code]?.tint ?? "text-foreground"
@@ -365,14 +388,46 @@ function WalletPage() {
                             {nets.map((n) => networkLabel(n.network)).join(" · ")}
                           </span>
                         </span>
-                      </div>
+                      </button>
                       <p className="mt-2 font-mono text-sm text-foreground" dir="ltr">
                         {formatAmount(bal.available, 8)} {code}
                       </p>
                       <p className="text-[11px] text-muted-foreground" dir="ltr">
-                        {fiat === null ? `${formatAmount(bal.locked, 8)} ${t("wallet.pending")}` : `≈ $${formatAmount(fiat, 2)}`}
+                        {fiat === null ? "—" : `≈ $${formatAmount(fiat, 2)}`}
+                        {bal.locked > 0 ? ` · ${formatAmount(bal.locked, 8)} ${t("wallet.pending")}` : ""}
                       </p>
-                    </button>
+                      {mirrored !== null && totals.available > 0 && (
+                        <p className="mt-0.5 text-[11px] text-muted-foreground" dir="ltr">
+                          {t("wallet.balanceIn", {
+                            amount: `${formatAmount(mirrored, code === "BTC" || code === "ETH" ? 8 : 2)} ${code}`,
+                          })}
+                        </p>
+                      )}
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="h-7 px-2 text-[11px]"
+                          onClick={() => {
+                            setCurrency(code);
+                            setTab("DEPOSIT");
+                          }}
+                        >
+                          {t("wallet.tab.deposit")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-[11px]"
+                          onClick={() => {
+                            setCurrency(code);
+                            setTab("WITHDRAW");
+                          }}
+                        >
+                          {t("wallet.tab.withdraw")}
+                        </Button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
