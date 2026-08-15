@@ -26,6 +26,7 @@ import {
   getPaymentsOverview,
   requestWithdrawal,
 } from "@/lib/payments.functions";
+import { getCryptoRates } from "@/lib/rates.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -117,6 +118,25 @@ function WalletPage() {
     queryFn: async () => fetchOverview({ data: undefined }),
   });
 
+  const fetchRates = useServerFn(getCryptoRates);
+  const ratesQuery = useQuery({
+    queryKey: ["payments", "rates"],
+    queryFn: async () => fetchRates({ data: undefined }),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+  const rates = ratesQuery.data?.rates ?? { USDT: 1, USDC: 1, USD: 1 };
+  /** USD value of an amount held in `code`, using the live rate when we have one. */
+  const usdOf = (code: string, amount: number) => {
+    const rate = rates[code] ?? fiatEquivalent(code, 1);
+    return rate ? amount * rate : null;
+  };
+  /** How much of `code` a USD amount buys — used to mirror the balance across assets. */
+  const inAsset = (code: string, usd: number) => {
+    const rate = rates[code];
+    return rate && rate > 0 ? usd / rate : null;
+  };
+
   const networks = overview.data?.networks ?? [];
   const currencies = useMemo(() => {
     const available = new Set(networks.map((n) => n.currency));
@@ -162,8 +182,8 @@ function WalletPage() {
 
   const totals = wallets.reduce(
     (acc, w) => {
-      const fiat = fiatEquivalent(w.currency, Number(w.available_amount ?? 0));
-      const fiatLocked = fiatEquivalent(w.currency, Number(w.locked_amount ?? 0));
+      const fiat = usdOf(w.currency, Number(w.available_amount ?? 0));
+      const fiatLocked = usdOf(w.currency, Number(w.locked_amount ?? 0));
       return {
         available: acc.available + (fiat ?? 0),
         pending: acc.pending + (fiatLocked ?? 0),
