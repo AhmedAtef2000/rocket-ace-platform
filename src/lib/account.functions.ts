@@ -95,14 +95,19 @@ export const provisionAccount = createServerFn({ method: "POST" })
       .select("id")
       .eq("user_id", userId)
       .eq("kind", "REAL")
+      .eq("currency", primaryCurrency)
       .maybeSingle();
     if (!fiatWallet) {
-      const { error } = await supabaseAdmin.from("wallets").insert({
-        user_id: userId,
-        currency: primaryCurrency,
-        kind: "REAL",
-        status: "ACTIVE",
-      });
+      // Concurrent provisioning can race, so ignore an existing row instead of failing.
+      const { error } = await supabaseAdmin.from("wallets").upsert(
+        {
+          user_id: userId,
+          currency: primaryCurrency,
+          kind: "REAL",
+          status: "ACTIVE",
+        },
+        { onConflict: "user_id,currency,kind", ignoreDuplicates: true },
+      );
       if (error) throw new Error(error.message);
     }
 
