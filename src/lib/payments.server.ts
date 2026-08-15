@@ -246,11 +246,26 @@ export async function ensureRealWallet(
 
   const created = await admin
     .from("wallets")
-    .insert({ user_id: userId, currency, kind: "REAL" })
+    .upsert(
+      { user_id: userId, currency, kind: "REAL" },
+      { onConflict: "user_id,currency,kind", ignoreDuplicates: true },
+    )
     .select("id, status")
-    .single();
+    .maybeSingle();
   if (created.error) throw new Error(created.error.message);
-  return created.data;
+  if (created.data) return created.data;
+
+  // Another request created it first — read the winning row.
+  const settled = await admin
+    .from("wallets")
+    .select("id, status")
+    .eq("user_id", userId)
+    .eq("currency", currency)
+    .eq("kind", "REAL")
+    .maybeSingle();
+  if (settled.error) throw new Error(settled.error.message);
+  if (!settled.data) throw new Error("Could not provision that wallet.");
+  return settled.data;
 }
 
 /** Cooling-off and self-exclusion block all funding and payouts. */

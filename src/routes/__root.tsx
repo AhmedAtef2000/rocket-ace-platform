@@ -16,6 +16,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 
 function NotFoundComponent() {
+  // Root-level boundaries render outside RootComponent, so they carry their
+  // own provider — otherwise useI18n throws and the screen goes blank.
+  return (
+    <I18nProvider>
+      <NotFoundBody />
+    </I18nProvider>
+  );
+}
+
+function NotFoundBody() {
   const { t } = useI18n();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -39,6 +49,14 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  return (
+    <I18nProvider>
+      <ErrorBody error={error} reset={reset} />
+    </I18nProvider>
+  );
+}
+
+function ErrorBody({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   const { t } = useI18n();
