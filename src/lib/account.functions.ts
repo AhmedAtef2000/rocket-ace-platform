@@ -80,12 +80,15 @@ export const provisionAccount = createServerFn({ method: "POST" })
       .eq("currency", "DEMO")
       .maybeSingle();
     if (!demoWallet) {
-      const { error } = await supabaseAdmin.from("wallets").insert({
-        user_id: userId,
-        currency: "DEMO",
-        kind: "DEMO",
-        status: "ACTIVE",
-      });
+      const { error } = await supabaseAdmin.from("wallets").upsert(
+        {
+          user_id: userId,
+          currency: "DEMO",
+          kind: "DEMO",
+          status: "ACTIVE",
+        },
+        { onConflict: "user_id,currency,kind", ignoreDuplicates: true },
+      );
       if (error) throw new Error(error.message);
     }
 
